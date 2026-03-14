@@ -6,10 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Message;
 use App\Models\Report;
 use App\Models\User;
+use App\Services\MobileNotificationService;
 use Illuminate\Http\Request;
 
 class ActivationController extends Controller
 {
+    public function __construct(private MobileNotificationService $mobileNotificationService)
+    {
+    }
+
     public function index(Request $request)
     {
         $query = User::with(['airline', 'position']);
@@ -82,6 +87,15 @@ class ActivationController extends Controller
         ]);
 
         $user->update(['status' => $request->status]);
+
+        $this->mobileNotificationService->createForUser(
+            $user,
+            'Account Status Updated',
+            'Your account status is now: ' . $request->status,
+            'system',
+            'system_notification_sound.mp3',
+            ['status' => (string) $request->status]
+        );
 
         return redirect()->route('activation')->with('success', 'User status updated.');
     }

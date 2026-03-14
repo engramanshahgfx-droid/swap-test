@@ -20,17 +20,30 @@ class ChatController extends Controller
 
     public function conversations(Request $request)
     {
+        $perPage = max(1, min((int) $request->integer('per_page', 20), 100));
+        $page = max(1, (int) $request->integer('page', 1));
         $conversations = $this->chatService->getUserConversations($request->user());
+
+        $items = $conversations->forPage($page, $perPage)->values();
 
         return response()->json([
             'success' => true,
-            'data' => $conversations,
+            'data' => [
+                'items' => $items,
+                'pagination' => [
+                    'current_page' => $page,
+                    'last_page' => max(1, (int) ceil($conversations->count() / $perPage)),
+                    'per_page' => $perPage,
+                    'total' => $conversations->count(),
+                ],
+            ],
         ]);
     }
 
     public function messages(Request $request, $conversationId)
     {
         $conversation = Conversation::findOrFail($conversationId);
+        $perPage = max(1, min((int) $request->integer('per_page', 50), 100));
 
         // Check if user is part of this conversation
         if ($conversation->user_one_id !== $request->user()->id && 
@@ -41,17 +54,26 @@ class ChatController extends Controller
             ], 403);
         }
 
-        $messages = $this->chatService->getConversationMessages($conversation, $request->user());
+        $messages = $this->chatService->getConversationMessages($conversation, $request->user(), $perPage);
 
         return response()->json([
             'success' => true,
-            'data' => $messages,
+            'data' => [
+                'items' => $messages->items(),
+                'pagination' => [
+                    'current_page' => $messages->currentPage(),
+                    'last_page' => $messages->lastPage(),
+                    'per_page' => $messages->perPage(),
+                    'total' => $messages->total(),
+                ],
+            ],
         ]);
     }
 
     public function sendMessage(SendMessageRequest $request)
     {
         $user = $request->user();
+        $messageType = $request->input('message_type', 'text');
         
         // Get conversation - either by ID or by recipient
         if ($request->conversation_id) {
@@ -66,7 +88,8 @@ class ChatController extends Controller
                 ], 403);
             }
         } else {
-            $recipient = User::findOrFail($request->recipient_id);
+            $recipientId = $request->recipient_id ?? $request->receiver_id;
+            $recipient = User::findOrFail($recipientId);
             $conversation = $this->chatService->getOrCreateConversation($user, $recipient);
         }
 
@@ -74,13 +97,26 @@ class ChatController extends Controller
         $message = $this->chatService->sendMessage(
             $conversation,
             $user,
-            $request->message
+            $request->message,
+            $messageType
         );
+
+        $receiverId = $conversation->user_one_id === $user->id
+            ? $conversation->user_two_id
+            : $conversation->user_one_id;
 
         return response()->json([
             'success' => true,
             'message' => __('messages.message_sent'),
-            'data' => $message,
+            'data' => [
+                'message_id' => $message->id,
+                'sender_id' => $message->sender_id,
+                'receiver_id' => $receiverId,
+                'message' => $message->body,
+                'message_type' => $message->message_type ?? 'text',
+                'delivery_status' => $message->read_at ? 'read' : 'delivered',
+                'created_at' => $message->created_at,
+            ],
         ], 201);
     }
 
@@ -103,5 +139,24 @@ class ChatController extends Controller
             'success' => true,
             'message' => 'Messages marked as read',
         ]);
+    }
+
+    public function unreadCount(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'unread_count' => $this->chatService->getUnreadCount($request->user()),
+            ],
+        ]);
+    }
+
+    public function markRead(Request $request)
+    {
+        $validated = $request->validate([
+            'conversation_id' => 'required|exists:conversations,id',
+        ]);
+
+        return $this->markAsRead($request, $validated['conversation_id']);
     }
 }

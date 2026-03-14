@@ -42,7 +42,7 @@ class SwapCompleted implements ShouldBroadcast
                 'number' => $this->swapRequest->publishedTrip->flight->flight_number,
                 'route' => $this->swapRequest->publishedTrip->flight->departure_airport . ' → ' . 
                           $this->swapRequest->publishedTrip->flight->arrival_airport,
-                'date' => $this->swapRequest->publishedTrip->flight->date->format('Y-m-d'),
+                'date' => optional($this->swapRequest->publishedTrip->flight->departure_date)->format('Y-m-d'),
             ],
         ];
     }

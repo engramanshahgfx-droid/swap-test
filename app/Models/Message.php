@@ -13,10 +13,13 @@ class Message extends Model
         'conversation_id',
         'sender_id',
         'body',
+        'message_type',
+        'delivered_at',
         'read_at',
     ];
 
     protected $casts = [
+        'delivered_at' => 'datetime',
         'read_at' => 'datetime',
     ];
 

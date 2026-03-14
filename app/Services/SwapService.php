@@ -115,6 +115,33 @@ class SwapService
         });
     }
 
+    public function cancelSwap(SwapRequest $swapRequest, User $requester, ?string $reason = null)
+    {
+        return DB::transaction(function () use ($swapRequest, $requester, $reason) {
+            if ($swapRequest->requester_id !== $requester->id) {
+                throw new \Exception('You are not allowed to cancel this swap request.');
+            }
+
+            if (in_array($swapRequest->status, ['completed', 'manager_approved'], true)) {
+                throw new \Exception('Completed swaps cannot be canceled.');
+            }
+
+            $swapRequest->update([
+                'status' => 'cancelled',
+                'responded_at' => now(),
+                'message' => $reason ?: $swapRequest->message,
+            ]);
+
+            try {
+                event(new SwapRejected($swapRequest, 'requester', $reason));
+            } catch (\Exception $e) {
+                // Event may not exist, continue
+            }
+
+            return $swapRequest;
+        });
+    }
+
     public function approveByManager(SwapRequest $swapRequest, User $manager, $notes = null)
     {
         return DB::transaction(function () use ($swapRequest, $manager, $notes) {

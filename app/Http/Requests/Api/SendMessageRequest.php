@@ -14,9 +14,11 @@ class SendMessageRequest extends FormRequest
     public function rules()
     {
         return [
-            'recipient_id' => 'required_without:conversation_id|exists:users,id',
-            'conversation_id' => 'required_without:recipient_id|exists:conversations,id',
+            'recipient_id' => 'required_without_all:conversation_id,receiver_id|exists:users,id',
+            'receiver_id' => 'required_without_all:conversation_id,recipient_id|exists:users,id',
+            'conversation_id' => 'required_without_all:recipient_id,receiver_id|exists:conversations,id',
             'message' => 'required|string|max:1000',
+            'message_type' => 'nullable|string|in:text,image,file,system',
         ];
     }
 

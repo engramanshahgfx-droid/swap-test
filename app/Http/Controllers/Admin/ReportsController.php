@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Report;
+use App\Services\MobileNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
 class ReportsController extends Controller
 {
+    public function __construct(private MobileNotificationService $mobileNotificationService)
+    {
+    }
+
     public function index(Request $request)
     {
         $query = Report::with(['reporter.airline', 'reporter.position', 'reportedUser.airline', 'reportedUser.position', 'reviewedBy']);
@@ -118,12 +123,30 @@ class ReportsController extends Controller
             $status = 'resolved';
             $durationLabel = str_replace('_', ' ', $validated['ban_duration'] ?? 'manual');
             $resolution = 'User banned (' . $durationLabel . ')';
+
+            $this->mobileNotificationService->createForUser(
+                $reportedUser,
+                'Account Restricted',
+                'Your account has been restricted by a moderator.',
+                'system',
+                'system_notification_sound.mp3',
+                ['reason' => 'ban']
+            );
         }
 
         if ($validated['action'] === 'deactivate' && $reportedUser) {
             $reportedUser->update(['status' => 'inactive']);
             $status = 'resolved';
             $resolution = 'User deactivated by moderator';
+
+            $this->mobileNotificationService->createForUser(
+                $reportedUser,
+                'Account Deactivated',
+                'Your account has been deactivated by a moderator.',
+                'system',
+                'system_notification_sound.mp3',
+                ['reason' => 'deactivate']
+            );
         }
 
         if ($validated['action'] === 'reject') {

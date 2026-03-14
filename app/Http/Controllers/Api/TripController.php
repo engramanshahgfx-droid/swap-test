@@ -21,13 +21,15 @@ class TripController extends Controller
 
     public function myTrips(Request $request)
     {
+        $perPage = max(1, min((int) $request->integer('per_page', 20), 100));
+
         $trips = UserTrip::where('user_id', $request->user()->id)
             ->with(['flight' => function ($query) {
                 $query->with(['airline', 'planeType']);
             }])
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($trip) {
+            ->paginate($perPage)
+            ->through(function ($trip) {
                 return [
                     'id' => $trip->id,
                     'flight' => [
@@ -48,7 +50,15 @@ class TripController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $trips,
+            'data' => [
+                'items' => $trips->items(),
+                'pagination' => [
+                    'current_page' => $trips->currentPage(),
+                    'last_page' => $trips->lastPage(),
+                    'per_page' => $trips->perPage(),
+                    'total' => $trips->total(),
+                ],
+            ],
         ]);
     }
 
@@ -88,11 +98,23 @@ class TripController extends Controller
 
     public function browseTrips(Request $request)
     {
+        $perPage = max(1, min((int) $request->integer('per_page', 20), 100));
+        $page = max(1, (int) $request->integer('page', 1));
         $eligibleTrips = $this->swapService->getUserEligibleTrips($request->user());
+
+        $items = $eligibleTrips->forPage($page, $perPage)->values();
 
         return response()->json([
             'success' => true,
-            'data' => $eligibleTrips,
+            'data' => [
+                'items' => $items,
+                'pagination' => [
+                    'current_page' => $page,
+                    'last_page' => max(1, (int) ceil($eligibleTrips->count() / $perPage)),
+                    'per_page' => $perPage,
+                    'total' => $eligibleTrips->count(),
+                ],
+            ],
         ]);
     }
 
@@ -167,13 +189,14 @@ class TripController extends Controller
     public function swapHistory(Request $request)
     {
         $user = $request->user();
+        $perPage = max(1, min((int) $request->integer('per_page', 20), 100));
 
         $swapRequests = SwapRequest::where('requester_id', $user->id)
             ->orWhere('responder_id', $user->id)
             ->with(['requester', 'responder', 'publishedTrip.flight'])
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($swap) use ($user) {
+            ->paginate($perPage)
+            ->through(function ($swap) use ($user) {
                 $isRequester = $swap->requester_id === $user->id;
                 $otherUser = $isRequester ? $swap->responder : $swap->requester;
                 
@@ -199,7 +222,15 @@ class TripController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $swapRequests,
+            'data' => [
+                'items' => $swapRequests->items(),
+                'pagination' => [
+                    'current_page' => $swapRequests->currentPage(),
+                    'last_page' => $swapRequests->lastPage(),
+                    'per_page' => $swapRequests->perPage(),
+                    'total' => $swapRequests->total(),
+                ],
+            ],
         ]);
     }
 }

@@ -50,7 +50,7 @@ class FirebaseNotificationService
      * @param array $data - Additional data to send with notification
      * @return bool - Success status
      */
-    public function sendToDevice($deviceToken, $title, $body, $data = [])
+    public function sendToDevice($deviceToken, $title, $body, $data = [], ?string $sound = null)
     {
         try {
             if (!$this->messaging) {
@@ -73,6 +73,19 @@ class FirebaseNotificationService
                         'body' => $body,
                     ],
                     'data' => $data,
+                    'android' => [
+                        'notification' => [
+                            'sound' => $sound ?: 'default',
+                            'channel_id' => 'default',
+                        ],
+                    ],
+                    'apns' => [
+                        'payload' => [
+                            'aps' => [
+                                'sound' => $sound ?: 'default',
+                            ],
+                        ],
+                    ],
                 ],
             ];
 
@@ -108,7 +121,7 @@ class FirebaseNotificationService
      * @param array $data - Additional data
      * @return bool
      */
-    public function sendToTopic($topic, $title, $body, $data = [])
+    public function sendToTopic($topic, $title, $body, $data = [], ?string $sound = null)
     {
         try {
             if (!$this->messaging) {
@@ -131,6 +144,19 @@ class FirebaseNotificationService
                         'body' => $body,
                     ],
                     'data' => $data,
+                    'android' => [
+                        'notification' => [
+                            'sound' => $sound ?: 'default',
+                            'channel_id' => 'default',
+                        ],
+                    ],
+                    'apns' => [
+                        'payload' => [
+                            'aps' => [
+                                'sound' => $sound ?: 'default',
+                            ],
+                        ],
+                    ],
                 ],
             ];
 
@@ -263,7 +289,8 @@ class FirebaseNotificationService
             $deviceToken,
             'New Swap Request',
             "{$crewName} wants to swap trips with you",
-            array_merge(['type' => 'swap_request'], $tripData)
+            array_merge(['type' => 'swap_request'], $tripData),
+            'swap_request_sound.mp3'
         );
     }
 
@@ -276,7 +303,8 @@ class FirebaseNotificationService
             $deviceToken,
             'Swap Approved',
             "{$crewName} approved your swap request",
-            ['type' => 'swap_approved']
+            ['type' => 'swap_approved'],
+            'swap_request_sound.mp3'
         );
     }
 
@@ -289,7 +317,8 @@ class FirebaseNotificationService
             $deviceToken,
             'Swap Rejected',
             "{$crewName} rejected your swap request",
-            ['type' => 'swap_rejected']
+            ['type' => 'swap_rejected'],
+            'swap_request_sound.mp3'
         );
     }
 
@@ -302,7 +331,8 @@ class FirebaseNotificationService
             $deviceToken,
             'New Message',
             "{$senderName}: {$message}",
-            ['type' => 'new_message']
+            ['type' => 'new_message'],
+            'chat_message_sound.mp3'
         );
     }
 }

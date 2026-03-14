@@ -1,0 +1,580 @@
+openapi: 3.0.3
+info:
+  title: CrewSwap Mobile API
+  version: 1.1.0
+  description: Mobile integration contract for CrewSwap backend.
+servers:
+  - url: /api
+    description: Laravel API base path
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Flight Swaps
+  - name: Vacation Swaps
+  - name: Reports
+  - name: Chat
+  - name: Notifications
+  - name: Analytics
+
+security:
+  - bearerAuth: []
+
+paths:
+  /login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /logout:
+    post:
+      tags: [Auth]
+      summary: Logout current token
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /refresh-token:
+    post:
+      tags: [Auth]
+      summary: Refresh Sanctum token
+      responses:
+        '200':
+          description: New token returned
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          token: { type: string }
+
+  /users:
+    get:
+      tags: [Users]
+      summary: List users
+      parameters:
+        - $ref: '#/components/parameters/search'
+        - name: status
+          in: query
+          schema: { type: string, enum: [active, inactive, blocked] }
+        - name: airline_id
+          in: query
+          schema: { type: integer }
+        - $ref: '#/components/parameters/per_page'
+      responses:
+        '200':
+          description: Paginated users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGeneric'
+  /users/{user}:
+    get:
+      tags: [Users]
+      summary: User details
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /user:
+    get:
+      tags: [Users]
+      summary: Current user profile
+      responses:
+        '200':
+          description: Current user
+    put:
+      tags: [Users]
+      summary: Update current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name: { type: string }
+                phone: { type: string }
+                country: { type: string }
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /user/device-token:
+    post:
+      tags: [Users]
+      summary: Register FCM token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_token]
+              properties:
+                device_token: { type: string }
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /my-trips:
+    get:
+      tags: [Flight Swaps]
+      summary: Logged-in user trips
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /browse-trips:
+    get:
+      tags: [Flight Swaps]
+      summary: Browse eligible flight swaps
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /publish-trip:
+    post:
+      tags: [Flight Swaps]
+      summary: Publish a trip for swap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [flight_number, departure, arrival, date, position]
+              properties:
+                flight_number: { type: string }
+                departure: { type: string }
+                arrival: { type: string }
+                date: { type: string, format: date }
+                position: { type: string }
+                notes: { type: string }
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+  /request-swap:
+    post:
+      tags: [Flight Swaps]
+      summary: Request a flight swap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [published_trip_id]
+              properties:
+                published_trip_id: { type: integer }
+                requester_trip_id: { type: integer }
+                message: { type: string }
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+  /confirm-swap/{swapRequest}:
+    post:
+      tags: [Flight Swaps]
+      summary: Accept swap request
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /reject-swap/{swapRequest}:
+    post:
+      tags: [Flight Swaps]
+      summary: Reject swap request
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /cancel-swap/{swapRequest}:
+    post:
+      tags: [Flight Swaps]
+      summary: Cancel swap request (requester)
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /swap-history:
+    get:
+      tags: [Flight Swaps]
+      summary: Swap history
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /vacation-swaps:
+    get:
+      tags: [Vacation Swaps]
+      summary: Browse vacation swaps (alias of swap marketplace)
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /vacation-swaps/request:
+    post:
+      tags: [Vacation Swaps]
+      summary: Request vacation swap (alias of /request-swap)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [published_trip_id]
+              properties:
+                published_trip_id: { type: integer }
+                requester_trip_id: { type: integer }
+                message: { type: string }
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+  /vacation-swaps/history:
+    get:
+      tags: [Vacation Swaps]
+      summary: Vacation swap history alias
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /report-user:
+    post:
+      tags: [Reports]
+      summary: Submit report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reported_user_id, reason]
+              properties:
+                reported_user_id: { type: integer }
+                reason: { type: string }
+                details: { type: string }
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+  /my-reports:
+    get:
+      tags: [Reports]
+      summary: Reporter history
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /chat/conversations:
+    get:
+      tags: [Chat]
+      summary: List conversations
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /chat/messages/{conversation}:
+    get:
+      tags: [Chat]
+      summary: Conversation messages
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/per_page'
+      responses:
+        '200':
+          description: Paginated message list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/ChatMessage'
+  /chat/send:
+    post:
+      tags: [Chat]
+      summary: Send message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                conversation_id: { type: integer }
+                recipient_id: { type: integer }
+                receiver_id: { type: integer }
+                message: { type: string }
+                message_type:
+                  type: string
+                  enum: [text, image, file, system]
+      responses:
+        '201':
+          description: Message created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ChatMessage'
+  /chat/unread-count:
+    get:
+      tags: [Chat]
+      summary: Aggregate unread message count
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+  /chat/mark-read:
+    post:
+      tags: [Chat]
+      summary: Mark conversation as read
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [conversation_id]
+              properties:
+                conversation_id: { type: integer }
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications for current user
+      parameters:
+        - name: type
+          in: query
+          schema: { type: string }
+        - name: is_read
+          in: query
+          schema: { type: boolean }
+        - $ref: '#/components/parameters/search'
+        - $ref: '#/components/parameters/per_page'
+      responses:
+        '200':
+          description: Paginated notifications
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/NotificationItem'
+  /notifications/send:
+    post:
+      tags: [Notifications]
+      summary: Send notification to user(s)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, message, type]
+              properties:
+                user_id: { type: integer }
+                user_ids:
+                  type: array
+                  items: { type: integer }
+                title: { type: string }
+                message: { type: string }
+                type: { type: string, example: chat }
+                sound:
+                  type: string
+                  enum:
+                    - chat_message_sound.mp3
+                    - swap_request_sound.mp3
+                    - report_alert_sound.mp3
+                    - system_notification_sound.mp3
+                payload:
+                  type: object
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+  /notifications/{id}/read:
+    put:
+      tags: [Notifications]
+      summary: Mark notification as read
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+  /dashboard/analytics:
+    get:
+      tags: [Analytics]
+      summary: Dashboard analytics summary
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Bearer
+
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+    search:
+      name: search
+      in: query
+      schema: { type: string }
+    per_page:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  responses:
+    Success:
+      description: Success response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessEnvelope'
+    Created:
+      description: Resource created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessEnvelope'
+
+  schemas:
+    SuccessEnvelope:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string, nullable: true }
+        data: { type: object, nullable: true }
+
+    PaginatedGeneric:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items: { type: object }
+                pagination:
+                  type: object
+                  properties:
+                    current_page: { type: integer }
+                    last_page: { type: integer }
+                    per_page: { type: integer }
+                    total: { type: integer }
+
+    AuthResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                token: { type: string }
+                user: { type: object }
+
+    ChatMessage:
+      type: object
+      properties:
+        message_id: { type: integer, example: 55 }
+        sender_id: { type: integer, example: 2 }
+        receiver_id: { type: integer, example: 8 }
+        message: { type: string, example: Hello, can we swap this flight? }
+        message_type: { type: string, example: text }
+        delivery_status: { type: string, enum: [sent, delivered, read], example: delivered }
+        created_at: { type: string, format: date-time }
+
+    NotificationItem:
+      type: object
+      properties:
+        id: { type: integer, example: 120 }
+        title: { type: string, example: New Swap Request }
+        message: { type: string, example: A crew member wants to swap your flight. }
+        type: { type: string, example: swap }
+        sound: { type: string, example: swap_request_sound.mp3 }
+        created_at: { type: string, format: date-time }
+        read: { type: boolean, example: false }
+        payload:
+          type: object
+          example:
+            swap_request_id: '98'
+            type: swap
+
+x-mobile-notification-payload-example:
+  title: New Message
+  body: You received a new chat message
+  sound: chat_message_sound.mp3
+  type: chat
+
+x-mobile-sounds:
+  - chat_message_sound.mp3
+  - swap_request_sound.mp3
+  - report_alert_sound.mp3
+  - system_notification_sound.mp3

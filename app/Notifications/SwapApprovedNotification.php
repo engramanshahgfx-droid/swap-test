@@ -37,7 +37,7 @@ class SwapApprovedNotification extends Notification implements ShouldQueue
             ->line('Your swap request has been approved by ' . $approverText . '!')
             ->line('Flight: ' . $flight->flight_number)
             ->line('Route: ' . $flight->departure_airport . ' → ' . $flight->arrival_airport)
-            ->line('Date: ' . $flight->date->format('Y-m-d'))
+            ->line('Date: ' . optional($flight->departure_date)->format('Y-m-d'))
             ->action('View Details', url('/swap-requests/' . $this->swapRequest->id))
             ->line('Thank you for using CrewSwap!');
     }
@@ -53,7 +53,7 @@ class SwapApprovedNotification extends Notification implements ShouldQueue
             'flight' => [
                 'number' => $flight->flight_number,
                 'route' => $flight->departure_airport . ' → ' . $flight->arrival_airport,
-                'date' => $flight->date->format('Y-m-d'),
+                'date' => optional($flight->departure_date)->format('Y-m-d'),
             ],
             'message' => 'Your swap request for flight ' . $flight->flight_number . ' has been approved!',
         ];

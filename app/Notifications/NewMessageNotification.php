@@ -34,7 +34,7 @@ class NewMessageNotification extends Notification implements ShouldQueue
                 'id' => $this->message->sender->id,
                 'name' => $this->message->sender->full_name,
             ],
-            'preview' => substr($this->message->message, 0, 50) . (strlen($this->message->message) > 50 ? '...' : ''),
+            'preview' => substr($this->message->body, 0, 50) . (strlen($this->message->body) > 50 ? '...' : ''),
             'message' => $this->message->sender->full_name . ' sent you a message',
         ];
     }

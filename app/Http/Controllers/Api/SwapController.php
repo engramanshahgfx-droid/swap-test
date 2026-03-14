@@ -105,4 +105,24 @@ class SwapController extends Controller
             ], 400);
         }
     }
+
+    public function cancelSwap(Request $request, SwapRequest $swapRequest)
+    {
+        $user = $request->user();
+
+        try {
+            $swapRequest = $this->swapService->cancelSwap($swapRequest, $user, $request->input('reason'));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Swap request canceled.',
+                'data' => $swapRequest->load(['requester', 'responder', 'publishedTrip.flight']),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
 }

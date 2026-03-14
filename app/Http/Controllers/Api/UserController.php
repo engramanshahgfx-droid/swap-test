@@ -3,10 +3,57 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    public function index(Request $request)
+    {
+        $validated = $request->validate([
+            'search' => 'nullable|string|max:255',
+            'status' => 'nullable|in:active,inactive,blocked',
+            'airline_id' => 'nullable|integer|exists:airlines,id',
+            'per_page' => 'nullable|integer|min:1|max:100',
+        ]);
+
+        $query = User::query()
+            ->with(['airline', 'position'])
+            ->orderByDesc('created_at');
+
+        if (!empty($validated['search'])) {
+            $search = $validated['search'];
+            $query->where(function ($searchQuery) use ($search) {
+                $searchQuery->where('full_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('employee_id', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($validated['status'])) {
+            $query->where('status', $validated['status']);
+        }
+
+        if (!empty($validated['airline_id'])) {
+            $query->where('airline_id', $validated['airline_id']);
+        }
+
+        $users = $query->paginate($validated['per_page'] ?? 20);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'items' => $users->items(),
+                'pagination' => [
+                    'current_page' => $users->currentPage(),
+                    'last_page' => $users->lastPage(),
+                    'per_page' => $users->perPage(),
+                    'total' => $users->total(),
+                ],
+            ],
+        ]);
+    }
+
     /**
      * Store Firebase device token for push notifications
      *
@@ -38,6 +85,14 @@ class UserController extends Controller
     public function show(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    public function showById(User $user)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $user->load(['airline', 'position', 'planeType']),
+        ]);
     }
 
     /**

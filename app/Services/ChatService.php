@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class ChatService
 {
+    public function __construct(private MobileNotificationService $mobileNotificationService)
+    {
+    }
+
     public function getOrCreateConversation(User $user1, User $user2)
     {
         // Check if conversation already exists
@@ -32,13 +36,15 @@ class ChatService
         return $conversation;
     }
 
-    public function sendMessage(Conversation $conversation, User $sender, $messageText)
+    public function sendMessage(Conversation $conversation, User $sender, string $messageText, string $messageType = 'text')
     {
-        return DB::transaction(function () use ($conversation, $sender, $messageText) {
+        return DB::transaction(function () use ($conversation, $sender, $messageText, $messageType) {
             $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender_id' => $sender->id,
                 'body' => $messageText,
+                'message_type' => $messageType,
+                'delivered_at' => now(),
             ]);
 
             // Update conversation last message time
@@ -48,6 +54,21 @@ class ChatService
 
             // Broadcast event for real-time messaging
             broadcast(new NewMessage($message))->toOthers();
+
+            $recipient = $conversation->getOtherParticipant($sender->id);
+            if ($recipient) {
+                $this->mobileNotificationService->createForUser(
+                    $recipient,
+                    'New Message',
+                    $sender->full_name . ': ' . mb_substr($messageText, 0, 120),
+                    'chat',
+                    'chat_message_sound.mp3',
+                    [
+                        'conversation_id' => (string) $conversation->id,
+                        'message_id' => (string) $message->id,
+                    ]
+                );
+            }
 
             return $message->load('sender');
         });
@@ -89,11 +110,14 @@ class ChatService
                         'position' => $otherUser->position->name ?? 'Unknown',
                     ],
                     'last_message' => $lastMessage ? [
-                        'id' => $lastMessage->id,
+                        'message_id' => $lastMessage->id,
+                        'sender_id' => $lastMessage->sender_id,
+                        'receiver_id' => $otherUser->id,
                         'message' => $lastMessage->body,
+                        'message_type' => $lastMessage->message_type ?? 'text',
+                        'delivery_status' => $this->resolveDeliveryStatus($lastMessage),
                         'created_at' => $lastMessage->created_at,
                         'is_read' => $lastMessage->read_at !== null,
-                        'sender_id' => $lastMessage->sender_id,
                     ] : null,
                     'unread_count' => $unreadCount,
                     'updated_at' => $conversation->updated_at,
@@ -101,7 +125,7 @@ class ChatService
             });
     }
 
-    public function getConversationMessages(Conversation $conversation, User $user)
+    public function getConversationMessages(Conversation $conversation, User $user, int $perPage = 50)
     {
         // Mark messages as read
         $this->markMessagesAsRead($conversation, $user);
@@ -109,11 +133,19 @@ class ChatService
         return Message::where('conversation_id', $conversation->id)
             ->with('sender')
             ->orderBy('created_at', 'asc')
-            ->get()
-            ->map(function ($message) use ($user) {
+            ->paginate($perPage)
+            ->through(function ($message) use ($user, $conversation) {
+                $receiverId = $conversation->user_one_id === $message->sender_id
+                    ? $conversation->user_two_id
+                    : $conversation->user_one_id;
+
                 return [
-                    'id' => $message->id,
+                    'message_id' => $message->id,
+                    'sender_id' => $message->sender_id,
+                    'receiver_id' => $receiverId,
                     'message' => $message->body,
+                    'message_type' => $message->message_type ?? 'text',
+                    'delivery_status' => $this->resolveDeliveryStatus($message),
                     'sender' => [
                         'id' => $message->sender->id,
                         'name' => $message->sender->full_name,
@@ -123,5 +155,29 @@ class ChatService
                     'created_at' => $message->created_at,
                 ];
             });
+    }
+
+    public function getUnreadCount(User $user): int
+    {
+        return Message::whereHas('conversation', function ($query) use ($user) {
+            $query->where('user_one_id', $user->id)
+                ->orWhere('user_two_id', $user->id);
+        })
+            ->where('sender_id', '!=', $user->id)
+            ->whereNull('read_at')
+            ->count();
+    }
+
+    protected function resolveDeliveryStatus(Message $message): string
+    {
+        if ($message->read_at) {
+            return 'read';
+        }
+
+        if ($message->delivered_at) {
+            return 'delivered';
+        }
+
+        return 'sent';
     }
 }

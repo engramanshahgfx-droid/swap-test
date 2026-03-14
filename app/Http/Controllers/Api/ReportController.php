@@ -6,10 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ReportUserRequest;
 use App\Models\Report;
 use App\Models\User;
+use App\Services\MobileNotificationService;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
+    public function __construct(private MobileNotificationService $mobileNotificationService)
+    {
+    }
+
     public function reportUser(ReportUserRequest $request)
     {
         // Check if user has already reported this user
@@ -33,6 +38,16 @@ class ReportController extends Controller
             'status' => 'pending',
         ]);
 
+        $moderators = User::role(['admin', 'super-admin', 'support_moderator'])->get();
+        $this->mobileNotificationService->createForUsers(
+            $moderators,
+            'New Report Submitted',
+            'A new report requires moderation review.',
+            'report',
+            'report_alert_sound.mp3',
+            ['report_id' => (string) $report->id]
+        );
+
         return response()->json([
             'success' => true,
             'message' => __('messages.user_reported'),
@@ -42,11 +57,13 @@ class ReportController extends Controller
 
     public function myReports(Request $request)
     {
+        $perPage = max(1, min((int) $request->integer('per_page', 20), 100));
+
         $reports = Report::where('reporter_id', $request->user()->id)
             ->with('reportedUser')
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($report) {
+            ->paginate($perPage)
+            ->through(function ($report) {
                 return [
                     'id' => $report->id,
                     'reported_user' => [
@@ -64,7 +81,15 @@ class ReportController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $reports,
+            'data' => [
+                'items' => $reports->items(),
+                'pagination' => [
+                    'current_page' => $reports->currentPage(),
+                    'last_page' => $reports->lastPage(),
+                    'per_page' => $reports->perPage(),
+                    'total' => $reports->total(),
+                ],
+            ],
         ]);
     }
 }

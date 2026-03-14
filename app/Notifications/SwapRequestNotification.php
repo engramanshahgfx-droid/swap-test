@@ -36,7 +36,7 @@ class SwapRequestNotification extends Notification implements ShouldQueue
             ->greeting('Hello ' . $notifiable->full_name . '!')
             ->line($fromUser->full_name . ' has requested to swap for flight ' . $flight->flight_number)
             ->line('Route: ' . $flight->departure_airport . ' → ' . $flight->arrival_airport)
-            ->line('Date: ' . $flight->date->format('Y-m-d'))
+            ->line('Date: ' . optional($flight->departure_date)->format('Y-m-d'))
             ->action('View Request', url('/swap-requests/' . $this->swapRequest->id))
             ->line('Please review this request.');
     }
@@ -55,7 +55,7 @@ class SwapRequestNotification extends Notification implements ShouldQueue
             'flight' => [
                 'number' => $flight->flight_number,
                 'route' => $flight->departure_airport . ' → ' . $flight->arrival_airport,
-                'date' => $flight->date->format('Y-m-d'),
+                'date' => optional($flight->departure_date)->format('Y-m-d'),
             ],
             'message' => $this->swapRequest->fromUser->full_name . ' has requested a swap for flight ' . $flight->flight_number,
         ];

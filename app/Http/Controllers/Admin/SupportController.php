@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Services\MobileNotificationService;
 use Illuminate\Http\Request;
 
 class SupportController extends Controller
 {
+    public function __construct(private MobileNotificationService $mobileNotificationService)
+    {
+    }
+
     public function index(Request $request)
     {
         $conversations = Conversation::with([
@@ -52,15 +57,32 @@ class SupportController extends Controller
             'body' => 'required|string|max:2000',
         ]);
 
-        Message::create([
+        $message = Message::create([
             'conversation_id' => $conversation->id,
             'sender_id' => $request->user()->id,
             'body' => $validated['body'],
+            'message_type' => 'system',
+            'delivered_at' => now(),
         ]);
 
         $conversation->update([
             'last_message_at' => now(),
         ]);
+
+        $recipient = $conversation->getOtherParticipant($request->user()->id);
+        if ($recipient) {
+            $this->mobileNotificationService->createForUser(
+                $recipient,
+                'Admin Message',
+                $validated['body'],
+                'system',
+                'system_notification_sound.mp3',
+                [
+                    'conversation_id' => (string) $conversation->id,
+                    'message_id' => (string) $message->id,
+                ]
+            );
+        }
 
         return redirect()->route('support', ['conversation_id' => $conversation->id])->with('success', 'Reply sent successfully.');
     }
