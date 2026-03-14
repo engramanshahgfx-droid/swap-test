@@ -37,12 +37,35 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $serviceAccountPath = config('services.firebase.service_account_key_path');
-            if (!is_string($serviceAccountPath) || !is_file($serviceAccountPath)) {
+            $resolvedServiceAccountPath = $this->resolveFirebaseServiceAccountPath($serviceAccountPath);
+
+            if (!is_string($resolvedServiceAccountPath) || !is_file($resolvedServiceAccountPath)) {
                 throw new RuntimeException('Invalid FIREBASE_SERVICE_ACCOUNT_KEY_PATH. File not found: ' . (string) $serviceAccountPath);
             }
+
+            // Ensure downstream Firebase services always receive an absolute path.
+            config(['services.firebase.service_account_key_path' => $resolvedServiceAccountPath]);
         }
 
         Paginator::defaultView('vendor.pagination.admin');
         Paginator::defaultSimpleView('vendor.pagination.simple-default');
+    }
+
+    private function resolveFirebaseServiceAccountPath(mixed $path): ?string
+    {
+        if (!is_string($path) || $path === '') {
+            return null;
+        }
+
+        if ($this->isAbsolutePath($path)) {
+            return $path;
+        }
+
+        return base_path($path);
+    }
+
+    private function isAbsolutePath(string $path): bool
+    {
+        return preg_match('/^(?:[A-Za-z]:[\\\\\/]|\\\\\\\\|\/)/', $path) === 1;
     }
 }
