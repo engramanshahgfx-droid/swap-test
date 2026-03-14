@@ -1,0 +1,1403 @@
+openapi: 3.0.3
+info:
+  title: CrewSwap Mobile App API
+  version: 1.0.0
+  description: |
+    OpenAPI specification for CrewSwap mobile and admin API.
+    All endpoints return a consistent JSON envelope.
+servers:
+  - url: https://api.example.com/api/v1
+    description: Production
+  - url: http://127.0.0.1:8000/api/v1
+    description: Local
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Airlines
+  - name: Positions
+  - name: FlightSwaps
+  - name: VacationSwaps
+  - name: Reports
+  - name: Chat
+  - name: Analytics
+  - name: Notifications
+  - name: Roles
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponseData'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required: [token]
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          new_token:
+                            type: string
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Send OTP for password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          otp_sent:
+                            type: boolean
+                            example: true
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Reset password with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [otp, new_password]
+              properties:
+                otp:
+                  type: string
+                new_password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /users:
+    get:
+      tags: [Users]
+      summary: List users
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string, enum: [active, inactive, blocked] }
+        - name: role
+          in: query
+          schema: { type: string }
+        - name: airline_id
+          in: query
+          schema: { type: integer }
+        - $ref: '#/components/parameters/sort_by'
+        - $ref: '#/components/parameters/sort_dir'
+      responses:
+        '200':
+          description: Users list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/User'
+    post:
+      tags: [Users]
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success: { type: boolean, example: true }
+                          user_id: { type: integer, example: 101 }
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user full profile
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          full_profile:
+                            $ref: '#/components/schemas/User'
+                          trips:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Trip'
+                          reports:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Report'
+    put:
+      tags: [Users]
+      summary: Update user
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+    delete:
+      tags: [Users]
+      summary: Delete user
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /users/{id}/ban:
+    post:
+      tags: [Users]
+      summary: Ban user
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [duration, reason]
+              properties:
+                duration:
+                  type: string
+                  enum: [2_days, 1_week, 1_month, permanent]
+                reason:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /users/{id}/deactivate:
+    post:
+      tags: [Users]
+      summary: Deactivate user
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /airlines:
+    get:
+      tags: [Airlines]
+      summary: List airlines
+      responses:
+        '200':
+          description: Airlines list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          airlines:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Airline'
+    post:
+      tags: [Airlines]
+      summary: Create airline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AirlineRequest'
+      responses:
+        '201':
+          description: Airline created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success: { type: boolean, example: true }
+                          airline_id: { type: integer, example: 10 }
+
+  /airlines/{id}:
+    put:
+      tags: [Airlines]
+      summary: Update airline
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AirlineRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+    delete:
+      tags: [Airlines]
+      summary: Delete airline
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /positions:
+    get:
+      tags: [Positions]
+      summary: List positions
+      responses:
+        '200':
+          description: Positions list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          positions:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Position'
+    post:
+      tags: [Positions]
+      summary: Create position
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PositionRequest'
+      responses:
+        '201':
+          description: Position created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success: { type: boolean, example: true }
+                          position_id: { type: integer, example: 22 }
+
+  /positions/{id}:
+    put:
+      tags: [Positions]
+      summary: Update position
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PositionRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+    delete:
+      tags: [Positions]
+      summary: Delete position
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /swaps/flights:
+    get:
+      tags: [FlightSwaps]
+      summary: List flight swaps
+      parameters:
+        - name: flight_number
+          in: query
+          schema: { type: string }
+        - name: airline_id
+          in: query
+          schema: { type: integer }
+        - name: date_from
+          in: query
+          schema: { type: string, format: date }
+        - name: date_to
+          in: query
+          schema: { type: string, format: date }
+        - name: status
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+      responses:
+        '200':
+          description: Flight swaps list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/FlightSwap'
+    post:
+      tags: [FlightSwaps]
+      summary: Create flight swap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFlightSwapRequest'
+      responses:
+        '201':
+          description: Flight swap created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success: { type: boolean, example: true }
+                          swap_id: { type: integer, example: 77 }
+
+  /swaps/flights/{id}:
+    get:
+      tags: [FlightSwaps]
+      summary: Get flight swap detail
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Flight swap detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          swap_detail:
+                            $ref: '#/components/schemas/FlightSwap'
+    put:
+      tags: [FlightSwaps]
+      summary: Update flight swap
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+    delete:
+      tags: [FlightSwaps]
+      summary: Delete flight swap
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /swaps/vacations:
+    get:
+      tags: [VacationSwaps]
+      summary: List vacation swaps
+      parameters:
+        - name: date_from
+          in: query
+          schema: { type: string, format: date }
+        - name: date_to
+          in: query
+          schema: { type: string, format: date }
+        - name: airline_id
+          in: query
+          schema: { type: integer }
+        - name: status
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+      responses:
+        '200':
+          description: Vacation swaps list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/VacationSwap'
+    post:
+      tags: [VacationSwaps]
+      summary: Create vacation swap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVacationSwapRequest'
+      responses:
+        '201':
+          description: Vacation swap created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success: { type: boolean, example: true }
+                          swap_id: { type: integer, example: 330 }
+
+  /swaps/vacations/{id}:
+    put:
+      tags: [VacationSwaps]
+      summary: Update vacation swap
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+    delete:
+      tags: [VacationSwaps]
+      summary: Delete vacation swap
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /reports:
+    get:
+      tags: [Reports]
+      summary: List reports
+      parameters:
+        - name: reporter_id
+          in: query
+          schema: { type: integer }
+        - name: defendant_id
+          in: query
+          schema: { type: integer }
+        - name: status
+          in: query
+          schema: { type: string, enum: [waiting, solved, rejected, pending, reviewed, resolved] }
+        - name: type
+          in: query
+          schema: { type: string, enum: [spam, bad_language, disrespect, wrong_information] }
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+      responses:
+        '200':
+          description: Reports list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Report'
+    post:
+      tags: [Reports]
+      summary: Create report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportRequest'
+      responses:
+        '201':
+          description: Report created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success: { type: boolean, example: true }
+                          report_id: { type: integer, example: 401 }
+
+  /reports/{id}:
+    get:
+      tags: [Reports]
+      summary: Get report detail
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Report detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          report_detail:
+                            $ref: '#/components/schemas/Report'
+
+  /reports/{id}/resolve:
+    put:
+      tags: [Reports]
+      summary: Resolve report (ban/deactivate/reject)
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveReportRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /chat/users:
+    get:
+      tags: [Chat]
+      summary: List chat users
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Chat users list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/User'
+
+  /chat/users/{id}:
+    get:
+      tags: [Chat]
+      summary: Get chat history with user
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+      responses:
+        '200':
+          description: Chat history
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          chat_history:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/ChatMessage'
+    post:
+      tags: [Chat]
+      summary: Send message to user
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message, type]
+              properties:
+                message:
+                  type: string
+                type:
+                  type: string
+                  enum: [text, system]
+      responses:
+        '201':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success: { type: boolean, example: true }
+                          message_id: { type: integer, example: 8001 }
+
+  /analytics/dashboard:
+    get:
+      tags: [Analytics]
+      summary: Dashboard analytics summary
+      responses:
+        '200':
+          description: Dashboard analytics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DashboardAnalytics'
+
+  /analytics/users-growth:
+    get:
+      tags: [Analytics]
+      summary: User growth analytics
+      responses:
+        '200':
+          $ref: '#/components/responses/OkAnalyticsArray'
+
+  /analytics/top-airlines:
+    get:
+      tags: [Analytics]
+      summary: Top airlines analytics
+      responses:
+        '200':
+          $ref: '#/components/responses/OkAnalyticsArray'
+
+  /analytics/top-airports:
+    get:
+      tags: [Analytics]
+      summary: Top airports analytics
+      responses:
+        '200':
+          $ref: '#/components/responses/OkAnalyticsArray'
+
+  /analytics/top-crew-members:
+    get:
+      tags: [Analytics]
+      summary: Top crew members analytics
+      responses:
+        '200':
+          $ref: '#/components/responses/OkAnalyticsArray'
+
+  /analytics/swap-trends:
+    get:
+      tags: [Analytics]
+      summary: Swap trends analytics
+      responses:
+        '200':
+          $ref: '#/components/responses/OkAnalyticsArray'
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - name: unread_only
+          in: query
+          schema: { type: boolean }
+        - name: type
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Notification'
+    post:
+      tags: [Notifications]
+      summary: Create/send notification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, message, user_ids, type]
+              properties:
+                title: { type: string }
+                message: { type: string }
+                user_ids:
+                  type: array
+                  items: { type: integer }
+                type:
+                  type: string
+                  enum: [system, report, chat, swap]
+      responses:
+        '201':
+          $ref: '#/components/responses/CreatedSuccess'
+
+  /notifications/{id}/read:
+    put:
+      tags: [Notifications]
+      summary: Mark notification as read
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+  /roles:
+    get:
+      tags: [Roles]
+      summary: List roles
+      responses:
+        '200':
+          description: Roles list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          roles:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Role'
+
+  /roles/{id}/permissions:
+    get:
+      tags: [Roles]
+      summary: Get role permissions
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Role permissions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          permissions:
+                            type: array
+                            items:
+                              type: string
+    put:
+      tags: [Roles]
+      summary: Update role permissions
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [permissions]
+              properties:
+                permissions:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OkSuccess'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    per_page:
+      name: per_page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    sort_by:
+      name: sort_by
+      in: query
+      schema:
+        type: string
+    sort_dir:
+      name: sort_dir
+      in: query
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+
+  responses:
+    OkSuccess:
+      description: Success response
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/SuccessEnvelope'
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+    CreatedSuccess:
+      description: Created response
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/SuccessEnvelope'
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    OkAnalyticsArray:
+      description: Analytics data array
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/SuccessEnvelope'
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      points:
+                        type: array
+                        items:
+                          type: object
+                          additionalProperties: true
+
+  schemas:
+    SuccessEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed
+        data:
+          type: object
+          additionalProperties: true
+        meta:
+          $ref: '#/components/schemas/Meta'
+
+    PaginatedEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: List fetched
+        data:
+          type: object
+          additionalProperties: true
+        meta:
+          allOf:
+            - $ref: '#/components/schemas/Meta'
+            - type: object
+              properties:
+                pagination:
+                  $ref: '#/components/schemas/Pagination'
+
+    ErrorEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Validation failed
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            details:
+              type: object
+              additionalProperties: true
+        meta:
+          $ref: '#/components/schemas/Meta'
+
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer, example: 1 }
+        per_page: { type: integer, example: 20 }
+        total_count: { type: integer, example: 245 }
+        total_pages: { type: integer, example: 13 }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    LoginResponseData:
+      type: object
+      properties:
+        token: { type: string }
+        refresh_token: { type: string }
+        user_role: { type: string }
+
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        full_name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        status: { type: string }
+        role: { type: string }
+        airline_id: { type: integer }
+        position_id: { type: integer }
+        created_at: { type: string, format: date-time }
+
+    CreateUserRequest:
+      type: object
+      required: [name, email, phone, password, airline_id, position_id, role]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        password: { type: string, minLength: 8 }
+        airline_id: { type: integer }
+        position_id: { type: integer }
+        role: { type: string }
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+        airline_id: { type: integer }
+        position_id: { type: integer }
+        status: { type: string, enum: [active, inactive, blocked] }
+
+    Airline:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        code: { type: string }
+        country: { type: string }
+
+    AirlineRequest:
+      type: object
+      required: [name, code, country]
+      properties:
+        name: { type: string }
+        code: { type: string }
+        country: { type: string }
+
+    Position:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string }
+        level: { type: integer }
+
+    PositionRequest:
+      type: object
+      required: [name, slug, description, level]
+      properties:
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string }
+        level: { type: integer }
+
+    Trip:
+      type: object
+      properties:
+        id: { type: integer }
+        flight_number: { type: string }
+        departure_airport: { type: string }
+        arrival_airport: { type: string }
+        departure_date: { type: string, format: date }
+
+    FlightSwap:
+      type: object
+      properties:
+        id: { type: integer }
+        flight_number: { type: string }
+        offer_airport: { type: string }
+        ask_airport: { type: string }
+        airline_id: { type: integer }
+        report_time: { type: string, format: date-time }
+        status: { type: string }
+
+    CreateFlightSwapRequest:
+      type: object
+      required: [flight_number, offer_airport, ask_airport, airline_id, report_time, type]
+      properties:
+        flight_number: { type: string }
+        offer_airport: { type: string }
+        ask_airport: { type: string }
+        airline_id: { type: integer }
+        report_time: { type: string, format: date-time }
+        type: { type: string, enum: [offer, ask] }
+
+    VacationSwap:
+      type: object
+      properties:
+        id: { type: integer }
+        offer_date: { type: string, format: date }
+        ask_date: { type: string, format: date }
+        uploaded_date: { type: string, format: date-time }
+        airline_id: { type: integer }
+        status: { type: string }
+
+    CreateVacationSwapRequest:
+      type: object
+      required: [offer_date, ask_date, airline_id]
+      properties:
+        offer_date: { type: string, format: date }
+        ask_date: { type: string, format: date }
+        airline_id: { type: integer }
+
+    Report:
+      type: object
+      properties:
+        id: { type: integer }
+        reporter_id: { type: integer }
+        defendant_id: { type: integer }
+        type: { type: string }
+        message: { type: string }
+        status: { type: string }
+        report_date: { type: string, format: date-time }
+
+    CreateReportRequest:
+      type: object
+      required: [reporter_id, defendant_id, type, message]
+      properties:
+        reporter_id: { type: integer }
+        defendant_id: { type: integer }
+        type: { type: string, enum: [spam, bad_language, disrespect, wrong_information] }
+        message: { type: string }
+
+    ResolveReportRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [ban, deactivate, reject]
+        duration:
+          type: string
+          enum: [2_days, 1_week, 1_month, permanent]
+        message_to_reporter:
+          type: string
+
+    ChatMessage:
+      type: object
+      properties:
+        id: { type: integer }
+        user_id: { type: integer }
+        message: { type: string }
+        type: { type: string }
+        created_at: { type: string, format: date-time }
+
+    DashboardAnalytics:
+      type: object
+      properties:
+        total_flights: { type: integer }
+        total_airlines: { type: integer }
+        total_users: { type: integer }
+        total_reports: { type: integer }
+        flight_swap_stats:
+          type: object
+          additionalProperties: true
+        vacation_swap_stats:
+          type: object
+          additionalProperties: true
+        report_stats:
+          type: object
+          additionalProperties: true
+
+    Notification:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        message: { type: string }
+        type: { type: string }
+        is_read: { type: boolean }
+        created_at: { type: string, format: date-time }
+
+    Role:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
