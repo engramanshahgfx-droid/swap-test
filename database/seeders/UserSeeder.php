@@ -8,17 +8,41 @@ use App\Models\Airline;
 use App\Models\PlaneType;
 use App\Models\Position;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
         $ethiopian = Airline::where('code', 'ET')->first();
+
+        if (!$ethiopian) {
+            throw new RuntimeException('Required airline with code ET is missing. Run AirlineSeeder first.');
+        }
+
         $planeType = PlaneType::where('airline_id', $ethiopian->id)->first();
-        $adminPosition = Position::where('slug', 'admin')->first();
-        $managerPosition = Position::where('slug', 'crew_manager')->first();
-        $purserPosition = Position::where('slug', 'purser')->first();
-        $faPosition = Position::where('slug', 'flight_attendant')->first();
+
+        if (!$planeType) {
+            throw new RuntimeException('No plane type found for airline ET. Run PlaneTypeSeeder first.');
+        }
+
+        // Ensure required positions exist even if older seed data is present.
+        $adminPosition = Position::firstOrCreate(
+            ['slug' => 'admin'],
+            ['name' => 'Administrator', 'description' => 'Full access system administrator', 'level' => 10]
+        );
+        $managerPosition = Position::firstOrCreate(
+            ['slug' => 'crew_manager'],
+            ['name' => 'Crew Manager', 'description' => 'Manager responsible for crew scheduling and approvals', 'level' => 8]
+        );
+        $purserPosition = Position::firstOrCreate(
+            ['slug' => 'purser'],
+            ['name' => 'Purser', 'description' => 'Senior cabin crew member responsible for leading the cabin team', 'level' => 3]
+        );
+        $faPosition = Position::firstOrCreate(
+            ['slug' => 'flight_attendant'],
+            ['name' => 'Flight Attendant', 'description' => 'Cabin crew member responsible for passenger safety and comfort', 'level' => 1]
+        );
 
         // Create Super Admin
         $admin = User::firstOrCreate(['email' => 'admin@crewswap.com'], [
