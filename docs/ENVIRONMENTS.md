@@ -30,7 +30,7 @@ Each environment has:
 ```bash
 Host: 72.62.190.247
 User: root
-Password: Aa12345678@12
+Password: Aa12345678@12Aa12345678@12
 Developer User: u710227726
 Developer Password: Aa112233@@
 ```
@@ -38,7 +38,7 @@ Developer Password: Aa112233@@
 ### Admin Login (All Environments)
 ```
 Email: admin@crewswap.com
-Password: Password123
+Password: Password
 ```
 
 ---
