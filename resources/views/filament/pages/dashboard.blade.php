@@ -1,6 +1,7 @@
 <x-filament-panels::page>
-    <style>
-        .admin-dashboard {
+    <div>
+        <style>
+            .admin-dashboard {
             --dash-bg: linear-gradient(180deg, #eef4ff 0%, #f8fbff 100%);
             --dash-surface: rgba(255, 255, 255, 0.92);
             --dash-border: rgba(148, 163, 184, 0.24);
@@ -703,4 +704,5 @@
             document.addEventListener('livewire:navigated', initDashboardCharts);
         })();
     </script>
+    </div>
 </x-filament-panels::page>
