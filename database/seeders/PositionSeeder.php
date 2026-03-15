@@ -10,6 +10,10 @@ class PositionSeeder extends Seeder
     public function run(): void
     {
         $positions = [
+            // System roles
+            ['name' => 'Administrator', 'slug' => 'admin', 'description' => 'Full access system administrator', 'level' => 10],
+            ['name' => 'Crew Manager', 'slug' => 'crew_manager', 'description' => 'Manager responsible for crew scheduling and approvals', 'level' => 8],
+
             // Pilots & Flight Crew
             ['name' => 'Captain', 'slug' => 'captain', 'description' => 'Aircraft captain responsible for flight operations and crew', 'level' => 5],
             ['name' => 'First Officer', 'slug' => 'first_officer', 'description' => 'Co-pilot assisting the captain with flight operations', 'level' => 4],
