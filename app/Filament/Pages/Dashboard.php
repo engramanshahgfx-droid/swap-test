@@ -20,6 +20,18 @@ use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
 {
+    // Disable the Filament dashboard and redirect to custom dashboard
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
+    public function mount(): void
+    {
+        redirect('/dashboard')->send();
+        exit;
+    }
+
     protected static string $view = 'filament.pages.dashboard';
 
     protected function getViewData(): array
