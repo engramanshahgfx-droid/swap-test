@@ -32,7 +32,7 @@ class DebugLogin extends Command
         $this->info("Email Verified: " . ($user->email_verified_at ? 'YES' : 'NO'));
         
         // Test password
-        $plainPassword = "admin123";
+        $plainPassword = "password";
         $matches = password_verify($plainPassword, $user->password);
         $this->info("\nPassword Test: {$plainPassword}");
         $this->info("Password Hash Matches: " . ($matches ? 'YES' : 'NO'));

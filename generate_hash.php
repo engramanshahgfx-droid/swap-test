@@ -1,5 +1,5 @@
 <?php
 require 'bootstrap/app.php';
 
-$password = 'admin123';
+$password = 'password';
 echo \Illuminate\Support\Facades\Hash::make($password);

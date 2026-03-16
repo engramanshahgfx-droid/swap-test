@@ -54,7 +54,7 @@ class UserSeeder extends Seeder
             'airline_id' => $ethiopian->id,
             'plane_type_id' => $planeType->id,
             'position_id' => $adminPosition->id,
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('password'),
             'status' => 'active',
             'phone_verified_at' => now(),
             'email_verified_at' => now(),

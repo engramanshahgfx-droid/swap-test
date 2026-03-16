@@ -205,7 +205,7 @@
             <div class="login-footer">
                 <p style="margin: 0; color: #94a3b8;">Demo Credentials:</p>
                 <p style="margin: 4px 0 0;"><strong>admin@crewswap.com</strong></p>
-                <p style="margin: 4px 0;"><strong>admin123</strong></p>
+                <p style="margin: 4px 0;"><strong>password</strong></p>
             </div>
         </div>
     </div>

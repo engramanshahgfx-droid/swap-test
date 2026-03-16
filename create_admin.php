@@ -29,7 +29,7 @@ if ($admin) {
         'employee_id' => 'ADMIN001',
         'full_name' => 'Admin User',
         'email' => 'admin@crewswap.com',
-        'password' => bcrypt('admin123'),
+        'password' => bcrypt('password'),
         'phone' => '+1234567890',
         'country_base' => 'USA',
         'status' => 'active',
@@ -39,5 +39,5 @@ if ($admin) {
     $admin->assignRole('super-admin');
     echo "✓ Admin user created successfully!\n";
     echo "Email: admin@crewswap.com\n";
-    echo "Password: admin123\n";
+    echo "Password: password\n";
 }

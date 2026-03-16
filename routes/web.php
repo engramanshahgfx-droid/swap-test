@@ -30,11 +30,11 @@ Route::get('/admin/login', function () {
 // Admin Login POST handler
 Route::post('/admin/login', [LoginController::class, 'store'])->name('login');
 
-// Admin Logout
-Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
-
 // Custom Admin Dashboard (protected by web auth)
 Route::middleware('auth')->group(function () {
+    // Admin Logout
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Configuration
