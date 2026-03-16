@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AirlinesController;
 use App\Http\Controllers\Admin\PositionsController;
+use App\Http\Controllers\Admin\AirportsController;
 use App\Http\Controllers\Admin\SwapFlightController;
 use App\Http\Controllers\Admin\SwapVacationController;
 use App\Http\Controllers\Admin\ReportsController;
@@ -47,6 +48,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/positions', [PositionsController::class, 'store'])->name('positions.store');
     Route::put('/positions/{position}', [PositionsController::class, 'update'])->name('positions.update');
     Route::delete('/positions/{position}', [PositionsController::class, 'destroy'])->name('positions.destroy');
+
+    Route::get('/airports', [AirportsController::class, 'index'])->name('airports');
+    Route::post('/airports', [AirportsController::class, 'store'])->name('airports.store');
+    Route::put('/airports/{airport}', [AirportsController::class, 'update'])->name('airports.update');
+    Route::delete('/airports/{airport}', [AirportsController::class, 'destroy'])->name('airports.destroy');
 
     // Swap operations
     Route::get('/swap-flight', [SwapFlightController::class, 'index'])->name('swap-flight');

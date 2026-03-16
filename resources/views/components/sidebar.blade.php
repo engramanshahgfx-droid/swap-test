@@ -36,6 +36,10 @@
                 <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="2"/></svg>
                 <span class="nav-label">{{ __('admin.nav.positions') }}</span>
             </a>
+            <a href="{{ route('airports') }}" class="sub-item" data-nav="airports">
+                <svg viewBox="0 0 24 24"><path d="M20 16V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12M4 6h16M4 14h16"/><circle cx="12" cy="10" r="2"/></svg>
+                <span class="nav-label">{{ __('admin.nav.airports') }}</span>
+            </a>
         </div>
 
         <a href="{{ route('swap-flight') }}" class="nav-item" data-nav="swap-flight">
