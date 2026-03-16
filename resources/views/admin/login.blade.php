@@ -1,9 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.auth')
 
-@section('title', 'Admin Login')
-@section('page-name', 'login')
+@section('title', 'Admin Login - CrewSwap')
 
-@section('content')
+@section('styles')
     <style>
         .login-container {
             display: flex;
@@ -145,7 +144,9 @@
             text-decoration: underline;
         }
     </style>
+@endsection
 
+@section('content')
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
@@ -203,8 +204,8 @@
 
             <div class="login-footer">
                 <p style="margin: 0; color: #94a3b8;">Demo Credentials:</p>
-                <p style="margin: 4px 0 0;">Email: <strong>admin@crewswap.com</strong></p>
-                <p style="margin: 4px 0;">Password: <strong>admin123</strong></p>
+                <p style="margin: 4px 0 0;"><strong>admin@crewswap.com</strong></p>
+                <p style="margin: 4px 0;"><strong>admin123</strong></p>
             </div>
         </div>
     </div>
