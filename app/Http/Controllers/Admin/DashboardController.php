@@ -140,7 +140,11 @@ class DashboardController extends Controller
             ->take(6)
             ->get();
 
-        return view('pages.dashboard', compact('stats', 'trends', 'dashboardData', 'recent_swaps', 'recent_reports', 'tripWidgetStats', 'recent_trips'));
+        // Fetch all users with relationships for admin dashboard
+        $users = User::with(['airline', 'planeType', 'position'])
+            ->paginate(15);
+
+        return view('pages.dashboard', compact('stats', 'trends', 'dashboardData', 'recent_swaps', 'recent_reports', 'tripWidgetStats', 'recent_trips', 'users'));
     }
 
     private function compareCurrentToPreviousWeek(Builder $query): array

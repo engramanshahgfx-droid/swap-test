@@ -491,6 +491,80 @@
                 </tbody>
             </table>
         </div>
+        <div class="custom-dashboard-card span-12" style="margin-top: 20px;">
+            <div class="dashboard-block-head">
+                <div>
+                    <h3>User Management</h3>
+                    <p>Manage all crew members and employees</p>
+                </div>
+            </div>
+            
+            <div style="padding: 14px 16px; border-top: 1px solid var(--border);">
+                <div class="actions" style="margin-bottom: 14px;">
+                    <div class="search-box">
+                        <input type="text" class="js-users-search" placeholder="Search by name, email, or employee ID..." />
+                    </div>
+                </div>
+
+                <div class="table-wrap" style="border-radius: 0; overflow-x: auto;">
+                    <table class="table-mini" style="width: 100%; font-size: 13px;">
+                        <thead>
+                            <tr style="background: rgba(15,23,42,.03);">
+                                <th style="padding: 10px 8px; text-align: left;"><input type="checkbox" class="select-all-checkbox" /></th>
+                                <th style="padding: 10px 8px; text-align: left;">Employee ID</th>
+                                <th style="padding: 10px 8px; text-align: left;">Full Name</th>
+                                <th style="padding: 10px 8px; text-align: left;">Email Address</th>
+                                <th style="padding: 10px 8px; text-align: left;">Phone Number</th>
+                                <th style="padding: 10px 8px; text-align: left;">Airline</th>
+                                <th style="padding: 10px 8px; text-align: left;">Plane Type</th>
+                                <th style="padding: 10px 8px; text-align: left;">Position</th>
+                                <th style="padding: 10px 8px; text-align: left;">Status</th>
+                                <th style="padding: 10px 8px; text-align: left;">Verified</th>
+                                <th style="padding: 10px 8px; text-align: left;">Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($users as $user)
+                                <tr style="border-bottom: 1px solid var(--border); hover {{ 'background: rgba(217,225,239,.3);' }}">
+                                    <td style="padding: 10px 8px;"><input type="checkbox" class="user-checkbox" value="{{ $user->id }}" /></td>
+                                    <td style="padding: 10px 8px; color: #2563eb; font-weight: 600;">{{ $user->employee_id ?? '—' }}</td>
+                                    <td style="padding: 10px 8px;">{{ $user->full_name ?? '—' }}</td>
+                                    <td style="padding: 10px 8px; color: var(--muted);">{{ $user->email ?? '—' }}</td>
+                                    <td style="padding: 10px 8px;">{{ $user->phone ?? '—' }}</td>
+                                    <td style="padding: 10px 8px;">{{ $user->airline?->name ?? '—' }}</td>
+                                    <td style="padding: 10px 8px;">{{ $user->planeType?->name ?? '—' }}</td>
+                                    <td style="padding: 10px 8px;">{{ $user->position?->name ?? '—' }}</td>
+                                    <td style="padding: 10px 8px;">
+                                        <span class="badge {{ $user->status === 'active' ? 'badge-success' : ($user->status === 'blocked' ? 'badge-danger' : 'badge-warning') }}" style="font-size: 11px; padding: 4px 8px;">
+                                            {{ ucfirst($user->status) }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 10px 8px;">
+                                        {{ $user->phone_verified_at ? '✓ Yes' : '✗ No' }}
+                                    </td>
+                                    <td style="padding: 10px 8px; color: var(--muted); font-size: 12px;">
+                                        {{ $user->created_at?->format('M d, Y') ?? '—' }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="11" style="padding: 24px 8px; text-align: center; color: var(--muted);">No users found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                @if($users->hasPages())
+                    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 12px;">
+                        <span style="color: var(--muted);">Showing {{ $users->firstItem() }} to {{ $users->lastItem() }} of {{ $users->total() }} users</span>
+                        <div class="pagination" style="margin: 0;">
+                            {{ $users->links() }}
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 
     <script>
@@ -609,6 +683,44 @@
             } else {
                 initCustomDashboard();
             }
+
+            // User search functionality
+            const searchInput = document.querySelector('.js-users-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const query = e.target.value.toLowerCase();
+                    const rows = document.querySelectorAll('table tbody tr');
+                    
+                    rows.forEach(row => {
+                        if (row.textContent.toLowerCase().includes(query)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Select all checkbox functionality
+            const selectAllCheckbox = document.querySelector('.select-all-checkbox');
+            const userCheckboxes = document.querySelectorAll('.user-checkbox');
+            
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    userCheckboxes.forEach(checkbox => {
+                        checkbox.checked = this.checked;
+                    });
+                });
+            }
+            
+            userCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const allChecked = Array.from(userCheckboxes).every(cb => cb.checked);
+                    const someChecked = Array.from(userCheckboxes).some(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                    selectAllCheckbox.indeterminate = someChecked && !allChecked;
+                });
+            });
         })();
     </script>
 @endsection
