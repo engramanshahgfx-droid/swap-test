@@ -19,7 +19,7 @@
               }
             ],
             "url": {
-              "raw": "http://localhost:8000/api/registration-options",
+              "raw": "http://{{base_url}}/api/registration-options",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -54,7 +54,7 @@
               "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"password\": \"SecurePassword123!\",\n  \"password_confirmation\": \"SecurePassword123!\",\n  \"airline_id\": 1,\n  \"position_id\": 3,\n  \"plane_type_id\": 1,\n  \"employee_id\": \"EMP001\",\n  \"date_of_birth\": \"1990-05-15\"\n}"
             },
             "url": {
-              "raw": "http://localhost:8000/api/register",
+              "raw": "http://{{base_url}}/api/register",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -84,7 +84,7 @@
               "raw": "{\n  \"email\": \"admin@crewswap.com\",\n  \"password\": \"password\",\n  \"device_name\": \"iPhone 12 Pro\"\n}"
             },
             "url": {
-              "raw": "http://localhost:8000/api/login",
+              "raw": "http://{{base_url}}/api/login",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -114,7 +114,7 @@
               "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"otp\": \"123456\"\n}"
             },
             "url": {
-              "raw": "http://localhost:8000/api/verify-otp",
+              "raw": "http://{{base_url}}/api/verify-otp",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -144,7 +144,7 @@
               "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
             },
             "url": {
-              "raw": "http://localhost:8000/api/resend-otp",
+              "raw": "http://{{base_url}}/api/resend-otp",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -174,7 +174,7 @@
               }
             ],
             "url": {
-              "raw": "http://localhost:8000/api/logout",
+              "raw": "http://{{base_url}}/api/logout",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -204,7 +204,7 @@
               }
             ],
             "url": {
-              "raw": "http://localhost:8000/api/refresh-token",
+              "raw": "http://{{base_url}}/api/refresh-token",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -239,7 +239,7 @@
               }
             ],
             "url": {
-              "raw": "http://localhost:8000/api/user",
+              "raw": "http://{{base_url}}/api/user",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -273,7 +273,7 @@
               "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"+1234567890\",\n  \"airline_id\": 1,\n  \"position_id\": 3,\n  \"plane_type_id\": 1\n}"
             },
             "url": {
-              "raw": "http://localhost:8000/api/user",
+              "raw": "http://{{base_url}}/api/user",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -292,6 +292,11 @@
     }
   ],
   "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://{{base_url}}",
+      "description": "Base API URL"
+    },
     {
       "key": "token",
       "value": "",

@@ -38,7 +38,7 @@
             </a>
             <a href="{{ route('airports') }}" class="sub-item" data-nav="airports">
                 <svg viewBox="0 0 24 24"><path d="M20 16V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12M4 6h16M4 14h16"/><circle cx="12" cy="10" r="2"/></svg>
-                <span class="nav-label">{{ __('admin.nav.airports') }}</span>
+                <span class="nav-label">{{ __('Airports') }}</span>
             </a>
         </div>
 

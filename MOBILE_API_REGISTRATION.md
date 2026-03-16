@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-http://localhost:8000/api
+http://{{base_url}}/api
 ```
 
 ---
