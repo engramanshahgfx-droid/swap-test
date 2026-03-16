@@ -42,6 +42,7 @@ class MobileNotificationService
                 'sound' => $resolvedSound,
                 'is_read' => false,
                 'payload' => $payload,
+                'data' => json_encode(['title' => $title, 'message' => $message]),
             ]);
 
             if (!empty($user->device_token)) {

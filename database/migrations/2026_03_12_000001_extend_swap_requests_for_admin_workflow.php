@@ -16,12 +16,18 @@ return new class extends Migration
             $table->timestamp('manager_approved_at')->nullable()->after('manager_approved_by_id');
         });
 
-        DB::statement("ALTER TABLE swap_requests MODIFY status ENUM('pending', 'approved', 'rejected', 'approved_by_owner', 'rejected_by_owner', 'manager_approved', 'manager_rejected', 'completed', 'cancelled') NOT NULL DEFAULT 'pending'");
+        // Only modify ENUM for MySQL; SQLite doesn't support ENUM type
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE swap_requests MODIFY status ENUM('pending', 'approved', 'rejected', 'approved_by_owner', 'rejected_by_owner', 'manager_approved', 'manager_rejected', 'completed', 'cancelled') NOT NULL DEFAULT 'pending'");
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE swap_requests MODIFY status ENUM('pending', 'approved', 'rejected', 'completed') NOT NULL DEFAULT 'pending'");
+        // Only modify ENUM for MySQL; SQLite doesn't support ENUM type
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE swap_requests MODIFY status ENUM('pending', 'approved', 'rejected', 'completed') NOT NULL DEFAULT 'pending'");
+        }
 
         Schema::table('swap_requests', function (Blueprint $table) {
             $table->dropConstrainedForeignId('manager_approved_by_id');

@@ -19,6 +19,7 @@ class MobileNotification extends Model
         'sound',
         'is_read',
         'payload',
+        'data',
     ];
 
     protected $casts = [
@@ -27,6 +28,21 @@ class MobileNotification extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Auto-fill data field if not provided
+        static::creating(function ($model) {
+            if (empty($model->data)) {
+                $model->data = json_encode([
+                    'title' => $model->title ?? '',
+                    'message' => $model->message ?? '',
+                ]);
+            }
+        });
+    }
 
     public function user()
     {

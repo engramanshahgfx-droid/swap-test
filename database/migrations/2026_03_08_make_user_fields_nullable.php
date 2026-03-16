@@ -9,10 +9,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Use raw SQL to modify columns safely
-        DB::statement('ALTER TABLE users MODIFY airline_id BIGINT UNSIGNED NULL');
-        DB::statement('ALTER TABLE users MODIFY plane_type_id BIGINT UNSIGNED NULL');
-        DB::statement('ALTER TABLE users MODIFY position_id BIGINT UNSIGNED NULL');
+        // Check database type
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'mysql') {
+            // MySQL: Use raw statements to modify columns
+            DB::statement('ALTER TABLE users MODIFY airline_id BIGINT UNSIGNED NULL');
+            DB::statement('ALTER TABLE users MODIFY plane_type_id BIGINT UNSIGNED NULL');
+            DB::statement('ALTER TABLE users MODIFY position_id BIGINT UNSIGNED NULL');
+        }
+        // SQLite doesn't need modification - columns are already created nullable
     }
 
     public function down(): void

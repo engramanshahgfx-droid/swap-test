@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AirlinesController;
 use App\Http\Controllers\Admin\PositionsController;
@@ -12,6 +13,8 @@ use App\Http\Controllers\Admin\ActivationController;
 use App\Http\Controllers\Admin\SupportController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Frontend\AuthController as FrontendAuthController;
+use App\Http\Controllers\Frontend\FlightController;
 
 // Redirect root to admin login or dashboard
 Route::get('/', function () {
@@ -58,25 +61,73 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 });
 
-// API Testing Frontend (no auth required for testing)
+// ============================================
+// FRONTEND PAGES ROUTES (localhost:8000/frontend-test)
+// ============================================
+
+// Debug endpoint
+Route::get('/frontend-test/debug', function () {
+    return [
+        'airlines' => \App\Models\Airline::count(),
+        'positions' => \App\Models\Position::count(),
+        'plane_types' => \App\Models\PlaneType::count(),
+        'users' => \App\Models\User::count(),
+    ];
+})->name('frontend.debug');
+
+// Homepage - no auth required
 Route::get('/frontend-test', function () {
-    return view('frontend-test');
+    return view('frontend.index');
+})->name('frontend.index');
+
+// Authentication Routes (explicitly NO auth middleware - completely open)
+Route::group([], function () {
+    // Registration
+    Route::get('/frontend-test/register', [FrontendAuthController::class, 'showRegister'])->name('frontend.register');
+    Route::post('/frontend-test/register', function (Request $request) {
+        \Log::info('Registration POST received', ['data' => $request->all()]);
+        return app(FrontendAuthController::class)->register($request);
+    });
+
+    // OTP Verification
+    Route::get('/frontend-test/verify-otp', [FrontendAuthController::class, 'showVerifyOtp'])->name('frontend.verify-otp');
+    Route::post('/frontend-test/verify-otp', [FrontendAuthController::class, 'verifyOtp']);
+
+    // Login
+    Route::get('/frontend-test/login', [FrontendAuthController::class, 'showLogin'])->name('frontend.login');
+    Route::post('/frontend-test/login', [FrontendAuthController::class, 'login']);
+
+    // Forgot Password
+    Route::get('/frontend-test/forgot-password', [FrontendAuthController::class, 'showForgotPassword'])->name('frontend.forgot-password');
+    Route::post('/frontend-test/forgot-password', [FrontendAuthController::class, 'forgotPassword']);
+
+    Route::get('/frontend-test/reset-password-otp', [FrontendAuthController::class, 'showResetPasswordOtp'])->name('frontend.reset-password-otp');
+    Route::post('/frontend-test/reset-password-otp', [FrontendAuthController::class, 'verifyResetPasswordOtp']);
+
+    Route::get('/frontend-test/reset-password', [FrontendAuthController::class, 'showResetPassword'])->name('frontend.reset-password');
+    Route::post('/frontend-test/reset-password', [FrontendAuthController::class, 'resetPassword']);
 });
 
-Route::get('/test-login', function () {
-    return view('test-login');
+// Protected Routes (requires frontend authentication - both Auth and Session)
+Route::middleware(\App\Http\Middleware\FrontendAuth::class)->group(function () {
+    // Dashboard
+    Route::get('/frontend-test/dashboard', function () {
+        return view('frontend.dashboard');
+    })->name('frontend.dashboard');
+
+    // Logout
+    Route::post('/frontend-test/logout', [FrontendAuthController::class, 'logout'])->name('frontend.logout');
+
+    // Flights
+    Route::get('/frontend-test/flights', [FlightController::class, 'index'])->name('frontend.flights.index');
+    Route::get('/frontend-test/flights/add', [FlightController::class, 'showAddFlight'])->name('frontend.flights.add');
+    Route::post('/frontend-test/flights', [FlightController::class, 'addFlight']);
+    Route::get('/frontend-test/flights/my-flights', [FlightController::class, 'myFlights'])->name('frontend.flights.my-flights');
+    Route::get('/frontend-test/flights/{flight}', [FlightController::class, 'show'])->name('frontend.flights.show');
+    Route::post('/frontend-test/flights/{flight}/join', [FlightController::class, 'joinFlight'])->name('frontend.flights.join');
+    Route::post('/frontend-test/flights/{flight}/leave', [FlightController::class, 'leaveFlight'])->name('frontend.flights.leave');
 });
 
-Route::post('/test-login', function () {
-    $credentials = request()->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
-
-    if (Auth::attempt($credentials)) {
-        return 'SUCCESS: ' . Auth::user()->full_name;
-    }
-
-    return 'FAILED: Invalid credentials';
-});
+// API Testing Frontend (no auth required for testing)
+// Note: Keeping this route but it's now replaced by the /frontend-test route above
 

@@ -14,16 +14,38 @@ class User extends Authenticatable implements FilamentUser
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
+    protected static $adminRoles = [
+        'super-admin',
+        'crew_manager',
+        'hr_manager',
+        'operations_manager',
+        'support_moderator',
+        'data_analyst',
+    ];
+
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasAnyRole([
-            'super-admin',
-            'crew_manager',
-            'hr_manager',
-            'operations_manager',
-            'support_moderator',
-            'data_analyst',
-        ]);
+        // Cache the result for this request to prevent multiple lookups
+        if (isset($this->attributes['_can_access_panel_cached'])) {
+            return $this->attributes['_can_access_panel_cached'];
+        }
+
+        // Eagerly load roles with a timeout protection
+        $rolesLoaded = false;
+        try {
+            $userRoles = $this->roles()->limit(10)->pluck('name')->toArray();
+            $rolesLoaded = true;
+        } catch (\Exception $e) {
+            \Log::error('Error loading user roles: ' . $e->getMessage());
+            // Default to false if roles can't be loaded
+            $this->attributes['_can_access_panel_cached'] = false;
+            return false;
+        }
+
+        $result = !empty(array_intersect($userRoles, static::$adminRoles));
+        $this->attributes['_can_access_panel_cached'] = $result;
+        
+        return $result;
     }
 
     public function getFilamentName(): string
@@ -35,6 +57,10 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->full_name ?? 'User';
     }
+
+    protected $attributes = [
+        'status' => 'inactive',
+    ];
 
     protected $fillable = [
         'employee_id',

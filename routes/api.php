@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\LanguageController;
+use App\Http\Controllers\Api\RegistrationOptionsController;
 use Illuminate\Support\Facades\Route;
 
 // Language routes
@@ -24,6 +25,7 @@ Route::post('/simple-register', [AuthController::class, 'simpleRegister']);
 Route::post('/simple-login', [AuthController::class, 'simpleLogin']);
 
 // Legacy Public routes
+Route::get('/registration-options', [RegistrationOptionsController::class, 'index']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);

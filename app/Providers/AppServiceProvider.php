@@ -5,12 +5,16 @@ namespace App\Providers;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use RuntimeException;
+use App\Services\SmsService;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Bind SmsService to the container
+        $this->app->singleton(SmsService::class, function ($app) {
+            return new SmsService();
+        });
     }
 
     public function boot(): void

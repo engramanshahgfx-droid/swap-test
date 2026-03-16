@@ -65,6 +65,7 @@ class UserResource extends Resource
                                 'inactive' => 'Inactive',
                                 'blocked' => 'Blocked',
                             ])
+                            ->default('inactive')
                             ->required(),
                     ])->columns(2),
 

@@ -33,6 +33,7 @@ class AuthController extends Controller
             'plane_type_id' => $request->plane_type_id,
             'position_id' => $request->position_id,
             'password' => Hash::make($request->password),
+            'status' => 'inactive',
         ]);
 
         // Generate and send OTP
@@ -52,7 +53,7 @@ class AuthController extends Controller
         // Create token
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        $response = [
             'success' => true,
             'message' => __('auth.register_success'),
             'data' => [
@@ -60,7 +61,15 @@ class AuthController extends Controller
                 'token' => $token,
                 'requires_verification' => true,
             ],
-        ], 201);
+        ];
+
+        // For development/testing: include actual OTP
+        if (config('app.debug')) {
+            $response['data']['test_otp'] = $otp;
+            $response['data']['otp_expires_in_minutes'] = 10;
+        }
+
+        return response()->json($response, 201);
     }
 
     public function login(LoginRequest $request)
@@ -74,19 +83,41 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if ($user->status === 'inactive') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account is pending admin approval. Please wait for activation.',
+            ], 403);
+        }
+
+        if ($user->status === 'blocked') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been blocked. Please contact support.',
+            ], 403);
+        }
+
         if (!$user->phone_verified_at) {
             // Send new OTP
             $otp = $user->generateOtp();
             $this->smsService->sendOtp($user->phone, $otp);
 
-            return response()->json([
+            $response = [
                 'success' => false,
                 'message' => __('auth.phone_not_verified'),
                 'data' => [
                     'requires_verification' => true,
                     'user_id' => $user->id,
                 ],
-            ], 403);
+            ];
+
+            // For development/testing: include actual OTP
+            if (config('app.debug')) {
+                $response['data']['test_otp'] = $otp;
+                $response['data']['otp_expires_in_minutes'] = 10;
+            }
+
+            return response()->json($response, 403);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -197,7 +228,7 @@ class AuthController extends Controller
                 'full_name' => $validated['full_name'],
                 'phone' => '+1' . rand(1000000000, 9999999999), // Generate random phone
                 'country_base' => 'United States',
-                'status' => 'active',
+                'status' => 'inactive',
                 'phone_verified_at' => now(), // Skip SMS verification
                 // These will be NULL, not required for testing
                 // 'airline_id' => null,

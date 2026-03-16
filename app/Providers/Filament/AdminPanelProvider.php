@@ -45,30 +45,31 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\AccountWidget::class,
                 // Removed: Widgets\FilamentInfoWidget::class,
             ])
-            ->renderHook(
-                'panels::topbar.end',
-                fn () => view('filament.topbar.notification-icon'),
-            )
-            ->renderHook(
-                'panels::topbar.end',
-                fn () => view('filament.topbar.message-icon'),
-            )
-            ->renderHook(
-                'panels::topbar.end',
-                fn () => view('filament.topbar.language-switcher'),
-            )
-            ->renderHook(
-                'panels::head.start',
-                fn () => view('filament.hooks.rtl-support'),
-            )
-            ->renderHook(
-                'panels::head.end',
-                fn () => view('filament.hooks.admin-theme'),
-            )
-            ->renderHook(
-                'panels::topbar.start',
-                fn () => view('filament.topbar.brand-name'),
-            )
+            // Render hooks temporarily disabled to debug timeout issue
+            // ->renderHook(
+            //     'panels::topbar.end',
+            //     fn () => view('filament.topbar.notification-icon'),
+            // )
+            // ->renderHook(
+            //     'panels::topbar.end',
+            //     fn () => view('filament.topbar.message-icon'),
+            // )
+            // ->renderHook(
+            //     'panels::topbar.end',
+            //     fn () => view('filament.topbar.language-switcher'),
+            // )
+            // ->renderHook(
+            //     'panels::head.start',
+            //     fn () => view('filament.hooks.rtl-support'),
+            // )
+            // ->renderHook(
+            //     'panels::head.end',
+            //     fn () => view('filament.hooks.admin-theme'),
+            // )
+            // ->renderHook(
+            //     'panels::topbar.start',
+            //     fn () => view('filament.topbar.brand-name'),
+            // )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
