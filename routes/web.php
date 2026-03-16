@@ -15,11 +15,23 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Frontend\AuthController as FrontendAuthController;
 use App\Http\Controllers\Frontend\FlightController;
+use App\Http\Controllers\Admin\LoginController;
 
 // Redirect root to admin login or dashboard
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect('/admin/login');
 });
+
+// Admin Login Route (required by auth middleware)
+Route::get('/admin/login', function () {
+    return view('admin.login');
+})->name('login');
+
+// Admin Login POST handler
+Route::post('/admin/login', [LoginController::class, 'store'])->name('login');
+
+// Admin Logout
+Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
 // Custom Admin Dashboard (protected by web auth)
 Route::middleware('auth')->group(function () {
