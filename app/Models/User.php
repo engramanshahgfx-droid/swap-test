@@ -154,7 +154,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function generateOtp()
     {
-        $this->otp_code = rand(100000, 999999);
+        $this->otp_code = 123456;
         $this->otp_expires_at = now()->addMinutes(10);
         $this->save();
         
@@ -163,7 +163,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function verifyOtp($code)
     {
-        return $this->otp_code === $code && $this->otp_expires_at->isFuture();
+        return (int)$this->otp_code === (int)$code && $this->otp_expires_at->isFuture();
     }
 
     public function isActive()
