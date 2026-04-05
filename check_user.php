@@ -9,7 +9,9 @@ if ($user) {
     echo "Email: {$user->email}\n";
     echo "Password hash: " . substr($user->password, 0, 20) . "...\n";
     echo "Password match: " . (password_verify('password', $user->password) ? 'YES' : 'NO') . "\n";
-} else {
+    } 
+    else
+      {
     echo "Admin user not found\n";
     echo "Available users:\n";
     User::all()->each(function($u) {

@@ -112,19 +112,24 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-3 mb-3">
                         <a href="{{ route('frontend.flights.add') }}" class="btn btn-primary w-100">
                             <i class="bi bi-plus-circle"></i> Add New Flight
                         </a>
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-3 mb-3">
                         <a href="{{ route('frontend.flights.index') }}" class="btn btn-info w-100">
                             <i class="bi bi-list"></i> View All Flights
                         </a>
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-3 mb-3">
                         <a href="{{ route('frontend.flights.my-flights') }}" class="btn btn-success w-100">
                             <i class="bi bi-bookmark"></i> My Flights
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ route('frontend.vacations') }}" class="btn btn-warning w-100">
+                            <i class="bi bi-calendar-heart"></i> Vacation
                         </a>
                     </div>
                 </div>

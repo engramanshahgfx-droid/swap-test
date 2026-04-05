@@ -56,9 +56,9 @@
                                 </div>
                             </div>
                         </td>
-                        <td>{{ $trip->flight->flight_number ?? __('admin.none') }}</td>
-                        <td>{{ $trip->flight->airline->name ?? __('admin.none') }}</td>
-                        <td>{{ $trip->flight->departure_date ? $trip->flight->departure_date->format('M d, Y') : __('admin.none') }}</td>
+                        <td>{{ $trip->flight?->flight_number ?? __('admin.none') }}</td>
+                        <td>{{ $trip->flight?->airline?->name ?? __('admin.none') }}</td>
+                        <td>{{ $trip->flight?->departure_date?->format('M d, Y') ?? __('admin.none') }}</td>
                         <td>{{ $trip->swap_requests_count }}</td>
                         <td><span class="badge {{ $sc }}">{{ ucfirst($trip->status) }}</span></td>
                         <td>{{ $trip->published_at ? $trip->published_at->format('M d, Y') : $trip->created_at->format('M d, Y') }}</td>

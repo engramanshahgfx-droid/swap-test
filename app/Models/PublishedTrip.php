@@ -15,11 +15,14 @@ class PublishedTrip extends Model
         'user_trip_id',
         'status',
         'notes',
+        'vacation_type',
+        'metadata',
         'published_at',
         'expires_at',
     ];
 
     protected $casts = [
+        'metadata' => 'array',
         'published_at' => 'datetime',
         'expires_at' => 'datetime',
     ];

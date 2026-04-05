@@ -133,6 +133,11 @@
                             <i class="bi bi-plus-circle"></i> Add Flight
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('frontend.vacations') }}">
+                            <i class="bi bi-calendar-heart"></i> Vacation
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i> {{ Auth::user()->full_name }}

@@ -484,6 +484,61 @@
       ]
     },
     {
+      "name": "3B. Vacation Publishing",
+      "item": [
+        {
+          "name": "POST /publish-vacation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"publisher_id\": {{user_id}},\n  \"departure_month\": \"APR\",\n  \"arrival_month\": \"MAY\",\n  \"position\": \"Captain\",\n  \"notes\": \"Available for vacation swap\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/publish-vacation", "host": ["{{base_url}}"], "path": ["publish-vacation"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) pm.collectionVariables.set('published_trip_id', String(json.data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /my-vacations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/my-vacations?page=1&per_page=20", "host": ["{{base_url}}"], "path": ["my-vacations"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "20" }] }
+          }
+        },
+        {
+          "name": "GET /browse-vacations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/browse-vacations?page=1&per_page=20", "host": ["{{base_url}}"], "path": ["browse-vacations"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "20" }] }
+          }
+        }
+      ]
+    },
+    {
       "name": "4. Chat",
       "item": [
         {

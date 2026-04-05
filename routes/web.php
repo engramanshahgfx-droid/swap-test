@@ -95,6 +95,11 @@ Route::get('/frontend-test/debug', function () {
 
 // Homepage - no auth required
 Route::get('/frontend-test', function () {
+    if (auth()->check() && !session('api_token')) {
+        $token = auth()->user()->createToken('frontend-session')->plainTextToken;
+        session(['api_token' => $token]);
+    }
+
     return view('frontend-test');
 })->name('frontend.index');
 
@@ -144,6 +149,22 @@ Route::middleware(\App\Http\Middleware\FrontendAuth::class)->group(function () {
     Route::get('/frontend-test/flights/{flight}', [FlightController::class, 'show'])->name('frontend.flights.show');
     Route::post('/frontend-test/flights/{flight}/join', [FlightController::class, 'joinFlight'])->name('frontend.flights.join');
     Route::post('/frontend-test/flights/{flight}/leave', [FlightController::class, 'leaveFlight'])->name('frontend.flights.leave');
+
+    // Vacation
+    Route::get('/frontend-test/vacations', function () {
+        if (auth()->check()) {
+            $user = auth()->user();
+
+            // Rotate frontend token to avoid stale/expired session tokens in the UI.
+            $user->tokens()->where('name', 'frontend-session')->delete();
+            $token = $user->createToken('frontend-session')->plainTextToken;
+            session(['api_token' => $token]);
+        } else {
+            session()->forget('api_token');
+        }
+
+        return view('frontend.vacations.index');
+    })->name('frontend.vacations');
 });
 
 // API Testing Frontend (no auth required for testing)

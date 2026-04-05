@@ -300,6 +300,68 @@
                 <div id="usersListResponse" style="margin-top: 15px;"></div>
             </div>
 
+            <!-- VACATION PUBLISH -->
+            <div class="card">
+                <h2>🏖️ Publish Vacation</h2>
+                <p style="color:#666;font-size:13px;">Tests <code>POST /api/publish-vacation</code> — used by mobile app Vacation screen</p>
+                <div class="form-group">
+                    <label>Publisher ID (your numeric user ID)</label>
+                    <input type="number" id="vacationPublisherId" placeholder="e.g. 1">
+                </div>
+                <div class="form-group">
+                    <label>Departure Month (OFFER)</label>
+                    <select id="vacationDepartureMonth">
+                        <option value="JAN">JAN</option>
+                        <option value="FEB">FEB</option>
+                        <option value="MAR">MAR</option>
+                        <option value="APR" selected>APR</option>
+                        <option value="MAY">MAY</option>
+                        <option value="JUN">JUN</option>
+                        <option value="JUL">JUL</option>
+                        <option value="AUG">AUG</option>
+                        <option value="SEP">SEP</option>
+                        <option value="OCT">OCT</option>
+                        <option value="NOV">NOV</option>
+                        <option value="DEC">DEC</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Arrival Month (ASK)</label>
+                    <select id="vacationArrivalMonth">
+                        <option value="JAN">JAN</option>
+                        <option value="FEB">FEB</option>
+                        <option value="MAR">MAR</option>
+                        <option value="APR">APR</option>
+                        <option value="MAY" selected>MAY</option>
+                        <option value="JUN">JUN</option>
+                        <option value="JUL">JUL</option>
+                        <option value="AUG">AUG</option>
+                        <option value="SEP">SEP</option>
+                        <option value="OCT">OCT</option>
+                        <option value="NOV">NOV</option>
+                        <option value="DEC">DEC</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Position (optional)</label>
+                    <select id="vacationPosition">
+                        <option value="">Any</option>
+                        <option value="Captain">Captain</option>
+                        <option value="First Officer">First Officer</option>
+                        <option value="Purser">Purser</option>
+                        <option value="Flight Attendant">Flight Attendant</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes (optional)</label>
+                    <input type="text" id="vacationNotes" placeholder="Available for swap">
+                </div>
+                <button onclick="publishVacation()">🏖️ Publish Vacation</button>
+                <button onclick="getMyVacations()" style="background:#6c757d;margin-left:8px;">My Vacations</button>
+                <button onclick="browseVacations()" style="background:#17a2b8;margin-left:8px;">Browse Vacations</button>
+                <div id="vacationResponse" style="margin-top:15px;"></div>
+            </div>
+
             <!-- GET LANGUAGES -->
             <div class="card">
                 <h2>🌐 Languages</h2>
@@ -333,8 +395,39 @@
         </div>
     </div>
 
+    <meta name="api-token" content="{{ session('api_token') ?? '' }}">
+
     <script>
-        let authToken = localStorage.getItem('authToken');
+        function resolveAuthToken() {
+            const metaToken = document.querySelector('meta[name="api-token"]')?.content?.trim();
+            if (metaToken) return metaToken;
+
+            const keys = ['authToken', 'api_token', 'auth_token', 'token'];
+            for (const key of keys) {
+                const localValue = localStorage.getItem(key);
+                if (localValue && localValue.trim()) return localValue.trim();
+            }
+
+            for (const key of keys) {
+                const sessionValue = sessionStorage.getItem(key);
+                if (sessionValue && sessionValue.trim()) return sessionValue.trim();
+            }
+
+            return '';
+        }
+
+        function syncAuthToken(token) {
+            authToken = (token || '').trim();
+
+            if (authToken) {
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('api_token', authToken);
+                sessionStorage.setItem('authToken', authToken);
+                sessionStorage.setItem('api_token', authToken);
+            }
+        }
+
+        let authToken = resolveAuthToken();
 
         function parseApiResponse(response) {
             return response.text().then(text => {
@@ -367,7 +460,12 @@
         }
 
         function apiFetch(url, options = {}) {
+            authToken = resolveAuthToken();
             const headers = options.headers || {};
+
+            if (authToken && !headers.Authorization) {
+                headers.Authorization = 'Bearer ' + authToken;
+            }
 
             return fetch(url, {
                 ...options,
@@ -456,8 +554,7 @@
             })
             .then(data => {
                 if (data.data && data.data.token) {
-                    authToken = data.data.token;
-                    localStorage.setItem('authToken', authToken);
+                    syncAuthToken(data.data.token);
                     showResponse('otpResponse', '✅ OTP Verified Successfully!\n\n' + JSON.stringify(data, null, 2), 'success');
                     document.getElementById('otpCode').value = '';
                 } else {
@@ -547,8 +644,7 @@
             })
             .then(data => {
                 if (data.data && data.data.token) {
-                    authToken = data.data.token;
-                    localStorage.setItem('authToken', authToken);
+                    syncAuthToken(data.data.token);
                     showResponse('loginResponse', JSON.stringify(data, null, 2), 'success');
                     document.getElementById('loginEmail').value = '';
                     document.getElementById('loginPassword').value = '';
@@ -637,6 +733,9 @@
             .then(data => {
                 authToken = null;
                 localStorage.removeItem('authToken');
+                localStorage.removeItem('api_token');
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('api_token');
                 document.getElementById('tokenStatus').style.display = 'none';
                 showResponse('userProfileResponse', 'Logged out successfully', 'success');
             })
@@ -647,6 +746,66 @@
             apiFetch('/api/languages')
             .then(data => showResponse('languagesResponse', JSON.stringify(data, null, 2), 'success'))
             .catch(e => showResponse('languagesResponse', 'Error: ' + e.message, 'error'));
+        }
+
+        function publishVacation() {
+            if (!authToken) {
+                showResponse('vacationResponse', 'Please login first to publish vacation', 'error');
+                return;
+            }
+            const publisherId = document.getElementById('vacationPublisherId').value.trim();
+            const departureMonth = document.getElementById('vacationDepartureMonth').value;
+            const arrivalMonth = document.getElementById('vacationArrivalMonth').value;
+            const position = document.getElementById('vacationPosition').value;
+            const notes = document.getElementById('vacationNotes').value.trim();
+
+            if (!publisherId) {
+                showResponse('vacationResponse', 'Publisher ID is required', 'error');
+                return;
+            }
+
+            const body = {
+                publisher_id: parseInt(publisherId),
+                departure_month: departureMonth,
+                arrival_month: arrivalMonth,
+            };
+            if (position) body.position = position;
+            if (notes) body.notes = notes;
+
+            apiFetch('/api/publish-vacation', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + authToken,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            })
+            .then(data => showResponse('vacationResponse', JSON.stringify(data, null, 2), 'success'))
+            .catch(e => showResponse('vacationResponse', 'Error: ' + e.message, 'error'));
+        }
+
+        function getMyVacations() {
+            if (!authToken) {
+                showResponse('vacationResponse', 'Please login first', 'error');
+                return;
+            }
+            apiFetch('/api/my-vacations', {
+                headers: { 'Authorization': 'Bearer ' + authToken }
+            })
+            .then(data => showResponse('vacationResponse', JSON.stringify(data, null, 2), 'success'))
+            .catch(e => showResponse('vacationResponse', 'Error: ' + e.message, 'error'));
+        }
+
+        function browseVacations() {
+            if (!authToken) {
+                showResponse('vacationResponse', 'Please login first', 'error');
+                return;
+            }
+            apiFetch('/api/browse-vacations', {
+                headers: { 'Authorization': 'Bearer ' + authToken }
+            })
+            .then(data => showResponse('vacationResponse', JSON.stringify(data, null, 2), 'success'))
+            .catch(e => showResponse('vacationResponse', 'Error: ' + e.message, 'error'));
         }
 
         function getAllUsers() {

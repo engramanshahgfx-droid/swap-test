@@ -326,6 +326,10 @@ class AuthController extends Controller
 
             Auth::login($user, $request->boolean('remember'));
 
+            // Create a Sanctum token for API calls from frontend pages
+            $token = $user->createToken('frontend-session')->plainTextToken;
+            session(['api_token' => $token]);
+
             return redirect()->route('frontend.dashboard')->with('success', 'Logged in successfully!');
         } catch (\Exception $e) {
             return back()->with('error', 'Login failed. Please ensure you have completed registration and OTP verification.');

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\LanguageController;
 use App\Http\Controllers\Api\RegistrationOptionsController;
+use App\Http\Controllers\Api\VacationController;
 use Illuminate\Support\Facades\Route;
 
 // Language routes
@@ -62,6 +63,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/vacation-swaps', [TripController::class, 'browseTrips']);
     Route::post('/vacation-swaps/request', [SwapController::class, 'requestSwap']);
     Route::get('/vacation-swaps/history', [TripController::class, 'swapHistory']);
+    
+    // NEW: Vacation Publishing (month-based)
+    Route::post('/publish-vacation', [VacationController::class, 'publishVacation']);
+    Route::get('/my-vacations', [VacationController::class, 'myVacations']);
+    Route::get('/browse-vacations', [VacationController::class, 'browseVacations']);
     
     // Chat
     Route::get('/conversations', [ChatController::class, 'conversations']);
