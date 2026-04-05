@@ -35,11 +35,11 @@ return new class extends Migration
     {
         Schema::table('published_trips', function (Blueprint $table) {
             if (Schema::hasColumn('published_trips', 'flight_id')) {
-                $table->dropForeignIdFor('Flight');
+                $table->dropForeignIdFor(\App\Models\Flight::class);
                 $table->dropColumn('flight_id');
             }
             if (Schema::hasColumn('published_trips', 'user_id')) {
-                $table->dropForeignIdFor('User');
+                $table->dropForeignIdFor(\App\Models\User::class);
                 $table->dropColumn('user_id');
             }
         });
