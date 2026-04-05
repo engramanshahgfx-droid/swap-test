@@ -44,26 +44,48 @@ class ReportController extends Controller
             ->pluck('name')
             ->all();
 
+        $notificationsDispatched = false;
+        $notificationWarning = null;
+
         if (!empty($moderatorRoleNames)) {
             $moderators = User::role($moderatorRoleNames)->get();
 
             if ($moderators->isNotEmpty()) {
-                $this->mobileNotificationService->createForUsers(
-                    $moderators,
-                    'New Report Submitted',
-                    'A new report requires moderation review.',
-                    'report',
-                    'report_alert_sound.mp3',
-                    ['report_id' => (string) $report->id]
-                );
+                try {
+                    $this->mobileNotificationService->createForUsers(
+                        $moderators,
+                        'New Report Submitted',
+                        'A new report requires moderation review.',
+                        'report',
+                        'report_alert_sound.mp3',
+                        ['report_id' => (string) $report->id]
+                    );
+                    $notificationsDispatched = true;
+                } catch (\Throwable $exception) {
+                    $notificationWarning = 'Report saved, but moderator notification dispatch failed.';
+
+                    logger()->warning('Report notification dispatch failed', [
+                        'report_id' => $report->id,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
             }
         }
 
-        return response()->json([
+        $response = [
             'success' => true,
             'message' => __('messages.user_reported'),
             'data' => $report,
-        ], 201);
+            'meta' => [
+                'notifications_dispatched' => $notificationsDispatched,
+            ],
+        ];
+
+        if ($notificationWarning) {
+            $response['warning'] = $notificationWarning;
+        }
+
+        return response()->json($response, 201);
     }
 
     public function myReports(Request $request)
