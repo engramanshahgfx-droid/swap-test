@@ -10,7 +10,7 @@
                 <h2 class="card-title mb-1">
                     <i class="bi bi-shield-check" style="color: #3498db;"></i> Verify OTP
                 </h2>
-                <p class="text-muted">Enter the OTP sent to your phone</p>
+                <p class="text-muted">Enter the OTP sent to your email</p>
             </div>
 
             <!-- Test OTP Display -->
@@ -31,7 +31,7 @@
                            pattern="[0-9]{6}" required autofocus
                            style="font-size: 1.5rem; letter-spacing: 10px;">
                     <small class="text-muted d-block mt-2">
-                        <i class="bi bi-info-circle"></i> Enter the 6-digit code from your SMS
+                        <i class="bi bi-info-circle"></i> Enter the 6-digit code from your email inbox
                     </small>
                     @error('otp')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -44,7 +44,7 @@
 
                 <div class="text-center">
                     <p class="text-muted small mb-0">
-                        Didn't receive OTP? Check your phone or wait a moment
+                        Didn't receive OTP? Check your email inbox or spam folder, or use the testing OTP in local mode
                     </p>
                 </div>
             </form>

@@ -8,6 +8,18 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    private function enrichUserPayload(User $user): array
+    {
+        $user->loadMissing(['airline:id,name', 'position:id,name']);
+
+        $payload = $user->toArray();
+        $payload['company_id'] = $user->airline_id;
+        $payload['company_name'] = $user->airline?->name;
+        $payload['position_name'] = $user->position?->name;
+
+        return $payload;
+    }
+
     public function index(Request $request)
     {
         $validated = $request->validate([
@@ -40,10 +52,15 @@ class UserController extends Controller
 
         $users = $query->paginate($validated['per_page'] ?? 20);
 
+        $items = collect($users->items())
+            ->map(fn (User $user) => $this->enrichUserPayload($user))
+            ->values()
+            ->all();
+
         return response()->json([
             'success' => true,
             'data' => [
-                'items' => $users->items(),
+                'items' => $items,
                 'pagination' => [
                     'current_page' => $users->currentPage(),
                     'last_page' => $users->lastPage(),
@@ -84,14 +101,14 @@ class UserController extends Controller
      */
     public function show(Request $request)
     {
-        return response()->json($request->user());
+        return response()->json($this->enrichUserPayload($request->user()));
     }
 
     public function showById(User $user)
     {
         return response()->json([
             'success' => true,
-            'data' => $user->load(['airline', 'position', 'planeType']),
+            'data' => $this->enrichUserPayload($user),
         ]);
     }
 
@@ -113,7 +130,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User updated successfully',
-            'user' => $request->user(),
+            'user' => $this->enrichUserPayload($request->user()),
         ]);
     }
 }

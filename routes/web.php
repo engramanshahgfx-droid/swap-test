@@ -95,7 +95,7 @@ Route::get('/frontend-test/debug', function () {
 
 // Homepage - no auth required
 Route::get('/frontend-test', function () {
-    return view('frontend.index');
+    return view('frontend-test');
 })->name('frontend.index');
 
 // Authentication Routes (explicitly NO auth middleware - completely open)
@@ -139,7 +139,7 @@ Route::middleware(\App\Http\Middleware\FrontendAuth::class)->group(function () {
     // Flights
     Route::get('/frontend-test/flights', [FlightController::class, 'index'])->name('frontend.flights.index');
     Route::get('/frontend-test/flights/add', [FlightController::class, 'showAddFlight'])->name('frontend.flights.add');
-    Route::post('/frontend-test/flights', [FlightController::class, 'addFlight']);
+    Route::post('/frontend-test/flights', [FlightController::class, 'addFlight'])->name('frontend.flights.store');
     Route::get('/frontend-test/flights/my-flights', [FlightController::class, 'myFlights'])->name('frontend.flights.my-flights');
     Route::get('/frontend-test/flights/{flight}', [FlightController::class, 'show'])->name('frontend.flights.show');
     Route::post('/frontend-test/flights/{flight}/join', [FlightController::class, 'joinFlight'])->name('frontend.flights.join');

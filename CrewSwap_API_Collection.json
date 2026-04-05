@@ -29,7 +29,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"tester@crewswap.com\",\n  \"password\": \"Secret123!\",\n  \"full_name\": \"Postman Tester\"\n}"
+              "raw": "{\n  \"employee_id\": \"AD123456\",\n  \"email\": \"tester@crewswap.com\",\n  \"password\": \"Secret123!\",\n  \"full_name\": \"Postman Tester\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/simple-register",
@@ -82,6 +82,56 @@
               }
             }
           ]
+        },
+        {
+          "name": "POST /verify-otp",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": {{user_id}},\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/verify-otp",
+              "host": ["{{base_url}}"],
+              "path": ["verify-otp"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.token) pm.collectionVariables.set('token', json.data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /resend-otp",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": {{user_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/resend-otp",
+              "host": ["{{base_url}}"],
+              "path": ["resend-otp"]
+            }
+          }
         },
         {
           "name": "POST /login",
@@ -153,6 +203,39 @@
               "raw": "{{base_url}}/logout",
               "host": ["{{base_url}}"],
               "path": ["logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1A. Public Reference Data",
+      "item": [
+        {
+          "name": "GET /registration-options",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/registration-options",
+              "host": ["{{base_url}}"],
+              "path": ["registration-options"]
+            }
+          }
+        },
+        {
+          "name": "GET /registration-option (alias)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/registration-option",
+              "host": ["{{base_url}}"],
+              "path": ["registration-option"]
             }
           }
         }

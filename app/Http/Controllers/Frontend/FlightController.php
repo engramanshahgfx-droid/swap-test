@@ -8,17 +8,12 @@ use App\Models\Airport;
 use App\Models\Airline;
 use App\Models\PlaneType;
 use App\Models\UserTrip;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FlightController extends Controller
 {
-    public function __construct()
-    {
-        // Use custom frontend auth that handles both Auth users and session users
-        $this->middleware(\App\Http\Middleware\FrontendAuth::class);
-    }
-
     // Show flights dashboard
     public function index()
     {
@@ -124,7 +119,13 @@ class FlightController extends Controller
     // Join flight (assign user to flight)
     public function joinFlight(Flight $flight)
     {
-        $exists = UserTrip::where('user_id', Auth::id())
+        $userId = $this->resolveCurrentUserId();
+
+        if (!$userId) {
+            return back()->with('error', 'Unable to identify your account. Please login again with a database-backed user.');
+        }
+
+        $exists = UserTrip::where('user_id', $userId)
             ->where('flight_id', $flight->id)
             ->exists();
 
@@ -133,10 +134,10 @@ class FlightController extends Controller
         }
 
         UserTrip::create([
-            'user_id' => Auth::id(),
+            'user_id' => $userId,
             'flight_id' => $flight->id,
             'status' => 'assigned',
-            'role' => Auth::user()->position->name ?? 'crew',
+            'role' => $this->resolveCurrentUserRole(),
         ]);
 
         return back()->with('success', 'Successfully joined the flight!');
@@ -145,7 +146,13 @@ class FlightController extends Controller
     // Leave flight (remove user from flight)
     public function leaveFlight(Flight $flight)
     {
-        UserTrip::where('user_id', Auth::id())
+        $userId = $this->resolveCurrentUserId();
+
+        if (!$userId) {
+            return back()->with('error', 'Unable to identify your account. Please login again with a database-backed user.');
+        }
+
+        UserTrip::where('user_id', $userId)
             ->where('flight_id', $flight->id)
             ->delete();
 
@@ -155,10 +162,50 @@ class FlightController extends Controller
     // Show my flights
     public function myFlights()
     {
-        $userFlights = Auth::user()->userTrips()
+        $userId = $this->resolveCurrentUserId();
+
+        if (!$userId) {
+            return redirect()->route('frontend.flights.index')->with('error', 'No database user found for this session account.');
+        }
+
+        $userFlights = UserTrip::where('user_id', $userId)
             ->with('flight.airline', 'flight.planeType', 'flight.departureAirport', 'flight.arrivalAirport')
             ->get();
 
         return view('frontend.flights.my-flights', compact('userFlights'));
+    }
+
+    private function resolveCurrentUserId(): ?int
+    {
+        if (Auth::id()) {
+            return (int) Auth::id();
+        }
+
+        $sessionEmail = session('user_data.email');
+
+        if (!$sessionEmail) {
+            return null;
+        }
+
+        $userId = User::where('email', $sessionEmail)->value('id');
+
+        return $userId ? (int) $userId : null;
+    }
+
+    private function resolveCurrentUserRole(): string
+    {
+        if (Auth::check()) {
+            return Auth::user()->position->name ?? 'crew';
+        }
+
+        $sessionPositionId = session('user_data.position_id');
+
+        if (!$sessionPositionId) {
+            return 'crew';
+        }
+
+        $positionName = \App\Models\Position::where('id', $sessionPositionId)->value('name');
+
+        return $positionName ?: 'crew';
     }
 }

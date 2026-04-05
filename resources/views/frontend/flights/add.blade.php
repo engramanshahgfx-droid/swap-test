@@ -12,7 +12,7 @@
                 </h4>
             </div>
             <div class="card-body p-5">
-                <form method="POST" action="{{ route('frontend.flights.add') }}">
+                <form method="POST" action="{{ route('frontend.flights.store') }}">
                     @csrf
 
                     <div class="mb-4">

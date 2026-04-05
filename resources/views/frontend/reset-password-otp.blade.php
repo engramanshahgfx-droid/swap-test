@@ -10,7 +10,7 @@
                 <h2 class="card-title mb-1">
                     <i class="bi bi-shield-check" style="color: #3498db;"></i> Verify Reset OTP
                 </h2>
-                <p class="text-muted">Enter the OTP sent to your phone</p>
+                <p class="text-muted">Enter the OTP sent to your email</p>
             </div>
 
             <!-- Test OTP Display -->

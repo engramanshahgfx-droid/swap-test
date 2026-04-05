@@ -8,6 +8,7 @@ use App\Models\Report;
 use App\Models\User;
 use App\Services\MobileNotificationService;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class ReportController extends Controller
 {
@@ -38,15 +39,25 @@ class ReportController extends Controller
             'status' => 'pending',
         ]);
 
-        $moderators = User::role(['admin', 'super-admin', 'support_moderator'])->get();
-        $this->mobileNotificationService->createForUsers(
-            $moderators,
-            'New Report Submitted',
-            'A new report requires moderation review.',
-            'report',
-            'report_alert_sound.mp3',
-            ['report_id' => (string) $report->id]
-        );
+        $moderatorRoleNames = Role::query()
+            ->whereIn('name', ['admin', 'super-admin', 'support_moderator'])
+            ->pluck('name')
+            ->all();
+
+        if (!empty($moderatorRoleNames)) {
+            $moderators = User::role($moderatorRoleNames)->get();
+
+            if ($moderators->isNotEmpty()) {
+                $this->mobileNotificationService->createForUsers(
+                    $moderators,
+                    'New Report Submitted',
+                    'A new report requires moderation review.',
+                    'report',
+                    'report_alert_sound.mp3',
+                    ['report_id' => (string) $report->id]
+                );
+            }
+        }
 
         return response()->json([
             'success' => true,

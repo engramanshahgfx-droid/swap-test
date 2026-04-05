@@ -26,6 +26,7 @@ Route::post('/simple-login', [AuthController::class, 'simpleLogin']);
 
 // Legacy Public routes
 Route::get('/registration-options', [RegistrationOptionsController::class, 'index']);
+Route::get('/registration-option', [RegistrationOptionsController::class, 'index']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);

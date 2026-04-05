@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\EmailOtpService;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,10 +16,12 @@ use App\Models\Position;
 class AuthController extends Controller
 {
     protected $smsService;
+    protected $emailOtpService;
 
-    public function __construct(SmsService $smsService)
+    public function __construct(SmsService $smsService, EmailOtpService $emailOtpService)
     {
         $this->smsService = $smsService;
+        $this->emailOtpService = $emailOtpService;
     }
 
     // Show registration page
@@ -152,19 +155,28 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Generate and send OTP (using fixed OTP for testing)
-            $otp = $this->generateFixedOtp();
+            $otp = $user ?? null
+                ? $user->generateOtp()
+                : $this->generateSessionOtp();
+
+            $otpSent = $this->emailOtpService->sendOtp($validated['email'], $otp);
 
             // Store OTP in session
             session([
                 'otp_code' => $otp,
                 'user_id' => $userId,
+                'otp_email' => $validated['email'],
             ]);
 
-            return redirect('/frontend-test/verify-otp')->with([
-                'success' => 'Registration successful! OTP has been sent.',
-                'test_otp' => $otp, // For testing purposes
-            ]);
+            $flashData = $otpSent
+                ? ['success' => 'Registration successful. OTP sent to ' . $validated['email']]
+                : ['error' => 'Registration succeeded, but OTP email delivery failed: ' . ($this->emailOtpService->getLastError() ?? 'Unknown error')];
+
+            if (config('app.debug')) {
+                $flashData['test_otp'] = $otp;
+            }
+
+            return redirect('/frontend-test/verify-otp')->with($flashData);
         } catch (\Exception $e) {
             \Log::error('Registration error: ' . $e->getMessage());
             return redirect('/frontend-test/register')
@@ -296,18 +308,20 @@ class AuthController extends Controller
             }
 
             if (!$user->phone_verified_at) {
-                // Send new OTP
-                $otp = $this->generateFixedOtp();
-                $user->otp_code = $otp;
-                $user->otp_expires_at = now()->addMinutes(15);
-                $user->save();
+                $otp = $user->generateOtp();
+                $otpSent = $this->emailOtpService->sendOtp($user->email, $otp);
 
-                session(['otp_code' => $otp, 'user_id' => $user->id]);
+                session(['otp_code' => $otp, 'user_id' => $user->id, 'otp_email' => $user->email]);
 
-                return redirect()->route('frontend.verify-otp')->with([
-                    'message' => 'Phone not verified. Please verify your OTP first.',
-                    'test_otp' => $otp,
-                ]);
+                $flashData = $otpSent
+                    ? ['message' => 'Email not verified. OTP sent to ' . $user->email]
+                    : ['error' => 'Email verification OTP could not be delivered: ' . ($this->emailOtpService->getLastError() ?? 'Unknown error')];
+
+                if (config('app.debug')) {
+                    $flashData['test_otp'] = $otp;
+                }
+
+                return redirect()->route('frontend.verify-otp')->with($flashData);
             }
 
             Auth::login($user, $request->boolean('remember'));
@@ -340,7 +354,7 @@ class AuthController extends Controller
             }
 
             // Generate and send OTP
-            $otp = $this->generateFixedOtp();
+            $otp = $this->generateSessionOtp();
             $user->otp_code = $otp;
             $user->otp_expires_at = now()->addMinutes(15);
             $user->save();
@@ -360,7 +374,7 @@ class AuthController extends Controller
             }
 
             // Generate OTP for session-based user
-            $otp = $this->generateFixedOtp();
+            $otp = $this->generateSessionOtp();
             session([
                 'otp_code' => $otp,
                 'forgot_password' => true,
@@ -476,11 +490,8 @@ class AuthController extends Controller
         return redirect()->route('frontend.index')->with('success', 'Logged out successfully!');
     }
 
-    // Generate fixed OTP for testing
-    private function generateFixedOtp()
+    private function generateSessionOtp()
     {
-        // For testing, we use a fixed OTP: 123456
-        // In production, use: return rand(100000, 999999);
-        return '123456';
+        return str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 }
