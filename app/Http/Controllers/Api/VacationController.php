@@ -6,6 +6,7 @@ use App\Models\PublishedTrip;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Schema;
 
 class VacationController extends Controller
 {
@@ -41,21 +42,39 @@ class VacationController extends Controller
         }
 
         try {
-            // Create published vacation
-            $publishedVacation = PublishedTrip::create([
+            $hasVacationTypeColumn = $this->publishedTripsHasColumn('vacation_type');
+            $hasMetadataColumn = $this->publishedTripsHasColumn('metadata');
+
+            $metadata = [
+                'departure_month' => $validated['departure_month'],
+                'arrival_month' => $validated['arrival_month'],
+                'position' => $validated['position'] ?? 'Any',
+            ];
+
+            $notes = $validated['notes'] ?? "Vacation from {$validated['departure_month']} to {$validated['arrival_month']}";
+            if (!$hasMetadataColumn) {
+                $notes .= " | Position: " . ($validated['position'] ?? 'Any');
+            }
+
+            $createPayload = [
                 'user_id' => $publisher->id,
-                'flight_id' => null, // Vacation doesn't need specific flight
-                'vacation_type' => 'month_range', // Mark as month-based vacation
+                'flight_id' => null,
                 'status' => 'available',
-                'notes' => $validated['notes'] ?? "Vacation from {$validated['departure_month']} to {$validated['arrival_month']}",
+                'notes' => $notes,
                 'published_at' => now(),
                 'expires_at' => $arrivalMonth->clone()->endOfMonth(),
-                'metadata' => [
-                    'departure_month' => $validated['departure_month'],
-                    'arrival_month' => $validated['arrival_month'],
-                    'position' => $validated['position'] ?? 'Any',
-                ],
-            ]);
+            ];
+
+            if ($hasVacationTypeColumn) {
+                $createPayload['vacation_type'] = 'month_range';
+            }
+
+            if ($hasMetadataColumn) {
+                $createPayload['metadata'] = $metadata;
+            }
+
+            // Create published vacation
+            $publishedVacation = PublishedTrip::create($createPayload);
 
             return response()->json([
                 'success' => true,
@@ -93,7 +112,11 @@ class VacationController extends Controller
         $perPage = max(1, min((int) $request->integer('per_page', 20), 100));
 
         $vacations = PublishedTrip::where('user_id', $user->id)
-            ->where('vacation_type', 'month_range')
+            ->when(
+                $this->publishedTripsHasColumn('vacation_type'),
+                fn ($query) => $query->where('vacation_type', 'month_range'),
+                fn ($query) => $query
+            )
             ->orderBy('published_at', 'desc')
             ->paginate($perPage)
             ->through(function ($vacation) {
@@ -133,7 +156,11 @@ class VacationController extends Controller
         $page = max(1, (int) $request->integer('page', 1));
 
         $vacations = PublishedTrip::where('user_id', '!=', $user->id)
-            ->where('vacation_type', 'month_range')
+            ->when(
+                $this->publishedTripsHasColumn('vacation_type'),
+                fn ($query) => $query->where('vacation_type', 'month_range'),
+                fn ($query) => $query
+            )
             ->where('status', 'available')
             ->where('expires_at', '>', now())
             ->with('user')
@@ -194,5 +221,19 @@ class VacationController extends Controller
         }
 
         return $date;
+    }
+
+    /**
+     * Check if a column exists on published_trips with per-request static cache.
+     */
+    private function publishedTripsHasColumn(string $column): bool
+    {
+        static $cache = [];
+
+        if (!array_key_exists($column, $cache)) {
+            $cache[$column] = Schema::hasColumn('published_trips', $column);
+        }
+
+        return $cache[$column];
     }
 }
