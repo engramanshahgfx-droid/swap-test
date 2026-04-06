@@ -197,15 +197,53 @@ class AuthController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
+            'channel' => 'nullable|in:auto,email,sms',
         ]);
 
         $user = User::find($request->user_id);
         $otp = $user->generateOtp();
-        $this->smsService->sendOtp($user->phone, $otp);
+
+        $channel = $request->input('channel', 'auto');
+        $sent = false;
+        $usedChannel = null;
+
+        if ($channel === 'email' || $channel === 'auto') {
+            if (!empty($user->email)) {
+                $sent = $this->emailOtpService->sendOtp($user->email, $otp);
+                if ($sent) {
+                    $usedChannel = 'email';
+                }
+            }
+        }
+
+        if (!$sent && ($channel === 'sms' || $channel === 'auto')) {
+            if (!empty($user->phone)) {
+                $sent = (bool) $this->smsService->sendOtp($user->phone, $otp);
+                if ($sent) {
+                    $usedChannel = 'sms';
+                }
+            }
+        }
+
+        if (!$sent) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to resend OTP via the requested channel',
+                'data' => [
+                    'user_id' => $user->id,
+                    'channel' => $channel,
+                    'email_error' => $this->emailOtpService->getLastError(),
+                ],
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,
             'message' => __('auth.otp_sent'),
+            'data' => [
+                'user_id' => $user->id,
+                'channel' => $usedChannel,
+            ],
         ]);
     }
 

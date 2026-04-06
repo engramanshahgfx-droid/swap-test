@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use GuzzleHttp\Client as GuzzleClient;
+use Illuminate\Support\Facades\Mail;
 use Resend\Client;
 use Resend\Transporters\HttpTransporter;
 use Resend\ValueObjects\ApiKey;
@@ -18,10 +19,16 @@ class EmailOtpService
      */
     public function sendOtp(string $email, string $otp): bool
     {
+        $this->lastError = null;
+        $html = $this->getOtpEmailTemplate($otp, $email);
+
+        // Use Resend when configured; fallback to Laravel mailer if unavailable.
+        if (!$this->hasResendKey()) {
+            return $this->sendViaLaravelMailer($email, $otp, $html);
+        }
+
         try {
-            $this->lastError = null;
             $resend = $this->createResendClient();
-            $html = $this->getOtpEmailTemplate($otp, $email);
             
             $response = $resend->emails->send([
                 'from' => $this->resolveFromAddress(),
@@ -33,9 +40,10 @@ class EmailOtpService
             \Log::info('OTP sent via Resend', ['email' => $email, 'otp' => $otp, 'response' => (array)$response]);
             return $response ? true : false;
         } catch (\Exception $e) {
-            $this->lastError = $e->getMessage();
+            $this->lastError = 'Resend: ' . $e->getMessage();
             \Log::error('Failed to send OTP email via Resend', ['email' => $email, 'error' => $e->getMessage()]);
-            return false;
+
+            return $this->sendViaLaravelMailer($email, $otp, $html);
         }
     }
 
@@ -60,6 +68,33 @@ class EmailOtpService
         $transporter = new HttpTransporter($client, $baseUri, $headers);
 
         return new Client($transporter);
+    }
+
+    private function hasResendKey(): bool
+    {
+        $key = trim((string) config('services.resend.key'));
+
+        return $key !== '';
+    }
+
+    private function sendViaLaravelMailer(string $email, string $otp, string $html): bool
+    {
+        try {
+            Mail::html($html, function ($message) use ($email, $otp) {
+                $message->to($email)
+                    ->subject('Your CrewSwap OTP Code: ' . $otp);
+            });
+
+            \Log::info('OTP sent via Laravel mailer', ['email' => $email]);
+            return true;
+        } catch (\Exception $e) {
+            $existing = $this->lastError;
+            $fallbackError = 'Mailer: ' . $e->getMessage();
+            $this->lastError = $existing ? ($existing . ' | ' . $fallbackError) : $fallbackError;
+
+            \Log::error('Failed to send OTP email via Laravel mailer', ['email' => $email, 'error' => $e->getMessage()]);
+            return false;
+        }
     }
 
     private function resolveFromAddress(): string

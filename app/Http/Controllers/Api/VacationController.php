@@ -120,10 +120,12 @@ class VacationController extends Controller
             ->orderBy('published_at', 'desc')
             ->paginate($perPage)
             ->through(function ($vacation) {
+                $months = $this->extractMonthsFromVacation($vacation);
+
                 return [
                     'id' => $vacation->id,
-                    'departure_month' => $vacation->metadata['departure_month'] ?? null,
-                    'arrival_month' => $vacation->metadata['arrival_month'] ?? null,
+                    'departure_month' => $months['departure_month'],
+                    'arrival_month' => $months['arrival_month'],
                     'position' => $vacation->metadata['position'] ?? 'Any',
                     'status' => $vacation->status,
                     'published_at' => $vacation->published_at,
@@ -167,6 +169,8 @@ class VacationController extends Controller
             ->orderBy('published_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page)
             ->through(function ($vacation) {
+                $months = $this->extractMonthsFromVacation($vacation);
+
                 return [
                     'id' => $vacation->id,
                     'publisher' => [
@@ -174,8 +178,8 @@ class VacationController extends Controller
                         'name' => $vacation->user->full_name,
                         'employee_id' => $vacation->user->employee_id,
                     ],
-                    'departure_month' => $vacation->metadata['departure_month'] ?? null,
-                    'arrival_month' => $vacation->metadata['arrival_month'] ?? null,
+                    'departure_month' => $months['departure_month'],
+                    'arrival_month' => $months['arrival_month'],
                     'position' => $vacation->metadata['position'] ?? 'Any',
                     'notes' => $vacation->notes,
                     'published_at' => $vacation->published_at,
@@ -235,5 +239,33 @@ class VacationController extends Controller
         }
 
         return $cache[$column];
+    }
+
+    /**
+     * Read months from metadata when available, otherwise parse legacy notes.
+     */
+    private function extractMonthsFromVacation(PublishedTrip $vacation): array
+    {
+        $departure = $vacation->metadata['departure_month'] ?? null;
+        $arrival = $vacation->metadata['arrival_month'] ?? null;
+
+        if ($departure && $arrival) {
+            return [
+                'departure_month' => $departure,
+                'arrival_month' => $arrival,
+            ];
+        }
+
+        if (is_string($vacation->notes) && preg_match('/Vacation from\s+([A-Z]{3})\s+to\s+([A-Z]{3})/i', $vacation->notes, $matches)) {
+            return [
+                'departure_month' => strtoupper($matches[1]),
+                'arrival_month' => strtoupper($matches[2]),
+            ];
+        }
+
+        return [
+            'departure_month' => null,
+            'arrival_month' => null,
+        ];
     }
 }
