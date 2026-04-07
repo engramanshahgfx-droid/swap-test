@@ -18,6 +18,11 @@ use App\Http\Controllers\Frontend\AuthController as FrontendAuthController;
 use App\Http\Controllers\Frontend\FlightController;
 use App\Http\Controllers\Admin\LoginController;
 
+// Public: Privacy Policy (required by Google Play & Apple App Store)
+Route::get('/privacy', function () {
+    return view('pages.privacy');
+})->name('privacy');
+
 // Redirect root to admin login or dashboard
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect('/admin/login');
