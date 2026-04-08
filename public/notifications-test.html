@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat & Notifications Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 6px;
+            color: #555;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        input, textarea, select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #f9f9f9;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #16a34a;
+            display: flex;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #dc2626;
+            display: flex;
+        }
+
+        .status.info {
+            background: #dbeafe;
+            color: #0c4a6e;
+            border-left: 4px solid #0284c7;
+            display: flex;
+        }
+
+        .notification-item {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .notification-item:hover {
+            background: #efefef;
+            transform: translateX(4px);
+        }
+
+        .notification-item.unread {
+            background: #ead5ff;
+            border-left-color: #a855f7;
+            font-weight: 500;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #999;
+        }
+
+        .notification-type {
+            background: #667eea;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .message-item {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .message-sender {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .message-body {
+            color: #666;
+            font-size: 13px;
+            margin-top: 4px;
+            word-break: break-word;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #fafafa;
+            border-radius: 6px;
+            max-height: 400px;
+        }
+
+        .scroll-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scroll-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .scroll-area::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .scroll-area::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #999;
+            font-size: 14px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .button-group button {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .user-info {
+            background: #f0f4ff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .user-info strong {
+            color: #667eea;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #a855f7;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Auth Panel -->
+        <div class="panel">
+            <h2>🔐 Authentication</h2>
+            <div class="status" id="authStatus"></div>
+
+            <div class="user-info" id="userInfo" style="display: none;">
+                User: <strong id="userName"></strong>
+                <br>
+                ID: <strong id="userId"></strong>
+                <span class="badge">Authenticated</span>
+            </div>
+
+            <div id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Password">
+                </div>
+                <button onclick="login()" style="width: 100%;">Login</button>
+                <p style="margin-top: 12px; font-size: 12px; text-align: center; color: #999;">
+                    Test: use admin@test.com / password
+                </p>
+            </div>
+
+            <button onclick="logout()" id="logoutBtn" style="width: 100%; display: none;">Logout</button>
+        </div>
+
+        <!-- Chat Panel -->
+        <div class="panel">
+            <h2>💬 Chat Messages</h2>
+            <div class="status" id="chatStatus"></div>
+
+            <div class="form-group">
+                <label for="recipientId">Recipient User ID</label>
+                <input type="number" id="recipientId" placeholder="Enter recipient ID">
+            </div>
+            <div class="form-group">
+                <label for="chatMessage">Message</label>
+                <textarea id="chatMessage" placeholder="Type your message..."></textarea>
+            </div>
+            <button onclick="sendChatMessage()" style="width: 100%;">Send Chat Message</button>
+
+            <div style="margin-top: 16px;">
+                <h3 style="font-size: 14px; color: #666; margin-bottom: 8px;">Recent Chat</h3>
+                <div class="scroll-area" id="chatMessages">
+                    <div class="empty-state">No messages yet</div>
+                </div>
+            </div>
+            <button onclick="loadChatMessages()" style="width: 100%; font-size: 12px;">Refresh Chat</button>
+        </div>
+
+        <!-- Support Panel -->
+        <div class="panel">
+            <h2>🛠️ Support Messages</h2>
+            <div class="status" id="supportStatus"></div>
+
+            <button onclick="createSupportConversation()" style="width: 100%; margin-bottom: 12px;">
+                Get Support Conversation
+            </button>
+
+            <div class="form-group">
+                <label for="supportMessage">Support Message</label>
+                <textarea id="supportMessage" placeholder="Describe your issue..."></textarea>
+            </div>
+            <button onclick="sendSupportMessage()" style="width: 100%;">Send Support Message</button>
+
+            <div style="margin-top: 16px;">
+                <h3 style="font-size: 14px; color: #666; margin-bottom: 8px;">Support Chat</h3>
+                <div class="scroll-area" id="supportMessages">
+                    <div class="empty-state">No support messages yet</div>
+                </div>
+            </div>
+            <button onclick="loadSupportMessages()" style="width: 100%; font-size: 12px;">Refresh Support</button>
+        </div>
+
+        <!-- Notifications Panel (spanning full width on smaller screens) -->
+        <div class="panel" style="grid-column: 1 / -1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #667eea;">
+                <h2 style="margin: 0; border: none; padding: 0;">🔔 Notifications</h2>
+                <div>
+                    <span id="unreadBadge" style="background: #a855f7; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                        0 Unread
+                    </span>
+                    <button onclick="loadNotifications()" style="margin-left: 8px; padding: 6px 12px; font-size: 12px;">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="status" id="notificationStatus"></div>
+
+            <div class="form-group" style="flex-direction: row; gap: 8px;">
+                <button onclick="markAllAsRead()" style="flex: 1; font-size: 12px;">Mark All as Read</button>
+                <button onclick="filterNotifications('all')" style="flex: 1; font-size: 12px;">All</button>
+                <button onclick="filterNotifications('unread')" style="flex: 1; font-size: 12px;">Unread Only</button>
+                <button onclick="filterNotifications('chat')" style="flex: 1; font-size: 12px;">Chat</button>
+            </div>
+
+            <div class="scroll-area" id="notificationsArea" style="max-height: 300px;">
+                <div class="empty-state">No notifications yet. Send a message to create one!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_URL = '/api';
+        let token = localStorage.getItem('auth_token');
+        let currentUser = JSON.parse(localStorage.getItem('current_user') || '{}');
+        let currentConversationId = null;
+        let supportConversationId = null;
+
+        // Show status message
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+            setTimeout(() => {
+                element.className = 'status';
+            }, 5000);
+        }
+
+        // Make API request
+        async function apiRequest(method, endpoint, data = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    ...(token && { 'Authorization': `Bearer ${token}` })
+                },
+            };
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(API_URL + endpoint, options);
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || `HTTP ${response.status}`);
+                }
+
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // Login
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showStatus('authStatus', 'Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                showStatus('authStatus', 'Logging in...', 'info');
+                const result = await apiRequest('POST', '/login', { email, password });
+
+                token = result.data.token;
+                currentUser = result.data.user;
+
+                localStorage.setItem('auth_token', token);
+                localStorage.setItem('current_user', JSON.stringify(currentUser));
+
+                updateUIAfterLogin();
+                showStatus('authStatus', `Welcome ${currentUser.full_name}!`, 'success');
+                loadNotifications();
+            } catch (error) {
+                showStatus('authStatus', `Login failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Logout
+        function logout() {
+            token = null;
+            currentUser = {};
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('current_user');
+            updateUIAfterLogout();
+            showStatus('authStatus', 'Logged out', 'success');
+        }
+
+        // Update UI after login
+        function updateUIAfterLogin() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('userName').textContent = currentUser.full_name;
+            document.getElementById('userId').textContent = currentUser.id;
+        }
+
+        // Update UI after logout
+        function updateUIAfterLogout() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+        }
+
+        // Send chat message
+        async function sendChatMessage() {
+            const recipientId = document.getElementById('recipientId').value;
+            const message = document.getElementById('chatMessage').value;
+
+            if (!token) {
+                showStatus('chatStatus', 'Please login first', 'error');
+                return;
+            }
+
+            if (!recipientId || !message) {
+                showStatus('chatStatus', 'Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                showStatus('chatStatus', 'Sending...', 'info');
+                await apiRequest('POST', '/send-message', {
+                    recipient_id: parseInt(recipientId),
+                    message,
+                    message_type: 'text'
+                });
+
+                showStatus('chatStatus', 'Message sent successfully', 'success');
+                document.getElementById('chatMessage').value = '';
+                loadChatMessages();
+
+                setTimeout(() => loadNotifications(), 1000);
+            } catch (error) {
+                showStatus('chatStatus', `Failed to send: ${error.message}`, 'error');
+            }
+        }
+
+        // Load chat messages
+        async function loadChatMessages() {
+            if (!token) return;
+
+            try {
+                const result = await apiRequest('GET', '/conversations');
+                const messagesDiv = document.getElementById('chatMessages');
+
+                if (result.data.items.length === 0) {
+                    messagesDiv.innerHTML = '<div class="empty-state">No conversations yet</div>';
+                    return;
+                }
+
+                let html = '';
+                result.data.items.forEach(conv => {
+                    if (conv.last_message) {
+                        html += `
+                            <div class="message-item">
+                                <div class="message-sender">${conv.other_user.name}</div>
+                                <div class="message-body">${conv.last_message.message}</div>
+                                <div class="message-time">${new Date(conv.last_message.created_at).toLocaleString()}</div>
+                            </div>
+                        `;
+                    }
+                });
+
+                messagesDiv.innerHTML = html || '<div class="empty-state">No messages yet</div>';
+            } catch (error) {
+                console.error('Error loading chats:', error);
+            }
+        }
+
+        // Create support conversation
+        async function createSupportConversation() {
+            if (!token) {
+                showStatus('supportStatus', 'Please login first', 'error');
+                return;
+            }
+
+            try {
+                showStatus('supportStatus', 'Creating support conversation...', 'info');
+                const result = await apiRequest('GET', '/support/conversation');
+                supportConversationId = result.data.conversation_id;
+                showStatus('supportStatus', 'Support conversation ready', 'success');
+                loadSupportMessages();
+            } catch (error) {
+                showStatus('supportStatus', `Failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Send support message
+        async function sendSupportMessage() {
+            const message = document.getElementById('supportMessage').value;
+
+            if (!token) {
+                showStatus('supportStatus', 'Please login first', 'error');
+                return;
+            }
+
+            if (!supportConversationId) {
+                showStatus('supportStatus', 'Please create support conversation first', 'error');
+                return;
+            }
+
+            if (!message) {
+                showStatus('supportStatus', 'Please enter a message', 'error');
+                return;
+            }
+
+            try {
+                showStatus('supportStatus', 'Sending...', 'info');
+                await apiRequest('POST', '/support/send-message', {
+                    conversation_id: supportConversationId,
+                    message,
+                    message_type: 'text'
+                });
+
+                showStatus('supportStatus', 'Support message sent', 'success');
+                document.getElementById('supportMessage').value = '';
+                loadSupportMessages();
+
+                setTimeout(() => loadNotifications(), 1000);
+            } catch (error) {
+                showStatus('supportStatus', `Failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Load support messages
+        async function loadSupportMessages() {
+            if (!token || !supportConversationId) return;
+
+            try {
+                const result = await apiRequest('GET', `/support/messages/${supportConversationId}`);
+                const messagesDiv = document.getElementById('supportMessages');
+
+                if (result.data.items.length === 0) {
+                    messagesDiv.innerHTML = '<div class="empty-state">No messages yet</div>';
+                    return;
+                }
+
+                let html = '';
+                result.data.items.forEach(msg => {
+                    html += `
+                        <div class="message-item">
+                            <div class="message-sender">${msg.sender.full_name}</div>
+                            <div class="message-body">${msg.message}</div>
+                            <div class="message-time">${new Date(msg.created_at).toLocaleString()}</div>
+                        </div>
+                    `;
+                });
+
+                messagesDiv.innerHTML = html || '<div class="empty-state">No messages yet</div>';
+            } catch (error) {
+                console.error('Error loading support:', error);
+            }
+        }
+
+        // Load notifications
+        async function loadNotifications() {
+            if (!token) return;
+
+            try {
+                const result = await apiRequest('GET', '/notifications?per_page=50');
+                const notificationsDiv = document.getElementById('notificationsArea');
+                const unreadBadge = document.getElementById('unreadBadge');
+
+                const notifications = result.data.items;
+                const unreadCount = notifications.filter(n => !n.read).length;
+
+                unreadBadge.textContent = `${unreadCount} Unread`;
+
+                if (notifications.length === 0) {
+                    notificationsDiv.innerHTML = '<div class="empty-state">No notifications yet</div>';
+                    return;
+                }
+
+                let html = '';
+                notifications.forEach(notif => {
+                    const time = new Date(notif.created_at).toLocaleTimeString();
+                    html += `
+                        <div class="notification-item ${!notif.read ? 'unread' : ''}" 
+                             onclick="markNotificationAsRead(${notif.id})">
+                            <div class="notification-title">${notif.title}</div>
+                            <div class="notification-message">${notif.message}</div>
+                            <div class="notification-meta">
+                                <span class="notification-type">${notif.type.toUpperCase()}</span>
+                                <span>${time}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                notificationsDiv.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
+        // Mark notification as read
+        async function markNotificationAsRead(id) {
+            if (!token) return;
+
+            try {
+                await apiRequest('PUT', `/notifications/${id}/read`);
+                loadNotifications();
+            } catch (error) {
+                console.error('Error marking as read:', error);
+            }
+        }
+
+        // Mark all as read
+        async function markAllAsRead() {
+            if (!token) return;
+
+            try {
+                const result = await apiRequest('GET', '/notifications?per_page=100&is_read=false');
+                const unreadNotifications = result.data.items;
+
+                for (const notif of unreadNotifications) {
+                    await apiRequest('PUT', `/notifications/${notif.id}/read`);
+                }
+
+                showStatus('notificationStatus', `Marked ${unreadNotifications.length} as read`, 'success');
+                loadNotifications();
+            } catch (error) {
+                showStatus('notificationStatus', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Filter notifications
+        async function filterNotifications(filter) {
+            if (!token) return;
+
+            const params = new URLSearchParams();
+            if (filter === 'unread') {
+                params.append('is_read', 'false');
+            } else if (filter !== 'all') {
+                params.append('type', filter);
+            }
+            params.append('per_page', '50');
+
+            try {
+                const result = await apiRequest('GET', `/notifications?${params}`);
+                const notificationsDiv = document.getElementById('notificationsArea');
+
+                if (result.data.items.length === 0) {
+                    notificationsDiv.innerHTML = '<div class="empty-state">No notifications</div>';
+                    return;
+                }
+
+                let html = '';
+                result.data.items.forEach(notif => {
+                    const time = new Date(notif.created_at).toLocaleTimeString();
+                    html += `
+                        <div class="notification-item ${!notif.read ? 'unread' : ''}"
+                             onclick="markNotificationAsRead(${notif.id})">
+                            <div class="notification-title">${notif.title}</div>
+                            <div class="notification-message">${notif.message}</div>
+                            <div class="notification-meta">
+                                <span class="notification-type">${notif.type.toUpperCase()}</span>
+                                <span>${time}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                notificationsDiv.innerHTML = html;
+            } catch (error) {
+                console.error('Error filtering:', error);
+            }
+        }
+
+        // Auto-refresh notifications every 5 seconds
+        setInterval(() => {
+            if (token) {
+                loadNotifications();
+            }
+        }, 5000);
+
+        // Initialize
+        if (token) {
+            updateUIAfterLogin();
+            loadNotifications();
+        }
+    </script>
+</body>
+</html>

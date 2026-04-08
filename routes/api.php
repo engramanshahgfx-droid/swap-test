@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\LanguageController;
 use App\Http\Controllers\Api\RegistrationOptionsController;
 use App\Http\Controllers\Api\VacationController;
+use App\Http\Controllers\Api\SupportController;
 use Illuminate\Support\Facades\Route;
 
 // Language routes
@@ -79,6 +80,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chat/send', [ChatController::class, 'sendMessage']);
     Route::get('/chat/unread-count', [ChatController::class, 'unreadCount']);
     Route::post('/chat/mark-read', [ChatController::class, 'markRead']);
+    
+    // Support
+    Route::get('/support/conversation', [SupportController::class, 'getSupportConversation']);
+    Route::post('/support/send-message', [SupportController::class, 'sendSupportMessage']);
+    Route::get('/support/messages/{conversationId}', [SupportController::class, 'getSupportMessages']);
+    Route::get('/support/conversations', [SupportController::class, 'listSupportConversations']);
     
     // Reports
     Route::post('/report-user', [ReportController::class, 'reportUser']);

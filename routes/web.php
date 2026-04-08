@@ -88,6 +88,11 @@ Route::middleware('auth')->group(function () {
 // FRONTEND PAGES ROUTES (localhost:8000/frontend-test)
 // ============================================
 
+// Notifications & Chat Test Page
+Route::get('/notifications-test', function () {
+    return file_get_contents(public_path('notifications-test.html'));
+})->name('notifications.test');
+
 // Debug endpoint
 Route::get('/frontend-test/debug', function () {
     return [
