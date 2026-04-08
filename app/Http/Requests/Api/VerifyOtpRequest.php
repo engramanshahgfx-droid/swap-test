@@ -15,7 +15,7 @@ class VerifyOtpRequest extends FormRequest
     {
         return [
             'user_id' => 'required|exists:users,id',
-            'otp' => 'required|string|size:6',
+            'otp' => 'required|digits:6',
         ];
     }
 
@@ -23,6 +23,12 @@ class VerifyOtpRequest extends FormRequest
     {
         if ($this->isJson()) {
             $this->merge($this->json()->all());
+        }
+
+        if ($this->has('otp')) {
+            $this->merge([
+                'otp' => str_pad((string) $this->input('otp'), 6, '0', STR_PAD_LEFT),
+            ]);
         }
     }
 }

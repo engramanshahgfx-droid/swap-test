@@ -165,9 +165,17 @@ class AuthController extends Controller
             ]);
         }
 
+        $failureMessage = __('auth.verify_otp_failed');
+
+        if (empty($user->otp_code) || empty($user->otp_expires_at)) {
+            $failureMessage = 'No active OTP found. Please request a new OTP.';
+        } elseif ($user->otp_expires_at->isPast()) {
+            $failureMessage = 'OTP has expired. Please request a new OTP.';
+        }
+
         return response()->json([
             'success' => false,
-            'message' => __('auth.verify_otp_failed'),
+            'message' => $failureMessage,
         ], 400);
     }
 

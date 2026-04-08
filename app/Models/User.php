@@ -163,7 +163,14 @@ class User extends Authenticatable implements FilamentUser
 
     public function verifyOtp($code)
     {
-        return (int)$this->otp_code === (int)$code && $this->otp_expires_at->isFuture();
+        if (empty($this->otp_code) || empty($this->otp_expires_at)) {
+            return false;
+        }
+
+        $storedOtp = str_pad((string) $this->otp_code, 6, '0', STR_PAD_LEFT);
+        $providedOtp = str_pad((string) $code, 6, '0', STR_PAD_LEFT);
+
+        return hash_equals($storedOtp, $providedOtp) && $this->otp_expires_at->isFuture();
     }
 
     public function isActive()
