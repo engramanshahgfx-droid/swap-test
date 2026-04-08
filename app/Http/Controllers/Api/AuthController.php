@@ -39,9 +39,9 @@ class AuthController extends Controller
             'status' => 'inactive',
         ]);
 
-        // Generate and send OTP
+        // Generate and send OTP (prefer email for mobile, fallback to SMS)
         $otp = $user->generateOtp();
-        $this->smsService->sendOtp($user->phone, $otp);
+        $otpDelivery = $this->deliverOtp($user, $otp, 'auto');
 
         // Assign role based on position
         $role = match($request->position_id) {
@@ -63,8 +63,13 @@ class AuthController extends Controller
                 'user' => $user,
                 'token' => $token,
                 'requires_verification' => true,
+                'otp_delivery' => $otpDelivery,
             ],
         ];
+
+        if (!$otpDelivery['sent']) {
+            $response['message'] = 'Registration completed, but OTP delivery failed. Use test_otp in debug mode or check email/SMS configuration.';
+        }
 
         // For development/testing: include actual OTP
         if (config('app.debug')) {
@@ -101,16 +106,19 @@ class AuthController extends Controller
         }
 
         if (!$user->phone_verified_at) {
-            // Send new OTP
+            // Send new OTP (prefer email for mobile, fallback to SMS)
             $otp = $user->generateOtp();
-            $this->smsService->sendOtp($user->phone, $otp);
+            $otpDelivery = $this->deliverOtp($user, $otp, 'auto');
 
             $response = [
                 'success' => false,
-                'message' => __('auth.phone_not_verified'),
+                'message' => $otpDelivery['sent']
+                    ? 'Account not verified yet. OTP sent via ' . $otpDelivery['channel'] . '.'
+                    : 'Account not verified and OTP delivery failed. Use test_otp in debug mode or check email/SMS configuration.',
                 'data' => [
                     'requires_verification' => true,
                     'user_id' => $user->id,
+                    'otp_delivery' => $otpDelivery,
                 ],
             ];
 
@@ -204,35 +212,16 @@ class AuthController extends Controller
         $otp = $user->generateOtp();
 
         $channel = $request->input('channel', 'auto');
-        $sent = false;
-        $usedChannel = null;
+        $otpDelivery = $this->deliverOtp($user, $otp, $channel);
 
-        if ($channel === 'email' || $channel === 'auto') {
-            if (!empty($user->email)) {
-                $sent = $this->emailOtpService->sendOtp($user->email, $otp);
-                if ($sent) {
-                    $usedChannel = 'email';
-                }
-            }
-        }
-
-        if (!$sent && ($channel === 'sms' || $channel === 'auto')) {
-            if (!empty($user->phone)) {
-                $sent = (bool) $this->smsService->sendOtp($user->phone, $otp);
-                if ($sent) {
-                    $usedChannel = 'sms';
-                }
-            }
-        }
-
-        if (!$sent) {
+        if (!$otpDelivery['sent']) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to resend OTP via the requested channel',
                 'data' => [
                     'user_id' => $user->id,
                     'channel' => $channel,
-                    'email_error' => $this->emailOtpService->getLastError(),
+                    'otp_delivery' => $otpDelivery,
                 ],
             ], 500);
         }
@@ -242,9 +231,50 @@ class AuthController extends Controller
             'message' => __('auth.otp_sent'),
             'data' => [
                 'user_id' => $user->id,
-                'channel' => $usedChannel,
+                'channel' => $otpDelivery['channel'],
+                'otp_delivery' => $otpDelivery,
             ],
         ]);
+    }
+
+    private function deliverOtp(User $user, string $otp, string $channel = 'auto'): array
+    {
+        $emailError = null;
+
+        if (($channel === 'email' || $channel === 'auto') && !empty($user->email)) {
+            $emailSent = $this->emailOtpService->sendOtp($user->email, $otp);
+
+            if ($emailSent) {
+                return [
+                    'sent' => true,
+                    'channel' => 'email',
+                    'email' => $user->email,
+                ];
+            }
+
+            $emailError = $this->emailOtpService->getLastError();
+        }
+
+        if (($channel === 'sms' || $channel === 'auto') && !empty($user->phone)) {
+            $smsSent = (bool) $this->smsService->sendOtp($user->phone, $otp);
+
+            if ($smsSent) {
+                return [
+                    'sent' => true,
+                    'channel' => 'sms',
+                    'phone' => $user->phone,
+                    'email_error' => $emailError,
+                ];
+            }
+        }
+
+        return [
+            'sent' => false,
+            'channel' => null,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'email_error' => $emailError,
+        ];
     }
 
     /**
