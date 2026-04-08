@@ -3,8 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
-use RuntimeException;
 use App\Services\SmsService;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Fail fast in non-local environments when Firebase config is incomplete.
+        // Validate Firebase config in non-local environments without crashing unrelated pages.
         if (!app()->environment(['local', 'testing'])) {
             $requiredConfig = [
                 'services.firebase.api_key' => 'FIREBASE_API_KEY',
@@ -37,18 +37,22 @@ class AppServiceProvider extends ServiceProvider
             }
 
             if (!empty($missing)) {
-                throw new RuntimeException('Missing required Firebase configuration: ' . implode(', ', $missing));
+                Log::warning('Firebase configuration incomplete. Firebase features will stay disabled until env is fixed.', [
+                    'missing' => $missing,
+                ]);
+            } else {
+                $serviceAccountPath = config('services.firebase.service_account_key_path');
+                $resolvedServiceAccountPath = $this->resolveFirebaseServiceAccountPath($serviceAccountPath);
+
+                if (!is_string($resolvedServiceAccountPath) || !is_file($resolvedServiceAccountPath)) {
+                    Log::warning('Invalid FIREBASE_SERVICE_ACCOUNT_KEY_PATH. Firebase features will stay disabled until path is fixed.', [
+                        'path' => (string) $serviceAccountPath,
+                    ]);
+                } else {
+                    // Ensure downstream Firebase services always receive an absolute path.
+                    config(['services.firebase.service_account_key_path' => $resolvedServiceAccountPath]);
+                }
             }
-
-            $serviceAccountPath = config('services.firebase.service_account_key_path');
-            $resolvedServiceAccountPath = $this->resolveFirebaseServiceAccountPath($serviceAccountPath);
-
-            if (!is_string($resolvedServiceAccountPath) || !is_file($resolvedServiceAccountPath)) {
-                throw new RuntimeException('Invalid FIREBASE_SERVICE_ACCOUNT_KEY_PATH. File not found: ' . (string) $serviceAccountPath);
-            }
-
-            // Ensure downstream Firebase services always receive an absolute path.
-            config(['services.firebase.service_account_key_path' => $resolvedServiceAccountPath]);
         }
 
         Paginator::defaultView('vendor.pagination.admin');
