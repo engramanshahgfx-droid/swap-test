@@ -9,6 +9,7 @@ use Resend\Transporters\HttpTransporter;
 use Resend\ValueObjects\ApiKey;
 use Resend\ValueObjects\Transporter\BaseUri;
 use Resend\ValueObjects\Transporter\Headers;
+use Throwable;
 
 class EmailOtpService
 {
@@ -39,7 +40,7 @@ class EmailOtpService
             
             \Log::info('OTP sent via Resend', ['email' => $email, 'otp' => $otp, 'response' => (array)$response]);
             return $response ? true : false;
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             $this->lastError = 'Resend: ' . $e->getMessage();
             \Log::error('Failed to send OTP email via Resend', ['email' => $email, 'error' => $e->getMessage()]);
 
@@ -87,7 +88,7 @@ class EmailOtpService
 
             \Log::info('OTP sent via Laravel mailer', ['email' => $email]);
             return true;
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             $existing = $this->lastError;
             $fallbackError = 'Mailer: ' . $e->getMessage();
             $this->lastError = $existing ? ($existing . ' | ' . $fallbackError) : $fallbackError;

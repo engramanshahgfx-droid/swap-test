@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Airline;
 use App\Models\PlaneType;
 use App\Models\Position;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -56,7 +57,7 @@ class AuthController extends Controller
                 Position::create(['name' => 'Flight Attendant']);
                 $positions = Position::all();
             }
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             // If database fails, provide dummy data for testing
             \Log::warning('Database offline - using dummy data for registration form');
             $airlines = collect([
@@ -134,7 +135,7 @@ class AuthController extends Controller
                 ]);
                 
                 $userId = $user->id;
-            } catch (\Exception $dbError) {
+            } catch (Throwable $dbError) {
                 // Database offline - use session to simulate registration
                 \Log::warning('Database offline during registration - using session');
                 
@@ -177,7 +178,7 @@ class AuthController extends Controller
             }
 
             return redirect('/frontend-test/verify-otp')->with($flashData);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             \Log::error('Registration error: ' . $e->getMessage());
             return redirect('/frontend-test/register')
                 ->withInput($request->except('password', 'password_confirmation'))
