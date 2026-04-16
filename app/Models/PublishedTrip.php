@@ -19,6 +19,13 @@ class PublishedTrip extends Model
         'metadata',
         'published_at',
         'expires_at',
+        'flight_number',
+        'legs',
+        'fly_type',
+        'report_time',
+        'offer_lo',
+        'ask_lo',
+        'details',
     ];
 
     protected $casts = [

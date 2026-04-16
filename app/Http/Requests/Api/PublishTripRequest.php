@@ -21,6 +21,12 @@ class PublishTripRequest extends FormRequest
             'position' => 'required|string|in:Captain,First Officer,Purser,Flight Attendant',
             'notes' => 'nullable|string|max:500',
             'expires_at' => 'nullable|date|after:now',
+            'legs' => 'nullable|integer|min:1',
+            'fly_type' => 'nullable|string|max:50',
+            'report_time' => 'nullable|string|max:50',
+            'offer_lo' => 'nullable|string|max:100',
+            'ask_lo' => 'nullable|string|max:100',
+            'details' => 'nullable|string|max:1000',
         ];
     }
 

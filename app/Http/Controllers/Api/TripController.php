@@ -102,7 +102,35 @@ class TripController extends Controller
         $page = max(1, (int) $request->integer('page', 1));
         $eligibleTrips = $this->swapService->getUserEligibleTrips($request->user());
 
-        $items = $eligibleTrips->forPage($page, $perPage)->values();
+        $items = $eligibleTrips->forPage($page, $perPage)->map(function ($trip) {
+            return [
+                'id' => $trip->id,
+                'user' => [
+                    'id' => $trip->user->id,
+                    'name' => $trip->user->full_name,
+                    'employee_id' => $trip->user->employee_id,
+                ],
+                'flight' => [
+                    'id' => $trip->flight->id,
+                    'number' => $trip->flight->flight_number,
+                    'departure' => $trip->flight->departure_airport,
+                    'arrival' => $trip->flight->arrival_airport,
+                    'date' => $trip->flight->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null,
+                ],
+                // Separate trip detail fields
+                'flight_number' => $trip->flight_number,
+                'legs' => $trip->legs,
+                'fly_type' => $trip->fly_type,
+                'report_time' => $trip->report_time,
+                'offer_lo' => $trip->offer_lo,
+                'ask_lo' => $trip->ask_lo,
+                'details' => $trip->details,
+                'notes' => $trip->notes,
+                'status' => $trip->status,
+                'published_at' => $trip->published_at,
+                'expires_at' => $trip->expires_at,
+            ];
+        })->values();
 
         return response()->json([
             'success' => true,
@@ -155,14 +183,23 @@ class TripController extends Controller
             ]
         );
         
-        // Publish the trip
+        // Publish the trip with all separate fields
         $publishedTrip = PublishedTrip::create([
             'user_id' => $user->id,
             'flight_id' => $flight->id,
-            'notes' => $request->notes,
             'status' => 'active',
             'published_at' => now(),
             'expires_at' => $request->expires_at ?? now()->addDays(7),
+            // Separate fields
+            'flight_number' => $request->flight_number,
+            'legs' => $request->legs,
+            'fly_type' => $request->fly_type,
+            'report_time' => $request->report_time,
+            'offer_lo' => $request->offer_lo,
+            'ask_lo' => $request->ask_lo,
+            'details' => $request->details,
+            // Keep notes for general text only
+            'notes' => $request->notes,
         ]);
 
         return response()->json([
@@ -182,6 +219,14 @@ class TripController extends Controller
                 'position' => $request->position,
                 'status' => 'available',
                 'expires_at' => $publishedTrip->expires_at,
+                'flight_number' => $publishedTrip->flight_number,
+                'legs' => $publishedTrip->legs,
+                'fly_type' => $publishedTrip->fly_type,
+                'report_time' => $publishedTrip->report_time,
+                'offer_lo' => $publishedTrip->offer_lo,
+                'ask_lo' => $publishedTrip->ask_lo,
+                'details' => $publishedTrip->details,
+                'notes' => $publishedTrip->notes,
             ],
         ], 201);
     }
