@@ -368,7 +368,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"flight_number\": \"SV123\",\n  \"departure\": \"RUH\",\n  \"arrival\": \"JED\",\n  \"date\": \"2026-12-31\",\n  \"position\": \"Captain\",\n  \"notes\": \"Ready to swap\"\n}"
+              "raw": "{\n  \"flight_number\": \"SV123\",\n  \"departure\": \"RUH\",\n  \"arrival\": \"JED\",\n  \"date\": \"2026-12-31\",\n  \"position\": \"Captain\",\n  \"legs\": 2,\n  \"fly_type\": \"Turnaround\",\n  \"report_time\": \"06:45\",\n  \"offer_lo\": \"Yes\",\n  \"ask_lo\": \"No\",\n  \"details\": \"Crew prefers same-day swap only\",\n  \"notes\": \"Ready to swap\",\n  \"expires_at\": \"2027-01-05T12:00:00Z\"\n}"
             },
             "url": { "raw": "{{base_url}}/publish-trip", "host": ["{{base_url}}"], "path": ["publish-trip"] }
           }
