@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Airline;
+use App\Models\Airport;
 use App\Models\PlaneType;
 use App\Models\Position;
 use Illuminate\Http\JsonResponse;
@@ -32,6 +33,12 @@ class RegistrationOptionsController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'level']);
 
+        $airports = Airport::query()
+            ->where('is_active', true)
+            ->orderBy('city')
+            ->orderBy('name')
+            ->get(['id', 'name', 'iata_code', 'city', 'country']);
+
         return response()->json([
             'success' => true,
             'message' => 'Registration options fetched successfully.',
@@ -45,6 +52,7 @@ class RegistrationOptionsController extends Controller
                     'airline_name' => $planeType->airline?->name,
                 ])->values(),
                 'positions' => $positions,
+                'airports' => $airports,
             ],
         ]);
     }

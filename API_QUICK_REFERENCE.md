@@ -28,6 +28,7 @@ curl -X POST "http://localhost:8000/api/register" \
     "airline_id": 1,
     "position_id": 3,
     "plane_type_id": 1,
+    "airport_id": 1484,
     "employee_id": "EMP001",
     "date_of_birth": "1990-05-15"
   }'
@@ -50,7 +51,7 @@ curl -X POST "http://localhost:8000/api/login" \
 
 | Method | Endpoint | Auth | Purpose |
 |--------|----------|------|---------|
-| GET | `/registration-options` | ❌ | Get airlines, positions, plane types |
+| GET | `/registration-options` | ❌ | Get airlines, positions, plane types, airports |
 | POST | `/register` | ❌ | Register new user |
 | POST | `/login` | ❌ | Login user |
 | POST | `/verify-otp` | ❌ | Verify OTP code |
