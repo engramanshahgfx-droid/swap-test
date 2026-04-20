@@ -3,19 +3,71 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Airport;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    /**
+     * Cache resolved base values during a request to avoid repeated airport lookups.
+     *
+     * @var array<string, string|null>
+     */
+    private array $baseCodeCache = [];
+
+    private function resolveBaseAirportCode(?string $base): ?string
+    {
+        if ($base === null) {
+            return null;
+        }
+
+        $normalizedBase = trim($base);
+        if ($normalizedBase === '') {
+            return null;
+        }
+
+        if (array_key_exists($normalizedBase, $this->baseCodeCache)) {
+            return $this->baseCodeCache[$normalizedBase];
+        }
+
+        if (strlen($normalizedBase) === 3) {
+            $code = strtoupper($normalizedBase);
+            $this->baseCodeCache[$normalizedBase] = $code;
+            return $code;
+        }
+
+        $airport = Airport::query()
+            ->where('is_active', true)
+            ->where(function ($query) use ($normalizedBase) {
+                $query->whereRaw('UPPER(iata_code) = ?', [strtoupper($normalizedBase)])
+                    ->orWhereRaw('LOWER(name) = ?', [strtolower($normalizedBase)]);
+            })
+            ->first(['iata_code']);
+
+        $code = $airport?->iata_code ? strtoupper($airport->iata_code) : null;
+        $this->baseCodeCache[$normalizedBase] = $code;
+
+        return $code;
+    }
+
     private function enrichUserPayload(User $user): array
     {
-        $user->loadMissing(['airline:id,name', 'position:id,name']);
+        $user->loadMissing(['airline:id,name,code', 'position:id,name']);
 
         $payload = $user->toArray();
+
+        $baseAirportCode = $this->resolveBaseAirportCode($user->country_base);
+
         $payload['company_id'] = $user->airline_id;
         $payload['company_name'] = $user->airline?->name;
+        $payload['airline_id'] = $user->airline_id;
+        $payload['airline_name'] = $user->airline?->name;
+        $payload['airline_code'] = $user->airline?->code;
+        $payload['position_id'] = $user->position_id;
         $payload['position_name'] = $user->position?->name;
+        $payload['base_airport_code'] = $baseAirportCode;
+        $payload['base_airport_name'] = $baseAirportCode;
 
         return $payload;
     }
