@@ -25,7 +25,43 @@ class PublishTripRequest extends FormRequest
             'fly_type' => 'nullable|string|max:50',
             'report_time' => 'nullable|string|max:50',
             'offer_lo' => 'nullable|string|max:100',
-            'ask_lo' => 'nullable|string|max:100',
+            'ask_lo' => [
+                'nullable',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (is_string($value)) {
+                        if (mb_strlen($value) > 5000) {
+                            $fail('The ' . $attribute . ' field is too long.');
+                        }
+
+                        return;
+                    }
+
+                    if (!is_array($value)) {
+                        $fail('The ' . $attribute . ' field must be a string or list.');
+                        return;
+                    }
+
+                    foreach ($value as $index => $item) {
+                        if (!is_array($item)) {
+                            $fail('Each item in ' . $attribute . ' must be an object.');
+                            return;
+                        }
+
+                        $time = $item['time'] ?? null;
+                        $type = $item['type'] ?? null;
+
+                        if (!is_string($time) || !preg_match('/^([01]\\d|2[0-3]):[0-5]\\d$/', $time)) {
+                            $fail('The ' . $attribute . '.' . $index . '.time must use HH:MM format.');
+                            return;
+                        }
+
+                        if (!is_string($type) || trim($type) === '') {
+                            $fail('The ' . $attribute . '.' . $index . '.type is required.');
+                            return;
+                        }
+                    }
+                },
+            ],
             'details' => 'nullable|string|max:1000',
         ];
     }

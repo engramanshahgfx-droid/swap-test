@@ -14,6 +14,43 @@ class TripController extends Controller
 {
     protected $swapService;
 
+    private function serializeAskLo(string|array|null $askLo): ?string
+    {
+        if ($askLo === null) {
+            return null;
+        }
+
+        if (is_string($askLo)) {
+            $normalized = trim($askLo);
+            return $normalized === '' ? null : $normalized;
+        }
+
+        if ($askLo === []) {
+            return null;
+        }
+
+        return json_encode($askLo, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    private function parseAskLo(?string $askLo): string|array|null
+    {
+        if ($askLo === null) {
+            return null;
+        }
+
+        $normalized = trim($askLo);
+        if ($normalized === '') {
+            return null;
+        }
+
+        $decoded = json_decode($normalized, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        return $normalized;
+    }
+
     public function __construct(SwapService $swapService)
     {
         $this->swapService = $swapService;
@@ -123,7 +160,7 @@ class TripController extends Controller
                 'fly_type' => $trip->fly_type,
                 'report_time' => $trip->report_time,
                 'offer_lo' => $trip->offer_lo,
-                'ask_lo' => $trip->ask_lo,
+                'ask_lo' => $this->parseAskLo($trip->ask_lo),
                 'details' => $trip->details,
                 'notes' => $trip->notes,
                 'status' => $trip->status,
@@ -196,7 +233,7 @@ class TripController extends Controller
             'fly_type' => $request->fly_type,
             'report_time' => $request->report_time,
             'offer_lo' => $request->offer_lo,
-            'ask_lo' => $request->ask_lo,
+            'ask_lo' => $this->serializeAskLo($request->input('ask_lo')),
             'details' => $request->details,
             // Keep notes for general text only
             'notes' => $request->notes,
@@ -224,7 +261,7 @@ class TripController extends Controller
                 'fly_type' => $publishedTrip->fly_type,
                 'report_time' => $publishedTrip->report_time,
                 'offer_lo' => $publishedTrip->offer_lo,
-                'ask_lo' => $publishedTrip->ask_lo,
+                'ask_lo' => $this->parseAskLo($publishedTrip->ask_lo),
                 'details' => $publishedTrip->details,
                 'notes' => $publishedTrip->notes,
             ],
