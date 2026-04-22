@@ -156,6 +156,25 @@ class TripController extends Controller
             $parsed['details'] = trim($matches[1]);
         }
 
+        if (!array_key_exists('details', $parsed) && $parsed !== []) {
+            $lines = preg_split('/\r\n|\r|\n/', $normalizedNotes) ?: [];
+
+            foreach ($lines as $line) {
+                $candidate = trim($line);
+
+                if ($candidate === '') {
+                    continue;
+                }
+
+                if (preg_match('/^(Report[\s_]*time|Legs|Fly[\s_]*type|Offer[\s_]*L[O0]|Ask[\s_]*L[O0]|Details?)\s*:/i', $candidate) === 1) {
+                    continue;
+                }
+
+                $parsed['details'] = $candidate;
+                break;
+            }
+        }
+
         return $parsed;
     }
 
@@ -203,7 +222,6 @@ class TripController extends Controller
                         'number' => $trip->flight?->flight_number,
                         'departure' => $trip->flight?->departure_airport,
                         'arrival' => $trip->flight?->arrival_airport,
-                        'date' => $departureDate,
                         'departure_date' => $departureDate,
                         'arrival_date' => $arrivalDate,
                         'departure_time' => $trip->flight?->departure_time ? $trip->flight->departure_time->format('H:i:s') : null,
@@ -267,7 +285,6 @@ class TripController extends Controller
                     'number' => $trip->flight?->flight_number,
                     'departure' => $trip->flight?->departure_airport,
                     'arrival' => $trip->flight?->arrival_airport,
-                    'date' => $departureDate,
                     'departure_date' => $departureDate,
                     'arrival_date' => $arrivalDate,
                     'departure_time' => $trip->flight?->departure_time ? $trip->flight->departure_time->format('H:i:s') : null,
@@ -317,7 +334,6 @@ class TripController extends Controller
                     'number' => $trip->flight?->flight_number,
                     'departure' => $trip->flight?->departure_airport,
                     'arrival' => $trip->flight?->arrival_airport,
-                    'date' => $departureDate,
                     'departure_date' => $departureDate,
                     'arrival_date' => $arrivalDate,
                     'departure_time' => $trip->flight?->departure_time ? $trip->flight->departure_time->format('H:i:s') : null,
@@ -506,7 +522,6 @@ class TripController extends Controller
                     'number' => $flight->flight_number,
                     'departure' => $flight->departure_airport,
                     'arrival' => $flight->arrival_airport,
-                    'date' => $flight->departure_date->format('Y-m-d'),
                     'departure_date' => $flight->departure_date->format('Y-m-d'),
                     'arrival_date' => $flight->arrival_date ? $flight->arrival_date->format('Y-m-d') : $flight->departure_date->format('Y-m-d'),
                     'departure_time' => $flight->departure_time ? $flight->departure_time->format('H:i:s') : null,
@@ -650,7 +665,8 @@ class TripController extends Controller
                     'number' => $flight->flight_number,
                     'departure' => $flight->departure_airport,
                     'arrival' => $flight->arrival_airport,
-                    'date' => $flight->departure_date->format('Y-m-d'),
+                    'departure_date' => $flight->departure_date->format('Y-m-d'),
+                    'arrival_date' => $flight->arrival_date ? $flight->arrival_date->format('Y-m-d') : $flight->departure_date->format('Y-m-d'),
                 ],
             ],
         ]);
@@ -692,7 +708,6 @@ class TripController extends Controller
                         'arrival' => $swap->publishedTrip->flight->arrival_airport,
                         'route' => $swap->publishedTrip->flight->departure_airport . ' → ' . 
                                   $swap->publishedTrip->flight->arrival_airport,
-                        'date' => $departureDate,
                         'departure_date' => $departureDate,
                         'arrival_date' => $arrivalDate,
                         'departure_time' => $swap->publishedTrip->flight->departure_time ?
