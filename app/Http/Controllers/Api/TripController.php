@@ -127,29 +127,32 @@ class TripController extends Controller
             return [];
         }
 
+        // Some legacy clients sent literal "\\n" in notes; normalize first.
+        $normalizedNotes = str_replace(["\\r\\n", "\\n", "\\r"], "\n", $notes);
+
         $parsed = [];
 
-        if (preg_match('/\bReport\s*time\s*:\s*([^\r\n]+)/i', $notes, $matches) === 1) {
+        if (preg_match('/\bReport[\s_]*time\s*:\s*([^\r\n]+)/i', $normalizedNotes, $matches) === 1) {
             $parsed['report_time'] = trim($matches[1]);
         }
 
-        if (preg_match('/\bLegs\s*:\s*(\d+)/i', $notes, $matches) === 1) {
+        if (preg_match('/\bLegs\s*:\s*(\d+)/i', $normalizedNotes, $matches) === 1) {
             $parsed['legs'] = (int) $matches[1];
         }
 
-        if (preg_match('/\bFly\s*type\s*:\s*([^\r\n]+)/i', $notes, $matches) === 1) {
+        if (preg_match('/\bFly[\s_]*type\s*:\s*([^\r\n]+)/i', $normalizedNotes, $matches) === 1) {
             $parsed['fly_type'] = trim($matches[1]);
         }
 
-        if (preg_match('/\bOffer\s*LO\s*:\s*([^\r\n]+)/i', $notes, $matches) === 1) {
+        if (preg_match('/\bOffer[\s_]*L[O0]\s*:\s*([^\r\n]+)/i', $normalizedNotes, $matches) === 1) {
             $parsed['offer_lo'] = $this->parseLegacyLoLine($matches[1]);
         }
 
-        if (preg_match('/\bAsk\s*LO\s*:\s*([^\r\n]+)/i', $notes, $matches) === 1) {
+        if (preg_match('/\bAsk[\s_]*L[O0]\s*:\s*([^\r\n]+)/i', $normalizedNotes, $matches) === 1) {
             $parsed['ask_lo'] = $this->parseLegacyLoLine($matches[1]);
         }
 
-        if (preg_match('/\bDetails?\s*:\s*([^\r\n]+)/i', $notes, $matches) === 1) {
+        if (preg_match('/\bDetails?\s*:\s*([^\r\n]+)/i', $normalizedNotes, $matches) === 1) {
             $parsed['details'] = trim($matches[1]);
         }
 
@@ -448,22 +451,22 @@ class TripController extends Controller
                     $publishedTripData['flight_number'] = $request->flight_number;
                 }
                 if ($hasPublishedTripLegs) {
-                    $publishedTripData['legs'] = $request->legs ?? ($legacyTripDetails['legs'] ?? null);
+                    $publishedTripData['legs'] = $this->valueOrFallback($request->input('legs'), $legacyTripDetails['legs'] ?? null);
                 }
                 if ($hasPublishedTripFlyType) {
-                    $publishedTripData['fly_type'] = $request->fly_type ?? ($legacyTripDetails['fly_type'] ?? null);
+                    $publishedTripData['fly_type'] = $this->valueOrFallback($request->input('fly_type'), $legacyTripDetails['fly_type'] ?? null);
                 }
                 if ($hasPublishedTripReportTime) {
-                    $publishedTripData['report_time'] = $request->report_time ?? ($legacyTripDetails['report_time'] ?? null);
+                    $publishedTripData['report_time'] = $this->valueOrFallback($request->input('report_time'), $legacyTripDetails['report_time'] ?? null);
                 }
                 if ($hasPublishedTripOfferLo) {
-                    $publishedTripData['offer_lo'] = $this->serializeOfferLo($request->input('offer_lo') ?? ($legacyTripDetails['offer_lo'] ?? null));
+                    $publishedTripData['offer_lo'] = $this->serializeOfferLo($this->valueOrFallback($request->input('offer_lo'), $legacyTripDetails['offer_lo'] ?? null));
                 }
                 if ($hasPublishedTripAskLo) {
-                    $publishedTripData['ask_lo'] = $this->serializeAskLo($request->input('ask_lo') ?? ($legacyTripDetails['ask_lo'] ?? null));
+                    $publishedTripData['ask_lo'] = $this->serializeAskLo($this->valueOrFallback($request->input('ask_lo'), $legacyTripDetails['ask_lo'] ?? null));
                 }
                 if ($hasPublishedTripDetails) {
-                    $publishedTripData['details'] = $request->details ?? ($legacyTripDetails['details'] ?? null);
+                    $publishedTripData['details'] = $this->valueOrFallback($request->input('details'), $legacyTripDetails['details'] ?? null);
                 }
                 if ($hasPublishedTripNotes) {
                     $publishedTripData['notes'] = $request->notes;
