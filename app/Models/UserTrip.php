@@ -32,4 +32,9 @@ class UserTrip extends Model
     {
         return $this->belongsTo(Flight::class);
     }
+
+    public function publishedTrips()
+    {
+        return $this->hasMany(PublishedTrip::class, 'user_trip_id');
+    }
 }

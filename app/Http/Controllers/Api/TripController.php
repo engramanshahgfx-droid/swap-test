@@ -112,10 +112,15 @@ class TripController extends Controller
         $trips = UserTrip::where('user_id', $request->user()->id)
             ->with(['flight' => function ($query) {
                 $query->with(['airline', 'planeType']);
+            }, 'publishedTrips' => function ($query) {
+                $query->latest('id');
             }])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage)
             ->through(function ($trip) {
+                $publishedTrip = $trip->publishedTrips->first();
+                $departureDate = $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null;
+
                 return [
                     'id' => $trip->id,
                     'flight' => [
@@ -123,12 +128,21 @@ class TripController extends Controller
                         'number' => $trip->flight?->flight_number,
                         'departure' => $trip->flight?->departure_airport,
                         'arrival' => $trip->flight?->arrival_airport,
-                        'date' => $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null,
+                        'date' => $departureDate,
+                        'departure_date' => $departureDate,
+                        'arrival_date' => $departureDate,
                         'departure_time' => $trip->flight?->departure_time ? $trip->flight->departure_time->format('H:i:s') : null,
                         'arrival_time' => $trip->flight?->arrival_time ? $trip->flight->arrival_time->format('H:i:s') : null,
                         'duration' => $trip->flight?->formatted_duration,
                         'status' => $trip->flight?->status,
                     ],
+                    'flight_number' => $publishedTrip?->flight_number,
+                    'departure_date' => $departureDate,
+                    'arrival_date' => $departureDate,
+                    'legs' => $publishedTrip?->legs,
+                    'fly_type' => $publishedTrip?->fly_type,
+                    'offer_lo' => $this->parseOfferLo($publishedTrip?->offer_lo),
+                    'ask_lo' => $this->parseAskLo($publishedTrip?->ask_lo),
                     'status' => $trip->status,
                     'role' => $trip->role,
                     'notes' => $trip->notes,
@@ -152,8 +166,13 @@ class TripController extends Controller
 
     public function tripDetails($id)
     {
-        $trip = UserTrip::with(['flight', 'user', 'flight.airline', 'flight.planeType'])
+        $trip = UserTrip::with(['flight', 'user', 'flight.airline', 'flight.planeType', 'publishedTrips' => function ($query) {
+            $query->latest('id');
+        }])
             ->findOrFail($id);
+
+        $publishedTrip = $trip->publishedTrips->first();
+        $departureDate = $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null;
 
         return response()->json([
             'success' => true,
@@ -169,7 +188,9 @@ class TripController extends Controller
                     'number' => $trip->flight?->flight_number,
                     'departure' => $trip->flight?->departure_airport,
                     'arrival' => $trip->flight?->arrival_airport,
-                    'date' => $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null,
+                    'date' => $departureDate,
+                    'departure_date' => $departureDate,
+                    'arrival_date' => $departureDate,
                     'departure_time' => $trip->flight?->departure_time ? $trip->flight->departure_time->format('H:i:s') : null,
                     'arrival_time' => $trip->flight?->arrival_time ? $trip->flight->arrival_time->format('H:i:s') : null,
                     'duration' => $trip->flight?->formatted_duration,
@@ -177,6 +198,13 @@ class TripController extends Controller
                     'airline' => $trip->flight?->airline?->name,
                     'plane_type' => $trip->flight?->planeType?->name,
                 ],
+                'flight_number' => $publishedTrip?->flight_number,
+                'departure_date' => $departureDate,
+                'arrival_date' => $departureDate,
+                'legs' => $publishedTrip?->legs,
+                'fly_type' => $publishedTrip?->fly_type,
+                'offer_lo' => $this->parseOfferLo($publishedTrip?->offer_lo),
+                'ask_lo' => $this->parseAskLo($publishedTrip?->ask_lo),
                 'status' => $trip->status,
                 'role' => $trip->role,
                 'notes' => $trip->notes,
@@ -192,6 +220,8 @@ class TripController extends Controller
         $eligibleTrips = $this->swapService->getUserEligibleTrips($request->user());
 
         $items = $eligibleTrips->forPage($page, $perPage)->map(function ($trip) {
+            $departureDate = $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null;
+
             return [
                 'id' => $trip->id,
                 'user' => [
@@ -204,13 +234,17 @@ class TripController extends Controller
                     'number' => $trip->flight?->flight_number,
                     'departure' => $trip->flight?->departure_airport,
                     'arrival' => $trip->flight?->arrival_airport,
-                    'date' => $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null,
+                    'date' => $departureDate,
+                    'departure_date' => $departureDate,
+                    'arrival_date' => $departureDate,
                     'departure_time' => $trip->flight?->departure_time ? $trip->flight->departure_time->format('H:i:s') : null,
                     'arrival_time' => $trip->flight?->arrival_time ? $trip->flight->arrival_time->format('H:i:s') : null,
                     'status' => $trip->flight?->status,
                 ],
                 // Separate trip detail fields
                 'flight_number' => $trip->flight_number,
+                'departure_date' => $departureDate,
+                'arrival_date' => $departureDate,
                 'legs' => $trip->legs,
                 'fly_type' => $trip->fly_type,
                 'report_time' => $trip->report_time,
@@ -532,6 +566,9 @@ class TripController extends Controller
             ->through(function ($swap) use ($user) {
                 $isRequester = $swap->requester_id === $user->id;
                 $otherUser = $isRequester ? $swap->responder : $swap->requester;
+                $departureDate = $swap->publishedTrip?->flight?->departure_date
+                    ? $swap->publishedTrip->flight->departure_date->format('Y-m-d')
+                    : null;
                 
                 return [
                     'id' => $swap->id,
@@ -548,8 +585,9 @@ class TripController extends Controller
                         'arrival' => $swap->publishedTrip->flight->arrival_airport,
                         'route' => $swap->publishedTrip->flight->departure_airport . ' → ' . 
                                   $swap->publishedTrip->flight->arrival_airport,
-                        'date' => $swap->publishedTrip->flight->departure_date ? 
-                                  $swap->publishedTrip->flight->departure_date->format('Y-m-d') : null,
+                        'date' => $departureDate,
+                        'departure_date' => $departureDate,
+                        'arrival_date' => $departureDate,
                         'departure_time' => $swap->publishedTrip->flight->departure_time ?
                                   $swap->publishedTrip->flight->departure_time->format('H:i:s') : null,
                         'arrival_time' => $swap->publishedTrip->flight->arrival_time ?
@@ -558,6 +596,8 @@ class TripController extends Controller
                     ] : null,
                     'trip_details' => $swap->publishedTrip ? [
                         'flight_number' => $swap->publishedTrip->flight_number,
+                        'departure_date' => $departureDate,
+                        'arrival_date' => $departureDate,
                         'legs' => $swap->publishedTrip->legs,
                         'fly_type' => $swap->publishedTrip->fly_type,
                         'report_time' => $swap->publishedTrip->report_time,
