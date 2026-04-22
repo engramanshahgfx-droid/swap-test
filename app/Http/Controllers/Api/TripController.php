@@ -436,8 +436,8 @@ class TripController extends Controller
                     'status' => 'scheduled',
                 ];
 
-                if ($hasFlightArrivalDate && $arrivalDate !== null) {
-                    $flightUpdateData['arrival_date'] = $arrivalDate->toDateString();
+                if ($hasFlightArrivalDate) {
+                    $flightUpdateData['arrival_date'] = $arrivalDate?->toDateString();
                 }
 
                 $flight = Flight::updateOrCreate(
@@ -614,8 +614,8 @@ class TripController extends Controller
                     'status' => 'scheduled',
                 ];
 
-                if ($hasFlightArrivalDate && $arrivalDate !== null) {
-                    $flightUpdateData['arrival_date'] = $arrivalDate->toDateString();
+                if ($hasFlightArrivalDate) {
+                    $flightUpdateData['arrival_date'] = $arrivalDate?->toDateString();
                 }
 
                 $flight = Flight::updateOrCreate(
