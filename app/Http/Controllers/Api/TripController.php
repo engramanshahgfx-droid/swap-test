@@ -5,10 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\PublishTripRequest;
 use App\Models\PublishedTrip;
+use App\Models\Flight;
 use App\Models\UserTrip;
 use App\Models\SwapRequest;
 use App\Services\SwapService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class TripController extends Controller
 {
@@ -186,58 +190,89 @@ class TripController extends Controller
     public function publishTrip(PublishTripRequest $request)
     {
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        if (!$user->airline_id || !$user->plane_type_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please complete your profile with airline and plane type before publishing a trip.',
+            ], 422);
+        }
         
         // Parse the date from request
         $departureDate = \Carbon\Carbon::parse($request->date);
-        
-        // Find or create flight - use only identifying columns in WHERE, rest in attributes
-        $flight = \App\Models\Flight::firstOrCreate(
-            [
-                'flight_number' => $request->flight_number,
-                'departure_airport' => $request->departure,
-                'arrival_airport' => $request->arrival,
-            ],
-            [
-                'departure_date' => $departureDate,
-                'departure_time' => '08:00:00',
-                'arrival_time' => '10:30:00',
-                'airline_id' => $user->airline_id,
-                'plane_type_id' => $user->plane_type_id,
-                'status' => 'scheduled',
-            ]
-        );
-        
-        // Create or get UserTrip
-        $userTrip = \App\Models\UserTrip::firstOrCreate(
-            [
+
+        try {
+            [$flight, $publishedTrip] = DB::transaction(function () use ($request, $user, $departureDate) {
+                // flights.flight_number is unique, so update or create using that key.
+                $flight = Flight::updateOrCreate(
+                    [
+                        'flight_number' => $request->flight_number,
+                    ],
+                    [
+                        'departure_airport' => $request->departure,
+                        'arrival_airport' => $request->arrival,
+                        'departure_date' => $departureDate->toDateString(),
+                        'departure_time' => '08:00:00',
+                        'arrival_time' => '10:30:00',
+                        'airline_id' => $user->airline_id,
+                        'plane_type_id' => $user->plane_type_id,
+                        'status' => 'scheduled',
+                    ]
+                );
+
+                // Ensure assignment exists for this user and flight.
+                $userTrip = UserTrip::firstOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'flight_id' => $flight->id,
+                    ],
+                    [
+                        'status' => 'assigned',
+                        'role' => $request->position,
+                        'notes' => $request->notes,
+                    ]
+                );
+
+                $publishedTrip = PublishedTrip::create([
+                    'user_id' => $user->id,
+                    'flight_id' => $flight->id,
+                    'user_trip_id' => $userTrip->id,
+                    'status' => 'active',
+                    'published_at' => now(),
+                    'expires_at' => $request->expires_at ?? now()->addDays(7),
+                    // Separate fields
+                    'flight_number' => $request->flight_number,
+                    'legs' => $request->legs,
+                    'fly_type' => $request->fly_type,
+                    'report_time' => $request->report_time,
+                    'offer_lo' => $request->offer_lo,
+                    'ask_lo' => $this->serializeAskLo($request->input('ask_lo')),
+                    'details' => $request->details,
+                    // Keep notes for general text only
+                    'notes' => $request->notes,
+                ]);
+
+                return [$flight, $publishedTrip];
+            });
+        } catch (Throwable $exception) {
+            Log::error('Failed to publish trip', [
                 'user_id' => $user->id,
-                'flight_id' => $flight->id,
-            ],
-            [
-                'status' => 'assigned',
-                'role' => $request->position,
-                'notes' => $request->notes,
-            ]
-        );
-        
-        // Publish the trip with all separate fields
-        $publishedTrip = PublishedTrip::create([
-            'user_id' => $user->id,
-            'flight_id' => $flight->id,
-            'status' => 'active',
-            'published_at' => now(),
-            'expires_at' => $request->expires_at ?? now()->addDays(7),
-            // Separate fields
-            'flight_number' => $request->flight_number,
-            'legs' => $request->legs,
-            'fly_type' => $request->fly_type,
-            'report_time' => $request->report_time,
-            'offer_lo' => $request->offer_lo,
-            'ask_lo' => $this->serializeAskLo($request->input('ask_lo')),
-            'details' => $request->details,
-            // Keep notes for general text only
-            'notes' => $request->notes,
-        ]);
+                'flight_number' => $request->flight_number,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.server_error'),
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,
