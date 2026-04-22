@@ -54,6 +54,7 @@ class PublishTripRequest extends FormRequest
             'departure' => 'required|string|size:3',
             'arrival' => 'required|string|size:3',
             'date' => 'required|date|after:today',
+            'arrival_date' => 'nullable|date|after_or_equal:date',
             'position' => 'nullable|string|in:Captain,First Officer,Purser,Flight Attendant',
             'notes' => 'nullable|string|max:500',
             'expires_at' => 'nullable|date|after:now',

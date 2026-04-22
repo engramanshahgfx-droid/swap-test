@@ -100,6 +100,76 @@ class TripController extends Controller
         }
     }
 
+    private function parseLegacyLoLine(?string $value): string|array|null
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim($value);
+        if ($normalized === '') {
+            return null;
+        }
+
+        if (preg_match('/^([01]\d|2[0-3]):[0-5]\d\s+(.+)$/', $normalized, $matches) === 1) {
+            return [[
+                'time' => substr($normalized, 0, 5),
+                'type' => trim($matches[2]),
+            ]];
+        }
+
+        return $normalized;
+    }
+
+    private function parseLegacyTripFieldsFromNotes(?string $notes): array
+    {
+        if ($notes === null || trim($notes) === '') {
+            return [];
+        }
+
+        $parsed = [];
+
+        if (preg_match('/\bReport\s*time\s*:\s*([^\r\n]+)/i', $notes, $matches) === 1) {
+            $parsed['report_time'] = trim($matches[1]);
+        }
+
+        if (preg_match('/\bLegs\s*:\s*(\d+)/i', $notes, $matches) === 1) {
+            $parsed['legs'] = (int) $matches[1];
+        }
+
+        if (preg_match('/\bFly\s*type\s*:\s*([^\r\n]+)/i', $notes, $matches) === 1) {
+            $parsed['fly_type'] = trim($matches[1]);
+        }
+
+        if (preg_match('/\bOffer\s*LO\s*:\s*([^\r\n]+)/i', $notes, $matches) === 1) {
+            $parsed['offer_lo'] = $this->parseLegacyLoLine($matches[1]);
+        }
+
+        if (preg_match('/\bAsk\s*LO\s*:\s*([^\r\n]+)/i', $notes, $matches) === 1) {
+            $parsed['ask_lo'] = $this->parseLegacyLoLine($matches[1]);
+        }
+
+        if (preg_match('/\bDetails?\s*:\s*([^\r\n]+)/i', $notes, $matches) === 1) {
+            $parsed['details'] = trim($matches[1]);
+        }
+
+        return $parsed;
+    }
+
+    private function isBlankString(mixed $value): bool
+    {
+        return is_string($value) && trim($value) === '';
+    }
+
+    private function valueOrFallback(mixed $value, mixed $fallback): mixed
+    {
+        if ($value === null || $this->isBlankString($value)) {
+            return $fallback;
+        }
+
+        return $value;
+    }
+
     public function __construct(SwapService $swapService)
     {
         $this->swapService = $swapService;
@@ -119,7 +189,9 @@ class TripController extends Controller
             ->paginate($perPage)
             ->through(function ($trip) {
                 $publishedTrip = $trip->publishedTrips->first();
+                $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($publishedTrip?->notes);
                 $departureDate = $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null;
+                $arrivalDate = $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : $departureDate;
 
                 return [
                     'id' => $trip->id,
@@ -130,19 +202,21 @@ class TripController extends Controller
                         'arrival' => $trip->flight?->arrival_airport,
                         'date' => $departureDate,
                         'departure_date' => $departureDate,
-                        'arrival_date' => $departureDate,
+                        'arrival_date' => $arrivalDate,
                         'departure_time' => $trip->flight?->departure_time ? $trip->flight->departure_time->format('H:i:s') : null,
                         'arrival_time' => $trip->flight?->arrival_time ? $trip->flight->arrival_time->format('H:i:s') : null,
                         'duration' => $trip->flight?->formatted_duration,
                         'status' => $trip->flight?->status,
                     ],
-                    'flight_number' => $publishedTrip?->flight_number,
+                    'flight_number' => $this->valueOrFallback($publishedTrip?->flight_number, $trip->flight?->flight_number),
                     'departure_date' => $departureDate,
-                    'arrival_date' => $departureDate,
-                    'legs' => $publishedTrip?->legs,
-                    'fly_type' => $publishedTrip?->fly_type,
-                    'offer_lo' => $this->parseOfferLo($publishedTrip?->offer_lo),
-                    'ask_lo' => $this->parseAskLo($publishedTrip?->ask_lo),
+                    'arrival_date' => $arrivalDate,
+                    'legs' => $this->valueOrFallback($publishedTrip?->legs, $legacyTripDetails['legs'] ?? null),
+                    'fly_type' => $this->valueOrFallback($publishedTrip?->fly_type, $legacyTripDetails['fly_type'] ?? null),
+                    'report_time' => $this->valueOrFallback($publishedTrip?->report_time, $legacyTripDetails['report_time'] ?? null),
+                    'offer_lo' => $this->valueOrFallback($this->parseOfferLo($publishedTrip?->offer_lo), $legacyTripDetails['offer_lo'] ?? null),
+                    'ask_lo' => $this->valueOrFallback($this->parseAskLo($publishedTrip?->ask_lo), $legacyTripDetails['ask_lo'] ?? null),
+                    'details' => $this->valueOrFallback($publishedTrip?->details, $legacyTripDetails['details'] ?? null),
                     'status' => $trip->status,
                     'role' => $trip->role,
                     'notes' => $trip->notes,
@@ -172,7 +246,9 @@ class TripController extends Controller
             ->findOrFail($id);
 
         $publishedTrip = $trip->publishedTrips->first();
+        $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($publishedTrip?->notes);
         $departureDate = $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null;
+        $arrivalDate = $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : $departureDate;
 
         return response()->json([
             'success' => true,
@@ -190,7 +266,7 @@ class TripController extends Controller
                     'arrival' => $trip->flight?->arrival_airport,
                     'date' => $departureDate,
                     'departure_date' => $departureDate,
-                    'arrival_date' => $departureDate,
+                    'arrival_date' => $arrivalDate,
                     'departure_time' => $trip->flight?->departure_time ? $trip->flight->departure_time->format('H:i:s') : null,
                     'arrival_time' => $trip->flight?->arrival_time ? $trip->flight->arrival_time->format('H:i:s') : null,
                     'duration' => $trip->flight?->formatted_duration,
@@ -198,13 +274,15 @@ class TripController extends Controller
                     'airline' => $trip->flight?->airline?->name,
                     'plane_type' => $trip->flight?->planeType?->name,
                 ],
-                'flight_number' => $publishedTrip?->flight_number,
+                'flight_number' => $this->valueOrFallback($publishedTrip?->flight_number, $trip->flight?->flight_number),
                 'departure_date' => $departureDate,
-                'arrival_date' => $departureDate,
-                'legs' => $publishedTrip?->legs,
-                'fly_type' => $publishedTrip?->fly_type,
-                'offer_lo' => $this->parseOfferLo($publishedTrip?->offer_lo),
-                'ask_lo' => $this->parseAskLo($publishedTrip?->ask_lo),
+                'arrival_date' => $arrivalDate,
+                'legs' => $this->valueOrFallback($publishedTrip?->legs, $legacyTripDetails['legs'] ?? null),
+                'fly_type' => $this->valueOrFallback($publishedTrip?->fly_type, $legacyTripDetails['fly_type'] ?? null),
+                'report_time' => $this->valueOrFallback($publishedTrip?->report_time, $legacyTripDetails['report_time'] ?? null),
+                'offer_lo' => $this->valueOrFallback($this->parseOfferLo($publishedTrip?->offer_lo), $legacyTripDetails['offer_lo'] ?? null),
+                'ask_lo' => $this->valueOrFallback($this->parseAskLo($publishedTrip?->ask_lo), $legacyTripDetails['ask_lo'] ?? null),
+                'details' => $this->valueOrFallback($publishedTrip?->details, $legacyTripDetails['details'] ?? null),
                 'status' => $trip->status,
                 'role' => $trip->role,
                 'notes' => $trip->notes,
@@ -220,7 +298,9 @@ class TripController extends Controller
         $eligibleTrips = $this->swapService->getUserEligibleTrips($request->user());
 
         $items = $eligibleTrips->forPage($page, $perPage)->map(function ($trip) {
+            $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($trip->notes);
             $departureDate = $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null;
+            $arrivalDate = $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : $departureDate;
 
             return [
                 'id' => $trip->id,
@@ -236,21 +316,21 @@ class TripController extends Controller
                     'arrival' => $trip->flight?->arrival_airport,
                     'date' => $departureDate,
                     'departure_date' => $departureDate,
-                    'arrival_date' => $departureDate,
+                    'arrival_date' => $arrivalDate,
                     'departure_time' => $trip->flight?->departure_time ? $trip->flight->departure_time->format('H:i:s') : null,
                     'arrival_time' => $trip->flight?->arrival_time ? $trip->flight->arrival_time->format('H:i:s') : null,
                     'status' => $trip->flight?->status,
                 ],
                 // Separate trip detail fields
-                'flight_number' => $trip->flight_number,
+                'flight_number' => $this->valueOrFallback($trip->flight_number, $trip->flight?->flight_number),
                 'departure_date' => $departureDate,
-                'arrival_date' => $departureDate,
-                'legs' => $trip->legs,
-                'fly_type' => $trip->fly_type,
-                'report_time' => $trip->report_time,
-                'offer_lo' => $this->parseOfferLo($trip->offer_lo),
-                'ask_lo' => $this->parseAskLo($trip->ask_lo),
-                'details' => $trip->details,
+                'arrival_date' => $arrivalDate,
+                'legs' => $this->valueOrFallback($trip->legs, $legacyTripDetails['legs'] ?? null),
+                'fly_type' => $this->valueOrFallback($trip->fly_type, $legacyTripDetails['fly_type'] ?? null),
+                'report_time' => $this->valueOrFallback($trip->report_time, $legacyTripDetails['report_time'] ?? null),
+                'offer_lo' => $this->valueOrFallback($this->parseOfferLo($trip->offer_lo), $legacyTripDetails['offer_lo'] ?? null),
+                'ask_lo' => $this->valueOrFallback($this->parseAskLo($trip->ask_lo), $legacyTripDetails['ask_lo'] ?? null),
+                'details' => $this->valueOrFallback($trip->details, $legacyTripDetails['details'] ?? null),
                 'notes' => $trip->notes,
                 'status' => $trip->status,
                 'published_at' => $trip->published_at,
@@ -292,8 +372,11 @@ class TripController extends Controller
         
         // Parse the date from request
         $departureDate = \Carbon\Carbon::parse($request->date);
+        $arrivalDate = \Carbon\Carbon::parse($request->input('arrival_date', $request->date));
         $departureTime = $this->normalizeFlightTime($request->input('departure_time'), '08:00:00');
         $arrivalTime = $this->normalizeFlightTime($request->input('arrival_time'), '10:30:00');
+        $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($request->notes);
+        $hasFlightArrivalDate = $this->hasColumn('flights', 'arrival_date');
 
         // Check columns OUTSIDE transaction to avoid locking issues
         $hasPublishedTripUserId = $this->hasColumn('published_trips', 'user_id');
@@ -309,22 +392,28 @@ class TripController extends Controller
         $hasPublishedTripNotes = $this->hasColumn('published_trips', 'notes');
 
         try {
-            [$flight, $userTrip, $publishedTrip] = DB::transaction(function () use ($request, $user, $departureDate, $departureTime, $arrivalTime, $hasPublishedTripUserId, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes) {
+            [$flight, $userTrip, $publishedTrip] = DB::transaction(function () use ($request, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $legacyTripDetails, $hasFlightArrivalDate, $hasPublishedTripUserId, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes) {
                 // flights.flight_number is unique, so update or create using that key.
+                $flightUpdateData = [
+                    'departure_airport' => $request->departure,
+                    'arrival_airport' => $request->arrival,
+                    'departure_date' => $departureDate->toDateString(),
+                    'departure_time' => $departureTime,
+                    'arrival_time' => $arrivalTime,
+                    'airline_id' => $user->airline_id,
+                    'plane_type_id' => $user->plane_type_id,
+                    'status' => 'scheduled',
+                ];
+
+                if ($hasFlightArrivalDate) {
+                    $flightUpdateData['arrival_date'] = $arrivalDate->toDateString();
+                }
+
                 $flight = Flight::updateOrCreate(
                     [
                         'flight_number' => $request->flight_number,
                     ],
-                    [
-                        'departure_airport' => $request->departure,
-                        'arrival_airport' => $request->arrival,
-                        'departure_date' => $departureDate->toDateString(),
-                        'departure_time' => $departureTime,
-                        'arrival_time' => $arrivalTime,
-                        'airline_id' => $user->airline_id,
-                        'plane_type_id' => $user->plane_type_id,
-                        'status' => 'scheduled',
-                    ]
+                    $flightUpdateData
                 );
 
                 // Ensure assignment exists for this user and flight.
@@ -359,22 +448,22 @@ class TripController extends Controller
                     $publishedTripData['flight_number'] = $request->flight_number;
                 }
                 if ($hasPublishedTripLegs) {
-                    $publishedTripData['legs'] = $request->legs;
+                    $publishedTripData['legs'] = $request->legs ?? ($legacyTripDetails['legs'] ?? null);
                 }
                 if ($hasPublishedTripFlyType) {
-                    $publishedTripData['fly_type'] = $request->fly_type;
+                    $publishedTripData['fly_type'] = $request->fly_type ?? ($legacyTripDetails['fly_type'] ?? null);
                 }
                 if ($hasPublishedTripReportTime) {
-                    $publishedTripData['report_time'] = $request->report_time;
+                    $publishedTripData['report_time'] = $request->report_time ?? ($legacyTripDetails['report_time'] ?? null);
                 }
                 if ($hasPublishedTripOfferLo) {
-                    $publishedTripData['offer_lo'] = $this->serializeOfferLo($request->input('offer_lo'));
+                    $publishedTripData['offer_lo'] = $this->serializeOfferLo($request->input('offer_lo') ?? ($legacyTripDetails['offer_lo'] ?? null));
                 }
                 if ($hasPublishedTripAskLo) {
-                    $publishedTripData['ask_lo'] = $this->serializeAskLo($request->input('ask_lo'));
+                    $publishedTripData['ask_lo'] = $this->serializeAskLo($request->input('ask_lo') ?? ($legacyTripDetails['ask_lo'] ?? null));
                 }
                 if ($hasPublishedTripDetails) {
-                    $publishedTripData['details'] = $request->details;
+                    $publishedTripData['details'] = $request->details ?? ($legacyTripDetails['details'] ?? null);
                 }
                 if ($hasPublishedTripNotes) {
                     $publishedTripData['notes'] = $request->notes;
@@ -415,8 +504,10 @@ class TripController extends Controller
                     'departure' => $flight->departure_airport,
                     'arrival' => $flight->arrival_airport,
                     'date' => $flight->departure_date->format('Y-m-d'),
-                    'departure_time' => $flight->departure_time,
-                    'arrival_time' => $flight->arrival_time,
+                    'departure_date' => $flight->departure_date->format('Y-m-d'),
+                    'arrival_date' => $flight->arrival_date ? $flight->arrival_date->format('Y-m-d') : $flight->departure_date->format('Y-m-d'),
+                    'departure_time' => $flight->departure_time ? $flight->departure_time->format('H:i:s') : null,
+                    'arrival_time' => $flight->arrival_time ? $flight->arrival_time->format('H:i:s') : null,
                 ],
                 'position' => $userTrip->role,
                 'status' => 'available',
@@ -449,6 +540,7 @@ class TripController extends Controller
             'departure' => 'required|string|size:3',
             'arrival' => 'required|string|size:3',
             'date' => 'required|date|after:today',
+            'arrival_date' => 'nullable|date|after_or_equal:date',
             'departure_time' => 'nullable|string|max:50',
             'arrival_time' => 'nullable|string|max:50',
             'position' => 'required|string|in:Captain,First Officer,Purser,Flight Attendant',
@@ -463,27 +555,35 @@ class TripController extends Controller
         }
 
         $departureDate = \Carbon\Carbon::parse($validated['date']);
+        $arrivalDate = \Carbon\Carbon::parse($validated['arrival_date'] ?? $validated['date']);
         $departureTime = $this->normalizeFlightTime($validated['departure_time'] ?? null, '08:00:00');
         $arrivalTime = $this->normalizeFlightTime($validated['arrival_time'] ?? null, '10:30:00');
+        $hasFlightArrivalDate = $this->hasColumn('flights', 'arrival_date');
         $hasUserTripRole = $this->hasColumn('user_trips', 'role');
         $hasUserTripNotes = $this->hasColumn('user_trips', 'notes');
 
         try {
-            [$flight, $userTrip] = DB::transaction(function () use ($validated, $user, $departureDate, $departureTime, $arrivalTime, $hasUserTripRole, $hasUserTripNotes) {
+            [$flight, $userTrip] = DB::transaction(function () use ($validated, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $hasFlightArrivalDate, $hasUserTripRole, $hasUserTripNotes) {
+                $flightUpdateData = [
+                    'departure_airport' => $validated['departure'],
+                    'arrival_airport' => $validated['arrival'],
+                    'departure_date' => $departureDate->toDateString(),
+                    'departure_time' => $departureTime,
+                    'arrival_time' => $arrivalTime,
+                    'airline_id' => $user->airline_id,
+                    'plane_type_id' => $user->plane_type_id,
+                    'status' => 'scheduled',
+                ];
+
+                if ($hasFlightArrivalDate) {
+                    $flightUpdateData['arrival_date'] = $arrivalDate->toDateString();
+                }
+
                 $flight = Flight::updateOrCreate(
                     [
                         'flight_number' => $validated['flight_number'],
                     ],
-                    [
-                        'departure_airport' => $validated['departure'],
-                        'arrival_airport' => $validated['arrival'],
-                        'departure_date' => $departureDate->toDateString(),
-                        'departure_time' => $departureTime,
-                        'arrival_time' => $arrivalTime,
-                        'airline_id' => $user->airline_id,
-                        'plane_type_id' => $user->plane_type_id,
-                        'status' => 'scheduled',
-                    ]
+                    $flightUpdateData
                 );
 
                 $userTrip = UserTrip::firstOrCreate(
@@ -566,9 +666,13 @@ class TripController extends Controller
             ->through(function ($swap) use ($user) {
                 $isRequester = $swap->requester_id === $user->id;
                 $otherUser = $isRequester ? $swap->responder : $swap->requester;
+                $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($swap->publishedTrip?->notes);
                 $departureDate = $swap->publishedTrip?->flight?->departure_date
                     ? $swap->publishedTrip->flight->departure_date->format('Y-m-d')
                     : null;
+                $arrivalDate = $swap->publishedTrip?->flight?->arrival_date
+                    ? $swap->publishedTrip->flight->arrival_date->format('Y-m-d')
+                    : $departureDate;
                 
                 return [
                     'id' => $swap->id,
@@ -587,7 +691,7 @@ class TripController extends Controller
                                   $swap->publishedTrip->flight->arrival_airport,
                         'date' => $departureDate,
                         'departure_date' => $departureDate,
-                        'arrival_date' => $departureDate,
+                        'arrival_date' => $arrivalDate,
                         'departure_time' => $swap->publishedTrip->flight->departure_time ?
                                   $swap->publishedTrip->flight->departure_time->format('H:i:s') : null,
                         'arrival_time' => $swap->publishedTrip->flight->arrival_time ?
@@ -595,15 +699,15 @@ class TripController extends Controller
                         'status' => $swap->publishedTrip->flight->status,
                     ] : null,
                     'trip_details' => $swap->publishedTrip ? [
-                        'flight_number' => $swap->publishedTrip->flight_number,
+                        'flight_number' => $this->valueOrFallback($swap->publishedTrip->flight_number, $swap->publishedTrip->flight?->flight_number),
                         'departure_date' => $departureDate,
-                        'arrival_date' => $departureDate,
-                        'legs' => $swap->publishedTrip->legs,
-                        'fly_type' => $swap->publishedTrip->fly_type,
-                        'report_time' => $swap->publishedTrip->report_time,
-                        'offer_lo' => $this->parseOfferLo($swap->publishedTrip->offer_lo),
-                        'ask_lo' => $this->parseAskLo($swap->publishedTrip->ask_lo),
-                        'details' => $swap->publishedTrip->details,
+                        'arrival_date' => $arrivalDate,
+                        'legs' => $this->valueOrFallback($swap->publishedTrip->legs, $legacyTripDetails['legs'] ?? null),
+                        'fly_type' => $this->valueOrFallback($swap->publishedTrip->fly_type, $legacyTripDetails['fly_type'] ?? null),
+                        'report_time' => $this->valueOrFallback($swap->publishedTrip->report_time, $legacyTripDetails['report_time'] ?? null),
+                        'offer_lo' => $this->valueOrFallback($this->parseOfferLo($swap->publishedTrip->offer_lo), $legacyTripDetails['offer_lo'] ?? null),
+                        'ask_lo' => $this->valueOrFallback($this->parseAskLo($swap->publishedTrip->ask_lo), $legacyTripDetails['ask_lo'] ?? null),
+                        'details' => $this->valueOrFallback($swap->publishedTrip->details, $legacyTripDetails['details'] ?? null),
                         'notes' => $swap->publishedTrip->notes,
                         'published_at' => $swap->publishedTrip->published_at,
                         'expires_at' => $swap->publishedTrip->expires_at,

@@ -16,6 +16,7 @@ class Flight extends Model
         'departure_airport_id',
         'arrival_airport_id',
         'departure_date',
+        'arrival_date',
         'departure_time',
         'arrival_time',
         'airline_id',
@@ -25,6 +26,7 @@ class Flight extends Model
 
     protected $casts = [
         'departure_date' => 'date',
+        'arrival_date' => 'date',
         'departure_time' => 'datetime',
         'arrival_time' => 'datetime',
     ];
