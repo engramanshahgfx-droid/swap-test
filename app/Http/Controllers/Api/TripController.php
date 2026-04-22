@@ -565,6 +565,13 @@ class TripController extends Controller
             ], 401);
         }
 
+        $request->merge([
+            'arrival_date' => $request->input('arrival_date', $request->input('arrivalDate', $request->input('arrival date'))),
+            'date' => $request->input('date', $request->input('departure_date', $request->input('departureDate', $request->input('departure date')))),
+            'departure_time' => $request->input('departure_time', $request->input('departureTime', $request->input('departure time'))),
+            'arrival_time' => $request->input('arrival_time', $request->input('arrivalTime', $request->input('arrival time'))),
+        ]);
+
         $validated = $request->validate([
             'flight_number' => 'required|string|max:20',
             'departure' => 'required|string|size:3',

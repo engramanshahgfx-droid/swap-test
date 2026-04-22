@@ -85,5 +85,22 @@ class PublishTripRequest extends FormRequest
         if ($this->isJson()) {
             $this->merge($this->json()->all());
         }
+
+        $arrivalDate = $this->input('arrival_date');
+        if ($arrivalDate === null || (is_string($arrivalDate) && trim($arrivalDate) === '')) {
+            $arrivalDate = $this->input('arrivalDate', $this->input('arrival date'));
+        }
+
+        $date = $this->input('date');
+        if ($date === null || (is_string($date) && trim($date) === '')) {
+            $date = $this->input('departure_date', $this->input('departureDate', $this->input('departure date')));
+        }
+
+        $this->merge([
+            'arrival_date' => $arrivalDate,
+            'date' => $date,
+            'departure_time' => $this->input('departure_time', $this->input('departureTime', $this->input('departure time'))),
+            'arrival_time' => $this->input('arrival_time', $this->input('arrivalTime', $this->input('arrival time'))),
+        ]);
     }
 }
