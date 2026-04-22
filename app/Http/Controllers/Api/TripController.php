@@ -12,11 +12,24 @@ use App\Services\SwapService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class TripController extends Controller
 {
     protected $swapService;
+    private static array $columnExistsCache = [];
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        $key = $table . '.' . $column;
+
+        if (!array_key_exists($key, self::$columnExistsCache)) {
+            self::$columnExistsCache[$key] = Schema::hasColumn($table, $column);
+        }
+
+        return self::$columnExistsCache[$key];
+    }
 
     private function serializeAskLo(string|array|null $askLo): ?string
     {
@@ -228,36 +241,67 @@ class TripController extends Controller
                 );
 
                 // Ensure assignment exists for this user and flight.
+                $userTripDefaults = [
+                    'status' => 'assigned',
+                ];
+
+                if ($this->hasColumn('user_trips', 'role')) {
+                    $userTripDefaults['role'] = $request->position;
+                }
+
+                if ($this->hasColumn('user_trips', 'notes')) {
+                    $userTripDefaults['notes'] = $request->notes;
+                }
+
                 $userTrip = UserTrip::firstOrCreate(
                     [
                         'user_id' => $user->id,
                         'flight_id' => $flight->id,
                     ],
-                    [
-                        'status' => 'assigned',
-                        'role' => $request->position,
-                        'notes' => $request->notes,
-                    ]
+                    $userTripDefaults
                 );
 
-                $publishedTrip = PublishedTrip::create([
-                    'user_id' => $user->id,
-                    'flight_id' => $flight->id,
-                    'user_trip_id' => $userTrip->id,
+                $publishedTripData = [
                     'status' => 'active',
                     'published_at' => now(),
                     'expires_at' => $request->expires_at ?? now()->addDays(7),
-                    // Separate fields
-                    'flight_number' => $request->flight_number,
-                    'legs' => $request->legs,
-                    'fly_type' => $request->fly_type,
-                    'report_time' => $request->report_time,
-                    'offer_lo' => $request->offer_lo,
-                    'ask_lo' => $this->serializeAskLo($request->input('ask_lo')),
-                    'details' => $request->details,
-                    // Keep notes for general text only
-                    'notes' => $request->notes,
-                ]);
+                ];
+
+                if ($this->hasColumn('published_trips', 'user_id')) {
+                    $publishedTripData['user_id'] = $user->id;
+                }
+                if ($this->hasColumn('published_trips', 'flight_id')) {
+                    $publishedTripData['flight_id'] = $flight->id;
+                }
+                if ($this->hasColumn('published_trips', 'user_trip_id')) {
+                    $publishedTripData['user_trip_id'] = $userTrip->id;
+                }
+                if ($this->hasColumn('published_trips', 'flight_number')) {
+                    $publishedTripData['flight_number'] = $request->flight_number;
+                }
+                if ($this->hasColumn('published_trips', 'legs')) {
+                    $publishedTripData['legs'] = $request->legs;
+                }
+                if ($this->hasColumn('published_trips', 'fly_type')) {
+                    $publishedTripData['fly_type'] = $request->fly_type;
+                }
+                if ($this->hasColumn('published_trips', 'report_time')) {
+                    $publishedTripData['report_time'] = $request->report_time;
+                }
+                if ($this->hasColumn('published_trips', 'offer_lo')) {
+                    $publishedTripData['offer_lo'] = $request->offer_lo;
+                }
+                if ($this->hasColumn('published_trips', 'ask_lo')) {
+                    $publishedTripData['ask_lo'] = $this->serializeAskLo($request->input('ask_lo'));
+                }
+                if ($this->hasColumn('published_trips', 'details')) {
+                    $publishedTripData['details'] = $request->details;
+                }
+                if ($this->hasColumn('published_trips', 'notes')) {
+                    $publishedTripData['notes'] = $request->notes;
+                }
+
+                $publishedTrip = PublishedTrip::create($publishedTripData);
 
                 return [$flight, $publishedTrip];
             });
@@ -266,12 +310,19 @@ class TripController extends Controller
                 'user_id' => $user->id,
                 'flight_number' => $request->flight_number,
                 'error' => $exception->getMessage(),
+                'exception' => $exception,
             ]);
 
-            return response()->json([
+            $response = [
                 'success' => false,
                 'message' => __('messages.server_error'),
-            ], 500);
+            ];
+
+            if (config('app.debug')) {
+                $response['error'] = $exception->getMessage();
+            }
+
+            return response()->json($response, 500);
         }
 
         return response()->json([
