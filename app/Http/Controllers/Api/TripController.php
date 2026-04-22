@@ -89,6 +89,11 @@ class TripController extends Controller
             return $default;
         }
 
+        // Date-only inputs belong to *_date fields, not time columns.
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $normalized) === 1) {
+            return $default;
+        }
+
         if (preg_match('/^([01]\\d|2[0-3]):[0-5]\\d(:[0-5]\\d)?$/', $normalized) === 1) {
             return strlen($normalized) === 5 ? $normalized . ':00' : $normalized;
         }
@@ -213,7 +218,7 @@ class TripController extends Controller
                 $publishedTrip = $trip->publishedTrips->first();
                 $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($publishedTrip?->notes);
                 $departureDate = $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null;
-                $arrivalDate = $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : $departureDate;
+                $arrivalDate = $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : null;
 
                 return [
                     'id' => $trip->id,
@@ -269,7 +274,7 @@ class TripController extends Controller
         $publishedTrip = $trip->publishedTrips->first();
         $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($publishedTrip?->notes);
         $departureDate = $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null;
-        $arrivalDate = $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : $departureDate;
+        $arrivalDate = $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : null;
 
         return response()->json([
             'success' => true,
@@ -320,7 +325,7 @@ class TripController extends Controller
         $items = $eligibleTrips->forPage($page, $perPage)->map(function ($trip) {
             $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($trip->notes);
             $departureDate = $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null;
-            $arrivalDate = $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : $departureDate;
+            $arrivalDate = $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : null;
 
             return [
                 'id' => $trip->id,
@@ -391,7 +396,14 @@ class TripController extends Controller
         
         // Parse the date from request
         $departureDate = \Carbon\Carbon::parse($request->date);
-        $arrivalDate = \Carbon\Carbon::parse($request->input('arrival_date', $request->date));
+        $arrivalDateInput = $request->input('arrival_date');
+        if ($this->isBlankString($arrivalDateInput)) {
+            $arrivalTimeAsDate = $request->input('arrival_time');
+            if (is_string($arrivalTimeAsDate) && preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($arrivalTimeAsDate)) === 1) {
+                $arrivalDateInput = trim($arrivalTimeAsDate);
+            }
+        }
+        $arrivalDate = $this->isBlankString($arrivalDateInput) ? null : \Carbon\Carbon::parse($arrivalDateInput);
         $departureTime = $this->normalizeFlightTime($request->input('departure_time'), '08:00:00');
         $arrivalTime = $this->normalizeFlightTime($request->input('arrival_time'), '10:30:00');
         $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($request->notes);
@@ -424,7 +436,7 @@ class TripController extends Controller
                     'status' => 'scheduled',
                 ];
 
-                if ($hasFlightArrivalDate) {
+                if ($hasFlightArrivalDate && $arrivalDate !== null) {
                     $flightUpdateData['arrival_date'] = $arrivalDate->toDateString();
                 }
 
@@ -523,7 +535,7 @@ class TripController extends Controller
                     'departure' => $flight->departure_airport,
                     'arrival' => $flight->arrival_airport,
                     'departure_date' => $flight->departure_date->format('Y-m-d'),
-                    'arrival_date' => $flight->arrival_date ? $flight->arrival_date->format('Y-m-d') : $flight->departure_date->format('Y-m-d'),
+                    'arrival_date' => $flight->arrival_date ? $flight->arrival_date->format('Y-m-d') : null,
                     'departure_time' => $flight->departure_time ? $flight->departure_time->format('H:i:s') : null,
                     'arrival_time' => $flight->arrival_time ? $flight->arrival_time->format('H:i:s') : null,
                 ],
@@ -573,7 +585,16 @@ class TripController extends Controller
         }
 
         $departureDate = \Carbon\Carbon::parse($validated['date']);
-        $arrivalDate = \Carbon\Carbon::parse($validated['arrival_date'] ?? $validated['date']);
+        $arrivalDateInput = array_key_exists('arrival_date', $validated) ? $validated['arrival_date'] : null;
+        if ($this->isBlankString($arrivalDateInput) && array_key_exists('arrival_time', $validated)) {
+            $arrivalTimeAsDate = $validated['arrival_time'];
+            if (is_string($arrivalTimeAsDate) && preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($arrivalTimeAsDate)) === 1) {
+                $arrivalDateInput = trim($arrivalTimeAsDate);
+            }
+        }
+        $arrivalDate = !$this->isBlankString($arrivalDateInput)
+            ? \Carbon\Carbon::parse($arrivalDateInput)
+            : null;
         $departureTime = $this->normalizeFlightTime($validated['departure_time'] ?? null, '08:00:00');
         $arrivalTime = $this->normalizeFlightTime($validated['arrival_time'] ?? null, '10:30:00');
         $hasFlightArrivalDate = $this->hasColumn('flights', 'arrival_date');
@@ -593,7 +614,7 @@ class TripController extends Controller
                     'status' => 'scheduled',
                 ];
 
-                if ($hasFlightArrivalDate) {
+                if ($hasFlightArrivalDate && $arrivalDate !== null) {
                     $flightUpdateData['arrival_date'] = $arrivalDate->toDateString();
                 }
 
@@ -666,7 +687,7 @@ class TripController extends Controller
                     'departure' => $flight->departure_airport,
                     'arrival' => $flight->arrival_airport,
                     'departure_date' => $flight->departure_date->format('Y-m-d'),
-                    'arrival_date' => $flight->arrival_date ? $flight->arrival_date->format('Y-m-d') : $flight->departure_date->format('Y-m-d'),
+                    'arrival_date' => $flight->arrival_date ? $flight->arrival_date->format('Y-m-d') : null,
                 ],
             ],
         ]);
@@ -691,7 +712,7 @@ class TripController extends Controller
                     : null;
                 $arrivalDate = $swap->publishedTrip?->flight?->arrival_date
                     ? $swap->publishedTrip->flight->arrival_date->format('Y-m-d')
-                    : $departureDate;
+                    : null;
                 
                 return [
                     'id' => $swap->id,
