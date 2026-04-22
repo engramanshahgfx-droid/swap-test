@@ -53,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Swap Marketplace
     Route::get('/browse-trips', [TripController::class, 'browseTrips']);
+    Route::post('/assign-trip-position', [TripController::class, 'assignTripPosition']);
     Route::post('/publish-trip', [TripController::class, 'publishTrip']);
     Route::post('/request-swap', [SwapController::class, 'requestSwap']);
     Route::post('/confirm-swap/{swapRequest}', [SwapController::class, 'confirmSwap']);

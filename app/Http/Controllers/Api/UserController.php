@@ -176,6 +176,9 @@ class UserController extends Controller
             'full_name' => 'sometimes|string|max:255',
             'phone' => 'sometimes|string|max:20',
             'country' => 'sometimes|string|max:100',
+            'airline_id' => 'sometimes|nullable|integer|exists:airlines,id',
+            'plane_type_id' => 'sometimes|nullable|integer|exists:plane_types,id',
+            'position_id' => 'sometimes|nullable|integer|exists:positions,id',
         ]);
 
         $request->user()->update($validated);
