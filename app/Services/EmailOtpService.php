@@ -80,6 +80,16 @@ class EmailOtpService
 
     private function sendViaLaravelMailer(string $email, string $otp, string $html): bool
     {
+        if ($this->isNonDeliverableMailer()) {
+            $error = 'Mailer driver is configured as '.config('mail.default').', which does not deliver real email.';
+            $this->lastError = $this->lastError ? ($this->lastError . ' | ' . $error) : $error;
+            \Log::warning('OTP email not delivered because mail driver is non-deliverable', [
+                'email' => $email,
+                'driver' => config('mail.default'),
+            ]);
+            return false;
+        }
+
         try {
             Mail::html($html, function ($message) use ($email, $otp) {
                 $message->to($email)
@@ -96,6 +106,11 @@ class EmailOtpService
             \Log::error('Failed to send OTP email via Laravel mailer', ['email' => $email, 'error' => $e->getMessage()]);
             return false;
         }
+    }
+
+    private function isNonDeliverableMailer(): bool
+    {
+        return in_array(config('mail.default'), ['log', 'array'], true);
     }
 
     private function resolveFromAddress(): string
