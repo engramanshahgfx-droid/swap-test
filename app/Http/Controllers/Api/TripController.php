@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class TripController extends Controller
@@ -308,6 +309,7 @@ class TripController extends Controller
                 'offer_lo' => $this->valueOrFallback($this->parseOfferLo($publishedTrip?->offer_lo), $legacyTripDetails['offer_lo'] ?? null),
                 'ask_lo' => $this->valueOrFallback($this->parseAskLo($publishedTrip?->ask_lo), $legacyTripDetails['ask_lo'] ?? null),
                 'details' => $this->valueOrFallback($publishedTrip?->details, $legacyTripDetails['details'] ?? null),
+                'image_url' => $publishedTrip?->image_path ? Storage::url($publishedTrip->image_path) : null,
                 'status' => $trip->status,
                 'role' => $trip->role,
                 'notes' => $trip->notes,
@@ -355,6 +357,7 @@ class TripController extends Controller
                 'offer_lo' => $this->valueOrFallback($this->parseOfferLo($trip->offer_lo), $legacyTripDetails['offer_lo'] ?? null),
                 'ask_lo' => $this->valueOrFallback($this->parseAskLo($trip->ask_lo), $legacyTripDetails['ask_lo'] ?? null),
                 'details' => $this->valueOrFallback($trip->details, $legacyTripDetails['details'] ?? null),
+                'image_url' => $trip->image_path ? Storage::url($trip->image_path) : null,
                 'notes' => $trip->notes,
                 'status' => $trip->status,
                 'published_at' => $trip->published_at,
@@ -421,9 +424,10 @@ class TripController extends Controller
         $hasPublishedTripAskLo = $this->hasColumn('published_trips', 'ask_lo');
         $hasPublishedTripDetails = $this->hasColumn('published_trips', 'details');
         $hasPublishedTripNotes = $this->hasColumn('published_trips', 'notes');
+        $hasPublishedTripImage = $this->hasColumn('published_trips', 'image_path');
 
         try {
-            [$flight, $userTrip, $publishedTrip] = DB::transaction(function () use ($request, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $legacyTripDetails, $hasFlightArrivalDate, $hasPublishedTripUserId, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes) {
+            [$flight, $userTrip, $publishedTrip] = DB::transaction(function () use ($request, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $legacyTripDetails, $hasFlightArrivalDate, $hasPublishedTripUserId, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes, $hasPublishedTripImage) {
                 // flights.flight_number is unique, so update or create using that key.
                 $flightUpdateData = [
                     'departure_airport' => $request->departure,
@@ -500,6 +504,13 @@ class TripController extends Controller
                     $publishedTripData['notes'] = $request->notes;
                 }
 
+                if ($hasPublishedTripImage) {
+                    $imageFile = $request->file('image') ?? $request->file('image_path');
+                    if ($imageFile) {
+                        $publishedTripData['image_path'] = $imageFile->store('trip-images', 'public');
+                    }
+                }
+
                 $publishedTrip = PublishedTrip::create($publishedTripData);
 
                 return [$flight, $userTrip, $publishedTrip];
@@ -549,6 +560,7 @@ class TripController extends Controller
                 'offer_lo' => $this->parseOfferLo($publishedTrip->offer_lo),
                 'ask_lo' => $this->parseAskLo($publishedTrip->ask_lo),
                 'details' => $publishedTrip->details,
+                'image_url' => $publishedTrip->image_path ? Storage::url($publishedTrip->image_path) : null,
                 'notes' => $publishedTrip->notes,
             ],
         ], 201);

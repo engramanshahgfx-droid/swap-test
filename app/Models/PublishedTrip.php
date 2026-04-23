@@ -26,6 +26,7 @@ class PublishedTrip extends Model
         'offer_lo',
         'ask_lo',
         'details',
+        'image_path',
     ];
 
     protected $casts = [

@@ -76,6 +76,8 @@ class PublishTripRequest extends FormRequest
                 },
             ],
             'details' => 'nullable|string|max:1000',
+            'image' => 'nullable|image|max:5120',
+            'image_path' => 'nullable|image|max:5120',
         ];
     }
 
