@@ -51,8 +51,8 @@ class PublishTripRequest extends FormRequest
     {
         return [
             'flight_number' => 'nullable|string|max:20',
-            'departure' => 'required|string|size:3',
-            'arrival' => 'required|string|size:3',
+            'departure' => 'required|string|min:2|max:3',
+            'arrival' => 'required|string|min:2|max:3',
             'date' => 'required|date|after:today',
             'arrival_date' => 'nullable|date|after_or_equal:date',
             'position' => 'nullable|string|in:Captain,First Officer,Purser,Flight Attendant',
