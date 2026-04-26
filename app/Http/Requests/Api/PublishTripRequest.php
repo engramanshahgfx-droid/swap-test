@@ -50,7 +50,7 @@ class PublishTripRequest extends FormRequest
     public function rules()
     {
         return [
-            'flight_number' => 'required|string|max:20',
+            'flight_number' => 'nullable|string|max:20',
             'departure' => 'required|string|size:3',
             'arrival' => 'required|string|size:3',
             'date' => 'required|date|after:today',
@@ -93,6 +93,11 @@ class PublishTripRequest extends FormRequest
             $arrivalDate = $this->input('arrivalDate', $this->input('arrival date'));
         }
 
+        $flightNumber = $this->input('flight_number');
+        if ($flightNumber === null || (is_string($flightNumber) && trim($flightNumber) === '')) {
+            $flightNumber = $this->input('flightNumber', $this->input('flight number'));
+        }
+
         $date = $this->input('date');
         if ($date === null || (is_string($date) && trim($date) === '')) {
             $date = $this->input('departure_date', $this->input('departureDate', $this->input('departure date')));
@@ -101,6 +106,7 @@ class PublishTripRequest extends FormRequest
         $this->merge([
             'arrival_date' => $arrivalDate,
             'date' => $date,
+            'flight_number' => $flightNumber,
             'departure_time' => $this->input('departure_time', $this->input('departureTime', $this->input('departure time'))),
             'arrival_time' => $this->input('arrival_time', $this->input('arrivalTime', $this->input('arrival time'))),
         ]);

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 class TripController extends Controller
@@ -400,6 +401,7 @@ class TripController extends Controller
         
         // Parse the date from request
         $departureDate = \Carbon\Carbon::parse($request->date);
+        $flightNumber = $this->isBlankString($request->input('flight_number')) ? null : trim($request->input('flight_number'));
         $arrivalDateInput = $request->input('arrival_date');
         if ($this->isBlankString($arrivalDateInput)) {
             $arrivalTimeAsDate = $request->input('arrival_time');
@@ -445,12 +447,18 @@ class TripController extends Controller
                     $flightUpdateData['arrival_date'] = $arrivalDate?->toDateString();
                 }
 
-                $flight = Flight::updateOrCreate(
-                    [
-                        'flight_number' => $request->flight_number,
-                    ],
-                    $flightUpdateData
-                );
+                if ($flightNumber !== null) {
+                    $flight = Flight::updateOrCreate(
+                        [
+                            'flight_number' => $flightNumber,
+                        ],
+                        $flightUpdateData
+                    );
+                } else {
+                    $flight = Flight::create([
+                        'flight_number' => 'NOFL-' . strtoupper(Str::random(10)),
+                    ] + $flightUpdateData);
+                }
 
                 // Ensure assignment exists for this user and flight.
                 $userTripDefaults = [
@@ -480,8 +488,8 @@ class TripController extends Controller
                 if ($hasPublishedTripUserTripId) {
                     $publishedTripData['user_trip_id'] = $userTrip->id;
                 }
-                if ($hasPublishedTripFlightNumber) {
-                    $publishedTripData['flight_number'] = $request->flight_number;
+                if ($hasPublishedTripFlightNumber && $flightNumber !== null) {
+                    $publishedTripData['flight_number'] = $flightNumber;
                 }
                 if ($hasPublishedTripLegs) {
                     $publishedTripData['legs'] = $this->valueOrFallback($request->input('legs'), $legacyTripDetails['legs'] ?? null);
@@ -543,7 +551,7 @@ class TripController extends Controller
                 'id' => $publishedTrip->id,
                 'flight' => [
                     'id' => $flight->id,
-                    'number' => $flight->flight_number,
+                    'number' => $publishedTrip->flight_number ?? null,
                     'departure' => $flight->departure_airport,
                     'arrival' => $flight->arrival_airport,
                     'departure_date' => $flight->departure_date->format('Y-m-d'),
