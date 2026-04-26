@@ -400,7 +400,15 @@ class TripController extends Controller
         }
         
         // Parse the date from request
-        $departureDate = \Carbon\Carbon::parse($request->date);
+        try {
+            $departureDate = \Carbon\Carbon::parse($request->date);
+        } catch (Throwable $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid departure date format. Use YYYY-MM-DD.',
+            ], 422);
+        }
+
         $flightNumber = $this->isBlankString($request->input('flight_number')) ? null : trim($request->input('flight_number'));
         $arrivalDateInput = $request->input('arrival_date');
         if ($this->isBlankString($arrivalDateInput)) {
@@ -409,7 +417,16 @@ class TripController extends Controller
                 $arrivalDateInput = trim($arrivalTimeAsDate);
             }
         }
-        $arrivalDate = $this->isBlankString($arrivalDateInput) ? null : \Carbon\Carbon::parse($arrivalDateInput);
+
+        try {
+            $arrivalDate = $this->isBlankString($arrivalDateInput) ? null : \Carbon\Carbon::parse($arrivalDateInput);
+        } catch (Throwable $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid arrival date format. Use YYYY-MM-DD.',
+            ], 422);
+        }
+
         $departureTime = $this->normalizeFlightTime($request->input('departure_time'), '08:00:00');
         $arrivalTime = $this->normalizeFlightTime($request->input('arrival_time'), '10:30:00');
         $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($request->notes);
@@ -612,7 +629,15 @@ class TripController extends Controller
             ], 422);
         }
 
-        $departureDate = \Carbon\Carbon::parse($validated['date']);
+        try {
+            $departureDate = \Carbon\Carbon::parse($validated['date']);
+        } catch (Throwable $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid departure date format. Use YYYY-MM-DD.',
+            ], 422);
+        }
+
         $arrivalDateInput = array_key_exists('arrival_date', $validated) ? $validated['arrival_date'] : null;
         if ($this->isBlankString($arrivalDateInput) && array_key_exists('arrival_time', $validated)) {
             $arrivalTimeAsDate = $validated['arrival_time'];
@@ -620,9 +645,18 @@ class TripController extends Controller
                 $arrivalDateInput = trim($arrivalTimeAsDate);
             }
         }
-        $arrivalDate = !$this->isBlankString($arrivalDateInput)
-            ? \Carbon\Carbon::parse($arrivalDateInput)
-            : null;
+
+        try {
+            $arrivalDate = !$this->isBlankString($arrivalDateInput)
+                ? \Carbon\Carbon::parse($arrivalDateInput)
+                : null;
+        } catch (Throwable $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid arrival date format. Use YYYY-MM-DD.',
+            ], 422);
+        }
+
         $departureTime = $this->normalizeFlightTime($validated['departure_time'] ?? null, '08:00:00');
         $arrivalTime = $this->normalizeFlightTime($validated['arrival_time'] ?? null, '10:30:00');
         $hasFlightArrivalDate = $this->hasColumn('flights', 'arrival_date');
