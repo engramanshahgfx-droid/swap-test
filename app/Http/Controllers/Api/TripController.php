@@ -392,13 +392,6 @@ class TripController extends Controller
             ], 401);
         }
 
-        if (!$user->airline_id || !$user->plane_type_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please complete your profile with airline and plane type before publishing a trip.',
-            ], 422);
-        }
-        
         // Parse the date from request
         try {
             $departureDate = \Carbon\Carbon::parse($request->date);
@@ -447,7 +440,7 @@ class TripController extends Controller
         $hasPublishedTripImage = $this->hasColumn('published_trips', 'image_path');
 
         try {
-            [$flight, $userTrip, $publishedTrip] = DB::transaction(function () use ($request, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $legacyTripDetails, $hasFlightArrivalDate, $hasPublishedTripUserId, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes, $hasPublishedTripImage) {
+            [$flight, $userTrip, $publishedTrip] = DB::transaction(function () use ($request, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $legacyTripDetails, $hasFlightArrivalDate, $hasPublishedTripUserId, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes, $hasPublishedTripImage, $flightNumber) {
                 // flights.flight_number is unique, so update or create using that key.
                 $flightUpdateData = [
                     'departure_airport' => $request->departure,
