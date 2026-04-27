@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Airport;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -51,6 +52,34 @@ class UserController extends Controller
         return $code;
     }
 
+    private function resolveBaseAirport(User $user): ?Airport
+    {
+        $airportId = $user->getAttribute('airport_id');
+        if ($airportId !== null) {
+            return Airport::query()
+                ->where('is_active', true)
+                ->find($airportId, ['id', 'name', 'iata_code', 'city', 'country']);
+        }
+
+        if (empty($user->country_base)) {
+            return null;
+        }
+
+        $normalizedBase = trim($user->country_base);
+        if ($normalizedBase === '') {
+            return null;
+        }
+
+        $query = Airport::query()->where('is_active', true);
+        if (strlen($normalizedBase) === 3) {
+            $query->whereRaw('UPPER(iata_code) = ?', [strtoupper($normalizedBase)]);
+        } else {
+            $query->whereRaw('LOWER(name) = ?', [strtolower($normalizedBase)]);
+        }
+
+        return $query->first(['id', 'name', 'iata_code', 'city', 'country']);
+    }
+
     private function enrichUserPayload(User $user): array
     {
         $user->loadMissing(['airline:id,name,code', 'position:id,name']);
@@ -58,6 +87,7 @@ class UserController extends Controller
         $payload = $user->toArray();
 
         $baseAirportCode = $this->resolveBaseAirportCode($user->country_base);
+        $airport = $this->resolveBaseAirport($user);
 
         $payload['company_id'] = $user->airline_id;
         $payload['company_name'] = $user->airline?->name;
@@ -67,7 +97,15 @@ class UserController extends Controller
         $payload['position_id'] = $user->position_id;
         $payload['position_name'] = $user->position?->name;
         $payload['base_airport_code'] = $baseAirportCode;
-        $payload['base_airport_name'] = $baseAirportCode;
+        $payload['base_airport_name'] = $airport?->name ?? $baseAirportCode;
+        $payload['airport_id'] = $airport?->id;
+        $payload['airport'] = $airport ? [
+            'id' => $airport->id,
+            'name' => $airport->name,
+            'iata_code' => $airport->iata_code,
+            'city' => $airport->city,
+            'country' => $airport->country,
+        ] : null;
 
         return $payload;
     }
@@ -173,13 +211,22 @@ class UserController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
+            'employee_id' => ['sometimes', 'string', Rule::unique('users', 'employee_id')->ignore($request->user()->id)],
             'full_name' => 'sometimes|string|max:255',
-            'phone' => 'sometimes|string|max:20',
-            'country' => 'sometimes|string|max:100',
+            'phone' => ['sometimes', 'string', 'max:20', Rule::unique('users', 'phone')->ignore($request->user()->id)],
+            'country_base' => 'sometimes|nullable|string|max:255',
+            'airport_id' => ['sometimes', 'nullable', 'integer', Rule::exists('airports', 'id')->where(fn ($query) => $query->where('is_active', true))],
             'airline_id' => 'sometimes|nullable|integer|exists:airlines,id',
             'plane_type_id' => 'sometimes|nullable|integer|exists:plane_types,id',
             'position_id' => 'sometimes|nullable|integer|exists:positions,id',
         ]);
+
+        if (!empty($validated['airport_id'])) {
+            $airport = Airport::query()->find($validated['airport_id']);
+            if ($airport) {
+                $validated['country_base'] = $airport->iata_code ?: $airport->name;
+            }
+        }
 
         $request->user()->update($validated);
 
