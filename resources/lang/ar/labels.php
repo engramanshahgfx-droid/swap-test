@@ -38,21 +38,21 @@ return [
     'full_name' => 'الاسم الكامل',
     'email' => 'البريد الإلكتروني',
     'phone' => 'الهاتف',
-    'plane_type' => 'نوع الطائرة',
+    'plane_type' => 'طائرة',
     'position' => 'المنصب',
     'verified' => 'تم التحقق',
     'reason' => 'السبب',
     'airline' => 'شركة الطيران',
     'users' => 'المستخدمون',
-    
+
     // عناصر قائمة Filament
     'dashboard' => 'لوحة التحكم',
     'language' => 'اللغة',
     'configuration' => 'الإعدادات',
     'airlines' => 'شركات الطيران',
-    'airports' => 'المطارات',
-    'airport' => 'المطار',
-    'plane_types' => 'أنواع الطائرات',
+    'airports' => 'القواعد',
+    'airport' => 'القاعدة',
+    'plane_types' => 'طائرات',
     'positions' => 'المناصب',
     'flight_management' => 'إدارة الرحلات',
     'flights' => 'الرحلات',
@@ -61,7 +61,7 @@ return [
     'swap_management' => 'إدارة الصرف',
     'swap_requests' => 'طلبات الصرف',
     'user_management' => 'إدارة المستخدمين',
-    
+
     // Language Switcher
     'current_language' => 'اللغة الحالية',
     'switch_language' => 'تبديل اللغة',

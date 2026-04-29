@@ -38,7 +38,11 @@
             </a>
             <a href="{{ route('airports') }}" class="sub-item" data-nav="airports">
                 <svg viewBox="0 0 24 24"><path d="M20 16V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12M4 6h16M4 14h16"/><circle cx="12" cy="10" r="2"/></svg>
-                <span class="nav-label">{{ __('Airports') }}</span>
+                <span class="nav-label">{{ __('admin.nav.airports') }}</span>
+            </a>
+            <a href="{{ route('aircrafts') }}" class="sub-item" data-nav="aircrafts">
+                <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8l3 3h12l3-3z"/><path d="M8 8h8"/><path d="M8 12h8"/></svg>
+                <span class="nav-label">{{ __('admin.nav.aircrafts') }}</span>
             </a>
         </div>
 

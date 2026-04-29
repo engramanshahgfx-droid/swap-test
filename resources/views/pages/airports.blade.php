@@ -12,7 +12,7 @@
             @csrf
             <div class="form-grid two">
                 <input type="text" name="name" id="new-airport-name" placeholder="Airport Name" required />
-                <input type="text" name="code" id="new-airport-code" placeholder="Airport Code (e.g., JFK)" required />
+                <input type="text" name="code" id="new-airport-code" placeholder="IATA Code (e.g., JFK)" required />
             </div>
             <div class="form-grid two">
                 <input type="text" name="city" id="new-airport-city" placeholder="City" />
@@ -37,7 +37,7 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Code</th>
+                    <th>IATA Code</th>
                     <th>City</th>
                     <th>Country</th>
                     <th>Created</th>
@@ -87,7 +87,7 @@
                 @method('PUT')
                 <label>Name</label>
                 <input type="text" name="name" required />
-                <label>Code</label>
+                <label>IATA Code</label>
                 <input type="text" name="code" required />
                 <label>City</label>
                 <input type="text" name="city" />
@@ -131,7 +131,7 @@
         document.querySelector('.js-table-search')?.addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase();
             const rows = document.querySelectorAll('table tbody tr');
-            
+
             rows.forEach(row => {
                 if (row.textContent.toLowerCase().includes(query)) {
                     row.style.display = '';

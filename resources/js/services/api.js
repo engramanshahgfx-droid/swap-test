@@ -15,16 +15,16 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore();
-    
+
     // Add Firebase token if available
     if (authStore.firebaseToken) {
       config.headers.Authorization = `Bearer ${authStore.firebaseToken}`;
-    } 
+    }
     // Fallback to Laravel token
     else if (authStore.token) {
       config.headers.Authorization = `Bearer ${authStore.token}`;
     }
-    
+
     return config;
   },
   (error) => {
@@ -44,7 +44,7 @@ api.interceptors.response.use(
   },
   async (error) => {
     const authStore = useAuthStore();
-    
+
     // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       authStore.logout();
@@ -52,22 +52,22 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
     }
-    
+
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
       console.error('Access forbidden');
     }
-    
+
     // Handle 404 Not Found
     if (error.response?.status === 404) {
       console.error('Resource not found');
     }
-    
+
     // Handle 500 Server Error
     if (error.response?.status === 500) {
       console.error('Server error occurred');
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -81,7 +81,7 @@ export const apiService = {
     firebaseLogin: (data) => api.post('/firebase/login', data),
     firebaseVerify: (data) => api.post('/firebase/verify', data),
     firebaseLinkAccount: (data) => api.post('/firebase/link-account', data),
-    
+
     // Legacy Authentication
     register: (data) => api.post('/register', data),
     login: (data) => api.post('/login', data),
@@ -135,6 +135,12 @@ export const apiService = {
   reports: {
     reportUser: (data) => api.post('/report-user', data),
     getMyReports: () => api.get('/my-reports'),
+  },
+
+  // ==================== ADMIN ====================
+  admin: {
+    getSettings: () => api.get('/admin/settings'),
+    updateSettings: (data) => api.post('/admin/settings', data),
   },
 
   // ==================== NOTIFICATIONS ====================

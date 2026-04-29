@@ -607,14 +607,14 @@ class TripController extends Controller
             'flight_number' => 'required|string|max:20',
             'departure' => 'required|string|min:2|max:3',
             'arrival' => 'required|string|min:2|max:3',
-            'date' => 'required|date|after:today',
+            'date' => 'required|date|after_or_equal:today',
             'arrival_date' => 'nullable|date|after_or_equal:date',
             'departure_time' => 'nullable|string|max:50',
             'arrival_time' => 'nullable|string|max:50',
             'position' => 'required|string|in:Captain,First Officer,Purser,Flight Attendant',
             'notes' => 'nullable|string|max:500',
         ]);
-        
+
         if (!$user->airline_id || !$user->plane_type_id) {
             return response()->json([
                 'success' => false,
@@ -768,7 +768,7 @@ class TripController extends Controller
                 $arrivalDate = $swap->publishedTrip?->flight?->arrival_date
                     ? $swap->publishedTrip->flight->arrival_date->format('Y-m-d')
                     : null;
-                
+
                 return [
                     'id' => $swap->id,
                     'type' => $isRequester ? 'outgoing' : 'incoming',
@@ -782,7 +782,7 @@ class TripController extends Controller
                         'number' => $swap->publishedTrip->flight->flight_number,
                         'departure' => $swap->publishedTrip->flight->departure_airport,
                         'arrival' => $swap->publishedTrip->flight->arrival_airport,
-                        'route' => $swap->publishedTrip->flight->departure_airport . ' → ' . 
+                        'route' => $swap->publishedTrip->flight->departure_airport . ' → ' .
                                   $swap->publishedTrip->flight->arrival_airport,
                         'departure_date' => $departureDate,
                         'arrival_date' => $arrivalDate,

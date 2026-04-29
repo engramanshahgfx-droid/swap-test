@@ -15,7 +15,7 @@ class AirportsController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('iata_code', 'like', "%{$search}%")
                   ->orWhere('city', 'like', "%{$search}%")
                   ->orWhere('country', 'like', "%{$search}%");
             });
@@ -29,11 +29,14 @@ class AirportsController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'    => 'required|string|max:255',
-            'code'    => 'required|string|max:10|unique:airports,code',
-            'city'    => 'nullable|string|max:100',
-            'country' => 'nullable|string|max:100',
+            'name'      => 'required|string|max:255',
+            'code'      => 'required|string|max:10|unique:airports,iata_code',
+            'city'      => 'nullable|string|max:100',
+            'country'   => 'nullable|string|max:100',
         ]);
+
+        $validated['iata_code'] = $validated['code'];
+        unset($validated['code']);
 
         Airport::create($validated);
 
@@ -43,11 +46,14 @@ class AirportsController extends Controller
     public function update(Request $request, Airport $airport)
     {
         $validated = $request->validate([
-            'name'    => 'required|string|max:255',
-            'code'    => 'required|string|max:10|unique:airports,code,' . $airport->id,
-            'city'    => 'nullable|string|max:100',
-            'country' => 'nullable|string|max:100',
+            'name'      => 'required|string|max:255',
+            'code'      => 'required|string|max:10|unique:airports,iata_code,' . $airport->id,
+            'city'      => 'nullable|string|max:100',
+            'country'   => 'nullable|string|max:100',
         ]);
+
+        $validated['iata_code'] = $validated['code'];
+        unset($validated['code']);
 
         $airport->update($validated);
 

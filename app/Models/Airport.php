@@ -15,6 +15,11 @@ class Airport extends Model
         'is_active' => 'boolean',
     ];
 
+    public function getCodeAttribute()
+    {
+        return $this->attributes['iata_code'] ?? null;
+    }
+
     public function departureFlights()
     {
         return $this->hasMany(Flight::class, 'departure_airport_id');

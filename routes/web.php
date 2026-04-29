@@ -59,6 +59,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/airports/{airport}', [AirportsController::class, 'update'])->name('airports.update');
     Route::delete('/airports/{airport}', [AirportsController::class, 'destroy'])->name('airports.destroy');
 
+    Route::get('/aircrafts', [App\Http\Controllers\Admin\AircraftController::class, 'index'])->name('aircrafts');
+    Route::post('/aircrafts', [App\Http\Controllers\Admin\AircraftController::class, 'store'])->name('aircrafts.store');
+    Route::put('/aircrafts/{aircraft}', [App\Http\Controllers\Admin\AircraftController::class, 'update'])->name('aircrafts.update');
+    Route::delete('/aircrafts/{aircraft}', [App\Http\Controllers\Admin\AircraftController::class, 'destroy'])->name('aircrafts.destroy');
+
     // Swap operations
     Route::get('/swap-flight', [SwapFlightController::class, 'index'])->name('swap-flight');
     Route::put('/swap-flight/{swap}/status', [SwapFlightController::class, 'updateStatus'])->name('swap-flight.status');

@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\LanguageController;
 use App\Http\Controllers\Api\RegistrationOptionsController;
 use App\Http\Controllers\Api\VacationController;
 use App\Http\Controllers\Api\SupportController;
+use App\Http\Controllers\Api\AdminSettingsController;
 use Illuminate\Support\Facades\Route;
 
 // Language routes
@@ -39,18 +40,18 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
-    
+
     // User
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/{user}', [UserController::class, 'showById']);
     Route::post('/user/device-token', [UserController::class, 'storeDeviceToken']);
     Route::get('/user', [UserController::class, 'show']);
     Route::put('/user', [UserController::class, 'update']);
-    
+
     // Trips
     Route::get('/my-trips', [TripController::class, 'myTrips']);
     Route::get('/trip-details/{id}', [TripController::class, 'tripDetails']);
-    
+
     // Swap Marketplace
     Route::get('/browse-trips', [TripController::class, 'browseTrips']);
     Route::post('/assign-trip-position', [TripController::class, 'assignTripPosition']);
@@ -61,16 +62,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cancel-swap/{swapRequest}', [SwapController::class, 'cancelSwap']);
     Route::get('/swap-history', [TripController::class, 'swapHistory']);
 
+    // Admin Settings
+    Route::get('/admin/settings', [AdminSettingsController::class, 'index']);
+    Route::post('/admin/settings', [AdminSettingsController::class, 'update']);
+
     // Vacation swap aliases (using existing swap workflow)
     Route::get('/vacation-swaps', [TripController::class, 'browseTrips']);
     Route::post('/vacation-swaps/request', [SwapController::class, 'requestSwap']);
     Route::get('/vacation-swaps/history', [TripController::class, 'swapHistory']);
-    
+
     // NEW: Vacation Publishing (month-based)
     Route::post('/publish-vacation', [VacationController::class, 'publishVacation']);
     Route::get('/my-vacations', [VacationController::class, 'myVacations']);
     Route::get('/browse-vacations', [VacationController::class, 'browseVacations']);
-    
+
     // Chat
     Route::get('/conversations', [ChatController::class, 'conversations']);
     Route::get('/messages/{conversation}', [ChatController::class, 'messages']);
@@ -81,13 +86,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chat/send', [ChatController::class, 'sendMessage']);
     Route::get('/chat/unread-count', [ChatController::class, 'unreadCount']);
     Route::post('/chat/mark-read', [ChatController::class, 'markRead']);
-    
+
     // Support
     Route::get('/support/conversation', [SupportController::class, 'getSupportConversation']);
     Route::post('/support/send-message', [SupportController::class, 'sendSupportMessage']);
     Route::get('/support/messages/{conversationId}', [SupportController::class, 'getSupportMessages']);
     Route::get('/support/conversations', [SupportController::class, 'listSupportConversations']);
-    
+
     // Reports
     Route::post('/report-user', [ReportController::class, 'reportUser']);
     Route::get('/my-reports', [ReportController::class, 'myReports']);

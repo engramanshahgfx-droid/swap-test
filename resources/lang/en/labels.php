@@ -9,7 +9,7 @@ return [
     'password_confirm' => 'Confirm Password',
     'country_base' => 'Country Base',
     'airline' => 'Airline',
-    'plane_type' => 'Plane Type',
+    'plane_type' => 'Aircraft',
     'position' => 'Position',
     'flight_number' => 'Flight Number',
     'departure_airport' => 'Departure Airport',
@@ -26,15 +26,15 @@ return [
     'delete' => 'Delete',
     'confirm' => 'Confirm',
     'cancel' => 'Cancel',
-    
+
     // Filament Menu Items
     'dashboard' => 'Dashboard',
     'language' => 'Language',
     'configuration' => 'Configuration',
     'airlines' => 'Airlines',
-    'airports' => 'Airports',
-    'airport' => 'Airport',
-    'plane_types' => 'Plane Types',
+    'airports' => 'Base',
+    'airport' => 'Base',
+    'plane_types' => 'Aircraft',
     'positions' => 'Positions',
     'flight_management' => 'Flight Management',
     'flights' => 'Flights',
@@ -44,7 +44,7 @@ return [
     'swap_requests' => 'Swap Requests',
     'user_management' => 'User Management',
     'users' => 'Users',
-    
+
     // Language Switcher
     'current_language' => 'Current Language',
     'switch_language' => 'Switch Language',
