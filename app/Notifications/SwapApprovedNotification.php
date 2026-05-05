@@ -32,20 +32,20 @@ class SwapApprovedNotification extends Notification implements ShouldQueue
         $approverText = $this->approvedBy === 'owner' ? 'the trip owner' : 'a manager';
 
         return (new MailMessage)
-            ->subject('Swap Request Approved - CrewSwap')
+            ->subject('Swap Request Approved - flightSwap ')
             ->greeting('Hello ' . $notifiable->full_name . '!')
             ->line('Your swap request has been approved by ' . $approverText . '!')
             ->line('Flight: ' . $flight->flight_number)
             ->line('Route: ' . $flight->departure_airport . ' → ' . $flight->arrival_airport)
             ->line('Date: ' . optional($flight->departure_date)->format('Y-m-d'))
             ->action('View Details', url('/swap-requests/' . $this->swapRequest->id))
-            ->line('Thank you for using CrewSwap!');
+            ->line('Thank you for using flightSwap !');
     }
 
     public function toArray($notifiable)
     {
         $flight = $this->swapRequest->publishedTrip->flight;
-        
+
         return [
             'type' => 'swap_approved',
             'approved_by' => $this->approvedBy,

@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="text-center mb-6">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-      <p class="text-gray-600">Join CrewSwap to manage your flights</p>
+      <p class="text-gray-600">Join flightSwap  to manage your flights</p>
     </div>
 
     <!-- Error/Success Alert -->
@@ -282,7 +282,7 @@ const handleRegister = async () => {
 
     if (result.success) {
       success.value = 'Account created successfully! Redirecting...';
-      
+
       setTimeout(() => {
         router.push('/dashboard');
       }, 1500);

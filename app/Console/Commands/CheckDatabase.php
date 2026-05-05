@@ -13,7 +13,7 @@ class CheckDatabase extends Command
     public function handle()
     {
         $user = DB::table('users')
-            ->where('email', 'admin@crewswap.com')
+            ->where('email', 'admin@flightSwap .com')
             ->first();
 
         if (!$user) {

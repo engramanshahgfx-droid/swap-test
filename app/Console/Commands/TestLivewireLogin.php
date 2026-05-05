@@ -12,16 +12,16 @@ class TestLivewireLogin extends Command
     public function handle()
     {
         $this->info("Testing Livewire login submission...");
-        
+
         // First, get the login page to extract the CSRF token
         $client = new \GuzzleHttp\Client(['verify' => false, 'timeout' => 30, 'connect_timeout' => 5]);
-        
+
         try {
             // Step 1: Get login page
             $this->info("\nStep 1: Fetching login page...");
             $response = $client->get('http://localhost:8000/admin/login');
             $html = (string) $response->getBody();
-            
+
             // Extract CSRF token from meta tag
             if (preg_match('/<meta name="csrf-token" content="([^"]+)"/', $html, $matches)) {
                 $csrf_token = $matches[1];
@@ -30,18 +30,18 @@ class TestLivewireLogin extends Command
                 $this->error("Could not find CSRF token");
                 return;
             }
-            
+
             // Step 2: Try to submit the login form via Livewire
             // Livewire uses a specific endpoint for form submissions
             $this->info("\nStep 2: Attempting login via /livewire/message/admin.pages.auth.login endpoint...");
-            
+
             // The form component name and action
             $form_state = [
-                'email' => 'admin@crewswap.com',
+                'email' => 'admin@flightSwap .com',
                 'password' => 'password',
                 'remember' => false,
             ];
-            
+
             // Livewire payload
             $payload = [
                 'actionName' => ['authenticate'],
@@ -49,7 +49,7 @@ class TestLivewireLogin extends Command
                 'updates' => [
                     [
                         'name' => 'data.email',
-                        'value' => 'admin@crewswap.com',
+                        'value' => 'admin@flightSwap .com',
                     ],
                     [
                         'name' => 'data.password',
@@ -61,7 +61,7 @@ class TestLivewireLogin extends Command
                     ],
                 ],
             ];
-            
+
             $response = $client->post('http://localhost:8000/admin/login', [
                 'json' => $payload,
                 'headers' => [
@@ -71,13 +71,13 @@ class TestLivewireLogin extends Command
                 ],
                 'allow_redirects' => false,
             ]);
-            
+
             $status = $response->getStatusCode();
             $this->info("Response status: {$status}");
-            
+
             $body = (string) $response->getBody();
             $this->info("Response length: " . strlen($body) . " bytes");
-            
+
             if ($status === 302) {
                 $this->info("✓ Got redirect response");
                 $location = $response->getHeader('location');
@@ -94,7 +94,7 @@ class TestLivewireLogin extends Command
                     $this->line(substr($body, 0, 500));
                 }
             }
-            
+
         } catch (\Exception $e) {
             $this->error("Error: " . $e->getMessage());
             if (method_exists($e, 'getResponse')) {
@@ -104,7 +104,7 @@ class TestLivewireLogin extends Command
                 }
             }
         }
-	
+
         // Now check the logs
         $this->info("\n\nChecking application logs...");
         $log_path = storage_path('logs/laravel.log');

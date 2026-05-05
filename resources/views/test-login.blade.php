@@ -13,7 +13,7 @@
     <h1>Test Login</h1>
     <form method="POST">
         @csrf
-        <input type="email" name="email" placeholder="Email" value="admin@crewswap.com" required>
+        <input type="email" name="email" placeholder="Email" value="admin@flightSwap .com" required>
         <input type="password" name="password" placeholder="Password" value="password" required>
         <button type="submit">Login</button>
     </form>

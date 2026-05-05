@@ -12,7 +12,7 @@ class TestFilamentFlow extends Command
 
     public function handle()
     {
-        $email = 'admin@crewswap.com';
+        $email = 'admin@flightSwap .com';
         $password = 'password';
 
         $this->info('=== Testing Filament Login Flow ===');

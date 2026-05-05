@@ -45,11 +45,11 @@ class UserSeeder extends Seeder
         );
 
         // Create Super Admin
-        $admin = User::firstOrCreate(['email' => 'admin@crewswap.com'], [
+        $admin = User::firstOrCreate(['email' => 'admin@flightSwap .com'], [
             'employee_id' => 'ADMIN001',
             'full_name' => 'System Admin',
             'phone' => '+251911000001',
-            'email' => 'admin@crewswap.com',
+            'email' => 'admin@flightSwap .com',
             'country_base' => 'Ethiopia',
             'airline_id' => $ethiopian->id,
             'plane_type_id' => $planeType->id,
@@ -62,11 +62,11 @@ class UserSeeder extends Seeder
         $admin->assignRole('super-admin');
 
         // Create Crew Manager
-        $manager = User::firstOrCreate(['email' => 'manager@crewswap.com'], [
+        $manager = User::firstOrCreate(['email' => 'manager@flightSwap .com'], [
             'employee_id' => 'MGR001',
             'full_name' => 'John Manager',
             'phone' => '+251911000002',
-            'email' => 'manager@crewswap.com',
+            'email' => 'manager@flightSwap .com',
             'country_base' => 'Ethiopia',
             'airline_id' => $ethiopian->id,
             'plane_type_id' => $planeType->id,
@@ -79,11 +79,11 @@ class UserSeeder extends Seeder
         $manager->assignRole('crew_manager');
 
         // Create Purser
-        $purser = User::firstOrCreate(['email' => 'purser@crewswap.com'], [
+        $purser = User::firstOrCreate(['email' => 'purser@flightSwap .com'], [
             'employee_id' => 'PUR001',
             'full_name' => 'Sarah Purser',
             'phone' => '+251911000003',
-            'email' => 'purser@crewswap.com',
+            'email' => 'purser@flightSwap .com',
             'country_base' => 'Ethiopia',
             'airline_id' => $ethiopian->id,
             'plane_type_id' => $planeType->id,
@@ -101,19 +101,19 @@ class UserSeeder extends Seeder
                 'employee_id' => 'FA001',
                 'full_name' => 'Alice Flight',
                 'phone' => '+251911000004',
-                'email' => 'alice@crewswap.com',
+                'email' => 'alice@flightSwap .com',
             ],
             [
                 'employee_id' => 'FA002',
                 'full_name' => 'Bob Attendant',
                 'phone' => '+251911000005',
-                'email' => 'bob@crewswap.com',
+                'email' => 'bob@flightSwap .com',
             ],
             [
                 'employee_id' => 'FA003',
                 'full_name' => 'Carol Crew',
                 'phone' => '+251911000006',
-                'email' => 'carol@crewswap.com',
+                'email' => 'carol@flightSwap .com',
             ],
         ];
 

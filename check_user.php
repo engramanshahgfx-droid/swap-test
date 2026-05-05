@@ -2,14 +2,14 @@
 
 use App\Models\User;
 
-$user = User::where('email', 'admin@crewswap.com')->first();
+$user = User::where('email', 'admin@flightSwap .com')->first();
 
 if ($user) {
     echo "User found: {$user->full_name}\n";
     echo "Email: {$user->email}\n";
     echo "Password hash: " . substr($user->password, 0, 20) . "...\n";
     echo "Password match: " . (password_verify('password', $user->password) ? 'YES' : 'NO') . "\n";
-    } 
+    }
     else
       {
     echo "Admin user not found\n";

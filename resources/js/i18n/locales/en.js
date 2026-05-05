@@ -1,6 +1,6 @@
 export default {
   app: {
-    title: 'CrewSwap Administration Portal',
+    title: 'flightSwap  Administration Portal',
     search: 'Quick search modules, users, reports',
     logout: 'Logout',
     notifications: 'Notifications',

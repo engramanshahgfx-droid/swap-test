@@ -15,8 +15,8 @@ class SmsService
 
     public function sendOtp($phone, $otp)
     {
-        $message = "Your CrewSwap verification code is: {$otp}. Valid for 10 minutes.";
-        
+        $message = "Your flightSwap  verification code is: {$otp}. Valid for 10 minutes.";
+
         return $this->send($phone, $message);
     }
 
@@ -26,7 +26,7 @@ class SmsService
             if ($this->driver === 'africastalking') {
                 return $this->sendViaAfricasTalking($phone, $message);
             }
-            
+
             // Add more drivers as needed
             Log::warning("SMS driver not configured: {$this->driver}");
             return false;

@@ -13,9 +13,9 @@ class DebugLogin extends Command
     public function handle()
     {
         $this->info('=== Checking User Data ===');
-        
-        $user = User::where('email', 'admin@crewswap.com')->first();
-        
+
+        $user = User::where('email', 'admin@flightSwap .com')->first();
+
         if (!$user) {
             $this->error('User not found!');
             $this->info('All users:');
@@ -24,19 +24,19 @@ class DebugLogin extends Command
             });
             return;
         }
-        
+
         $this->info("Email: {$user->email}");
         $this->info("Full Name: {$user->full_name}");
         $this->info("Status: {$user->status}");
         $this->info("Roles: " . $user->getRoleNames()->implode(', '));
         $this->info("Email Verified: " . ($user->email_verified_at ? 'YES' : 'NO'));
-        
+
         // Test password
         $plainPassword = "password";
         $matches = password_verify($plainPassword, $user->password);
         $this->info("\nPassword Test: {$plainPassword}");
         $this->info("Password Hash Matches: " . ($matches ? 'YES' : 'NO'));
-        
+
         if (!$matches) {
             $this->warn("\n⚠️ Password does not match! Resetting...");
             $user->update(['password' => bcrypt($plainPassword)]);

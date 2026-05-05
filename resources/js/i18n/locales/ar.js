@@ -1,6 +1,6 @@
 export default {
   app: {
-    title: 'بوابة إدارة CrewSwap',
+    title: 'بوابة إدارة flightSwap ',
     search: 'بحث سريع في الوحدات والمستخدمين والتقارير',
     logout: 'تسجيل الخروج',
     notifications: 'الإشعارات',

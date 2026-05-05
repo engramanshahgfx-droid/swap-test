@@ -16,7 +16,7 @@ class EmailOtpService
         try {
             Mail::html($this->getOtpEmailTemplate($otp, $email), function ($message) use ($email, $otp) {
                 $message->to($email)
-                    ->subject('Your CrewSwap OTP Code: ' . $otp);
+                    ->subject('Your flightSwap  OTP Code: ' . $otp);
             });
 
             \Log::info('OTP sent', ['email' => $email]);
@@ -65,12 +65,12 @@ class EmailOtpService
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🚀 CrewSwap</div>
+            <div class="logo">🚀 flightSwap </div>
         </div>
 
         <div class="content">
             <h2 style="color: #333; margin-top: 0;">Email Verification</h2>
-            <p>Welcome to CrewSwap! Your one-time verification code is:</p>
+            <p>Welcome to flightSwap ! Your one-time verification code is:</p>
 
             <div class="otp-box">$otp</div>
 
@@ -81,12 +81,12 @@ class EmailOtpService
             </div>
 
             <p style="color: #999; font-size: 13px; margin-top: 20px;">
-                Never share your OTP code with anyone, including CrewSwap staff.
+                Never share your OTP code with anyone, including flightSwap  staff.
             </p>
         </div>
 
         <div class="footer">
-            <p>© 2026 CrewSwap. All rights reserved.</p>
+            <p>© 2026 flightSwap . All rights reserved.</p>
             <p>Sent to: $email</p>
         </div>
     </div>

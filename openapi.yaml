@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: CrewSwap Mobile App API
+  title: flightSwap  Mobile App API
   version: 1.0.0
   description: |
-    OpenAPI specification for CrewSwap mobile and admin API.
+    OpenAPI specification for flightSwap  mobile and admin API.
     All endpoints return a consistent JSON envelope.
 servers:
   - url: https://api.example.com/api/v1

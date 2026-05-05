@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: CrewSwap Mobile API
+  title: flightSwap  Mobile API
   version: 1.1.0
-  description: Mobile integration contract for CrewSwap backend.
+  description: Mobile integration contract for flightSwap  backend.
 servers:
   - url: /api
     description: Laravel API base path

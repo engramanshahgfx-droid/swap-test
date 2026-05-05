@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "CrewSwap Mobile API",
-    "description": "Registration & Authentication APIs for CrewSwap Mobile App",
+    "name": "flightSwap  Mobile API",
+    "description": "Registration & Authentication APIs for flightSwap  Mobile App",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -81,7 +81,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@crewswap.com\",\n  \"password\": \"password\",\n  \"device_name\": \"iPhone 12 Pro\"\n}"
+              "raw": "{\n  \"email\": \"admin@flightSwap .com\",\n  \"password\": \"password\",\n  \"device_name\": \"iPhone 12 Pro\"\n}"
             },
             "url": {
               "raw": "http://{{base_url}}/api/login",

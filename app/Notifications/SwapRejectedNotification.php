@@ -34,16 +34,16 @@ class SwapRejectedNotification extends Notification implements ShouldQueue
         $rejecterText = $this->rejectedBy === 'owner' ? 'the trip owner' : 'a manager';
 
         $mail = (new MailMessage)
-            ->subject('Swap Request Rejected - CrewSwap')
+            ->subject('Swap Request Rejected - flightSwap ')
             ->greeting('Hello ' . $notifiable->full_name . '!')
             ->line('Unfortunately, your swap request has been rejected by ' . $rejecterText . '.')
             ->line('Flight: ' . $flight->flight_number)
             ->line('Route: ' . $flight->departure_airport . ' → ' . $flight->arrival_airport);
-        
+
         if ($this->reason) {
             $mail->line('Reason: ' . $this->reason);
         }
-        
+
         return $mail
             ->action('Browse Other Trips', url('/browse-trips'))
             ->line('You can browse other available trips.');
@@ -52,7 +52,7 @@ class SwapRejectedNotification extends Notification implements ShouldQueue
     public function toArray($notifiable)
     {
         $flight = $this->swapRequest->publishedTrip->flight;
-        
+
         return [
             'type' => 'swap_rejected',
             'rejected_by' => $this->rejectedBy,

@@ -16,21 +16,21 @@ class DebugApi extends Command
         $this->info('=== API Debug ===');
 
         // Check user exists
-        $user = User::where('email', 'admin@crewswap.com')->first();
-        
+        $user = User::where('email', 'admin@flightSwap .com')->first();
+
         if (!$user) {
-            $this->error('User admin@crewswap.com not found!');
+            $this->error('User admin@flightSwap .com not found!');
             return;
         }
 
         $this->line("✓ User exists: {$user->email}");
         $this->line("  ID: {$user->id}");
         $this->line("  Full Name: {$user->full_name}");
-        
+
         // Check password
         $result = Hash::check('password', $user->password);
         $this->line("✓ Password check ('password'): " . ($result ? 'PASS' : 'FAIL'));
-        
+
         if (!$result) {
             $this->error("Password verification failed!");
         }

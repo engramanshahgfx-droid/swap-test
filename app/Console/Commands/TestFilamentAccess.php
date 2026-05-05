@@ -13,7 +13,7 @@ class TestFilamentAccess extends Command
 
     public function handle()
     {
-        $user = User::where('email', 'admin@crewswap.com')->first();
+        $user = User::where('email', 'admin@flightSwap .com')->first();
 
         if (!$user) {
             $this->error('User not found');
@@ -24,7 +24,7 @@ class TestFilamentAccess extends Command
         $this->info('Email: ' . $user->email);
         $this->info('Roles: ' . $user->getRoleNames()->implode(', '));
         $this->info('Has super-admin: ' . ($user->hasRole('super-admin') ? 'YES' : 'NO'));
-        
+
         // Check if user can access panel
         if (method_exists($user, 'canAccessPanel')) {
             try {

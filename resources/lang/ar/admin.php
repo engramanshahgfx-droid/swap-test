@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'brand' => 'CrewSwap',
+    'brand' => 'flightSwap ',
     'menu' => 'القائمة',
     'english' => 'EN',
     'arabic' => 'العربية',

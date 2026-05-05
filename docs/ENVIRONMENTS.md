@@ -1,4 +1,4 @@
-# CrewSwap Multi-Environment Deployment Guide
+# flightSwap  Multi-Environment Deployment Guide
 
 **Last Updated:** March 15, 2026  
 **Status:** ✅ All environments live and operational
@@ -7,7 +7,7 @@
 
 ## 🌍 Environment Overview
 
-CrewSwap is deployed across **three independent environments** on a VPS at `72.62.190.247` (Hostinger Ubuntu 24.04 LTS).
+flightSwap  is deployed across **three independent environments** on a VPS at `72.62.190.247` (Hostinger Ubuntu 24.04 LTS).
 
 | Environment | URL | Purpose | Database | Status |
 |---|---|---|---|---|
@@ -37,7 +37,7 @@ Developer Password: Aa112233@@
 
 ### Admin Login (All Environments)
 ```
-Email: admin@crewswap.com
+Email: admin@flightSwap .com
 Password: Password
 ```
 
@@ -260,7 +260,7 @@ sudo systemctl reload nginx
 curl -X POST http://dev-swap.tilalr.com/api/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@crewswap.com",
+    "email": "admin@flightSwap .com",
     "password": "Password123"
   }'
 ```

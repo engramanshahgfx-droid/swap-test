@@ -360,7 +360,7 @@
         <section class="dash-hero">
             <div>
                 <div class="dash-eyebrow">Custom Admin Dashboard</div>
-                <h1 class="dash-title">CrewSwap control center</h1>
+                <h1 class="dash-title">flightSwap  control center</h1>
                 <p class="dash-subtitle">
                     This dashboard now pulls real Filament resource data and shows users, flights, airlines, positions,
                     airports, plane types, swaps, reports, and communication activity in one custom HTML, CSS, and JavaScript view.
