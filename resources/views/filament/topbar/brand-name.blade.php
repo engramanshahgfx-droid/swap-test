@@ -7,7 +7,7 @@
 
 @php
     $isArabic = app()->getLocale() === 'ar';
-    $brandName = $isArabic ? 'كرو سواب' : 'flightSwap ';
+    $brandName = $isArabic ? 'كرو سواب' : 'CrewSwap';
     $user = auth()->user();
     $userName = $user->name ?? 'User';
     $userInitials = strtoupper(substr($userName, 0, 2));
@@ -35,3 +35,4 @@
         <!-- </span> -->
     <!-- </div> -->
 <!-- </div>  -->
+

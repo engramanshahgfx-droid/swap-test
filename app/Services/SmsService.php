@@ -15,7 +15,7 @@ class SmsService
 
     public function sendOtp($phone, $otp)
     {
-        $message = "Your flightSwap  verification code is: {$otp}. Valid for 10 minutes.";
+        $message = "Your CrewSwap verification code is: {$otp}. Valid for 10 minutes.";
 
         return $this->send($phone, $message);
     }
@@ -67,3 +67,4 @@ class SmsService
         return $result;
     }
 }
+

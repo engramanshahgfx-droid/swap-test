@@ -12,7 +12,7 @@ class CheckAdminUser extends Command
 
     public function handle()
     {
-        $user = User::where('email', 'admin@flightSwap .com')->first();
+        $user = User::where('email', 'admin@crewswap.com')->first();
 
         if ($user) {
             $this->info("✓ User found: {$user->full_name}");
@@ -28,3 +28,4 @@ class CheckAdminUser extends Command
         }
     }
 }
+

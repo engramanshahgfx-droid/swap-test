@@ -2,7 +2,7 @@
 
 use App\Models\User;
 
-$user = User::where('email', 'admin@flightSwap .com')->first();
+$user = User::where('email', 'admin@crewswap.com')->first();
 
 if ($user) {
     echo "User found: {$user->full_name}\n";
@@ -18,3 +18,4 @@ if ($user) {
         echo "  - {$u->email}\n";
     });
 }
+

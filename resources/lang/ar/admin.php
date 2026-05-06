@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'brand' => 'flightSwap ',
+    'brand' => 'CrewSwap',
     'menu' => 'القائمة',
     'english' => 'EN',
     'arabic' => 'العربية',
@@ -312,3 +312,4 @@ return [
         'resolved' => 'تم الحل',
     ],
 ];
+

@@ -1,6 +1,6 @@
 export default {
   app: {
-    title: 'flightSwap  Administration Portal',
+    title: 'CrewSwap Administration Portal',
     search: 'Quick search modules, users, reports',
     logout: 'Logout',
     notifications: 'Notifications',
@@ -34,3 +34,4 @@ export default {
     noData: 'No data found',
   },
 };
+

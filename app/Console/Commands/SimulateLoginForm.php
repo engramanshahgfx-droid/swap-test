@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 
 class SimulateLoginForm extends Command
 {
-    protected $signature = 'test:simulate-login {email=admin@flightSwap .com} {password=password}';
+    protected $signature = 'test:simulate-login {email=admin@crewswap.com} {password=password}';
     protected $description = 'Simulate the login form submission';
 
     public function handle()
@@ -59,3 +59,4 @@ class SimulateLoginForm extends Command
         $this->line("canAccessPanel: " . ($user->canAccessPanel(new \Filament\Panel()) ? "YES" : "NO"));
     }
 }
+

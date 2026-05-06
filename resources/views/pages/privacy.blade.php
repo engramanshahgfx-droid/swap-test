@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="flightSwap  Privacy Policy — how we collect, use, and protect your personal data in compliance with GDPR, CCPA, COPPA, and applicable app store policies." />
+    <meta name="description" content="CrewSwap Privacy Policy — how we collect, use, and protect your personal data in compliance with GDPR, CCPA, COPPA, and applicable app store policies." />
     <meta name="robots" content="index, follow" />
-    <meta property="og:title" content="Privacy Policy | flightSwap " />
-    <meta property="og:description" content="Learn how flightSwap  collects, uses, and protects your data." />
+    <meta property="og:title" content="Privacy Policy | CrewSwap" />
+    <meta property="og:description" content="Learn how CrewSwap collects, uses, and protects your data." />
     <meta property="og:type" content="website" />
-    <title>Privacy Policy | flightSwap </title>
+    <title>Privacy Policy | CrewSwap</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -217,7 +217,7 @@
 <header class="site-header">
     <div class="logo-row">
         <div class="logo-icon">&#9992;</div>
-        <span class="brand-name">flightSwap </span>
+        <span class="brand-name">CrewSwap</span>
     </div>
     <h1>Privacy Policy</h1>
     <div class="meta-pills">
@@ -269,9 +269,9 @@
                 <div class="section-subtitle">Data Controller Information</div>
             </div>
         </div>
-        <p><strong>flightSwap </strong> (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) is a flight crew scheduling and swap management application (&ldquo;App&rdquo;). We operate the App and act as the <strong>data controller</strong> responsible for the processing of personal data collected through it.</p>
-        <p>By downloading, registering, or using flightSwap , you acknowledge that you have read and understood this Privacy Policy and agree to the collection and use of your information as described herein.</p>
-        <div class="info-block"><p><strong>Data Controller:</strong> flightSwap  &nbsp;|&nbsp; <strong>Contact:</strong> privacy@flightSwap .app &nbsp;|&nbsp; <strong>App Category:</strong> Productivity / Aviation</p></div>
+        <p><strong>CrewSwap</strong> (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) is a flight crew scheduling and swap management application (&ldquo;App&rdquo;). We operate the App and act as the <strong>data controller</strong> responsible for the processing of personal data collected through it.</p>
+        <p>By downloading, registering, or using CrewSwap, you acknowledge that you have read and understood this Privacy Policy and agree to the collection and use of your information as described herein.</p>
+        <div class="info-block"><p><strong>Data Controller:</strong> CrewSwap&nbsp;|&nbsp; <strong>Contact:</strong> privacy@crewswap.app &nbsp;|&nbsp; <strong>App Category:</strong> Productivity / Aviation</p></div>
     </div>
 
     <div class="section" id="information-we-collect">
@@ -340,7 +340,7 @@
             <li><strong>Other crew members:</strong> Your name, position, airline, and trip details are visible to other registered users when you create or respond to a swap request &mdash; this is core to the App&apos;s function.</li>
             <li><strong>Airline administrators:</strong> Authorized administrators from your airline may view swap records relevant to their employees for operational purposes.</li>
             <li><strong>Service providers:</strong> Firebase (Google) for push notifications and crash analytics; cloud hosting providers. These parties process data strictly on our behalf under written data-processing agreements.</li>
-            <li><strong>Legal authorities:</strong> If required by applicable law, valid court order, or to protect the rights, property, or safety of flightSwap , our users, or the public.</li>
+            <li><strong>Legal authorities:</strong> If required by applicable law, valid court order, or to protect the rights, property, or safety of CrewSwap, our users, or the public.</li>
             <li><strong>Business transfers:</strong> In the event of a merger, acquisition, or asset sale, your data may be transferred &mdash; we will notify you before it becomes subject to a different privacy policy.</li>
         </ul>
     </div>
@@ -412,7 +412,7 @@
             <li><strong>Right to non-discrimination:</strong> You will not receive inferior service for exercising your privacy rights.</li>
             <li><strong>Right to correct:</strong> Correct inaccurate personal information we maintain about you.</li>
         </ul>
-        <div class="info-block"><p>To exercise any of these rights, please contact us at <strong>privacy@flightSwap .app</strong>. We will verify your identity before processing requests and respond within the legally required timeframes.</p></div>
+        <div class="info-block"><p>To exercise any of these rights, please contact us at <strong>privacy@crewswap.app</strong>. We will verify your identity before processing requests and respond within the legally required timeframes.</p></div>
     </div>
 
     <div class="section" id="children">
@@ -423,9 +423,9 @@
                 <div class="section-subtitle">COPPA Compliance</div>
             </div>
         </div>
-        <div class="warn-block"><p><strong>flightSwap  is intended solely for airline crew professionals aged 18 years or older.</strong> This App is not directed to children and is not rated for use by minors.</p></div>
+        <div class="warn-block"><p><strong>CrewSwap is intended solely for airline crew professionals aged 18 years or older.</strong> This App is not directed to children and is not rated for use by minors.</p></div>
         <p>We do not knowingly collect, solicit, or maintain personal information from children under the age of <strong>13</strong> (or <strong>16</strong> in EU member states, per GDPR Article 8). If we become aware that a child under the applicable age has provided us with personal information, we will delete such data immediately.</p>
-        <p>If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately at <a href="mailto:privacy@flightSwap .app" style="color:#0ea5e9;">privacy@flightSwap .app</a>.</p>
+        <p>If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately at <a href="mailto:privacy@crewswap.app" style="color:#0ea5e9;">privacy@crewswap.app</a>.</p>
     </div>
 
     <div class="section" id="international">
@@ -483,7 +483,7 @@
         </div>
         <p>We use push notifications to inform you about important events including new swap requests, approvals, rejections, and incoming in-app messages. Push notifications require your explicit consent on iOS and are enabled by default on Android (you may disable them at any time).</p>
         <ul>
-            <li><strong>Managing notifications:</strong> Go to your device&apos;s <em>Settings &rarr; Notifications &rarr; flightSwap </em> to enable or disable.</li>
+            <li><strong>Managing notifications:</strong> Go to your device&apos;s <em>Settings &rarr; Notifications &rarr; CrewSwap</em> to enable or disable.</li>
             <li><strong>What we send:</strong> Swap request updates, approval/rejection alerts, new in-app messages, and important account notifications.</li>
             <li><strong>What we don&apos;t send:</strong> We do not send marketing, promotional, or third-party advertisement notifications.</li>
             <li><strong>FCM tokens:</strong> Your device push token is stored securely. You can request deletion by contacting support.</li>
@@ -518,10 +518,10 @@
         </div>
         <p>If you have any questions, concerns, or requests regarding this Privacy Policy or the way we handle your personal data, please contact our Privacy Team:</p>
         <div class="contact-box">
-            <div class="contact-title">&#9992; flightSwap  &mdash; Privacy Team</div>
+            <div class="contact-title">&#9992; CrewSwap&mdash; Privacy Team</div>
             <div class="contact-row">
                 <span class="label">Email</span>
-                <a href="mailto:privacy@flightSwap .app">privacy@flightSwap .app</a>
+                <a href="mailto:privacy@crewswap.app">privacy@crewswap.app</a>
             </div>
             <div class="contact-row">
                 <span class="label">Website</span>
@@ -555,7 +555,7 @@
 
 <footer class="site-footer">
     <p>
-        &copy; {{ date('Y') }} flightSwap . All rights reserved.
+        &copy; {{ date('Y') }} CrewSwap. All rights reserved.
         <span class="footer-divider">|</span>
         <a href="{{ url('/privacy') }}">Privacy Policy</a>
         <span class="footer-divider">|</span>
@@ -568,3 +568,4 @@
 
 </body>
 </html>
+

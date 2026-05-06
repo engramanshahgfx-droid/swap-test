@@ -32,7 +32,7 @@ class SwapRequestNotification extends Notification implements ShouldQueue
         $fromUser = $this->swapRequest->fromUser;
 
         return (new MailMessage)
-            ->subject('New Swap Request - flightSwap ')
+            ->subject('New Swap Request - CrewSwap')
             ->greeting('Hello ' . $notifiable->full_name . '!')
             ->line($fromUser->full_name . ' has requested to swap for flight ' . $flight->flight_number)
             ->line('Route: ' . $flight->departure_airport . ' → ' . $flight->arrival_airport)
@@ -61,3 +61,4 @@ class SwapRequestNotification extends Notification implements ShouldQueue
         ];
     }
 }
+

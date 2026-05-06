@@ -12,7 +12,7 @@ class TestFilamentAuth extends Command
 
     public function handle()
     {
-        $email = 'admin@flightSwap .com';
+        $email = 'admin@crewswap.com';
         $password = 'password';
 
         $this->info('Testing Filament authentication...');
@@ -50,3 +50,4 @@ class TestFilamentAuth extends Command
         }
     }
 }
+

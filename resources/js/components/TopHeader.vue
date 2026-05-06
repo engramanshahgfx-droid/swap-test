@@ -17,7 +17,7 @@
         <img src="https://i.pravatar.cc/100?img=13" alt="admin" />
         <div>
           <div class="name">Captain Admin</div>
-          <div class="email">ops.admin@flightSwap .app</div>
+          <div class="email">ops.admin@crewswap.app</div>
         </div>
       </div>
       <button class="logout">{{ $t('app.logout') }}</button>
@@ -172,3 +172,4 @@ watch(
   }
 }
 </style>
+

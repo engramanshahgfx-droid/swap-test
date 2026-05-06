@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SwapRequestRequest;
 use App\Models\PublishedTrip;
 use App\Models\SwapRequest;
+use App\Models\UserTrip;
 use App\Services\SwapService;
 use Illuminate\Http\Request;
 
@@ -49,6 +50,74 @@ class SwapController extends Controller
         }
     }
 
+    public function updateSwapRequest(Request $request, SwapRequest $swapRequest)
+    {
+        $request->validate([
+            'requester_trip_id' => 'nullable|exists:user_trips,id',
+            'message' => 'nullable|string|max:500',
+        ]);
+
+        $user = $request->user();
+
+        if ($user->id !== $swapRequest->requester_id) {
+            return response()->json([
+                'success' => false,
+                'message' => __('swap.not_authorized'),
+            ], 403);
+        }
+
+        if (!$swapRequest->isPending()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only pending swap requests can be updated.',
+            ], 422);
+        }
+
+        $updates = [];
+
+        if ($request->has('message')) {
+            $updates['message'] = $request->input('message');
+        }
+
+        if ($request->has('requester_trip_id')) {
+            $requesterTripId = $request->input('requester_trip_id');
+            $requesterTrip = UserTrip::where('id', $requesterTripId)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$requesterTrip) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The selected requester trip is invalid.',
+                ], 422);
+            }
+
+            if ($requesterTrip->flight_id === $swapRequest->publishedTrip->flight_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You cannot select the same flight for your requester trip.',
+                ], 422);
+            }
+
+            $updates['requester_trip_id'] = $requesterTrip->id;
+        }
+
+        if ($updates === []) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No changes were provided to update the swap request.',
+            ], 422);
+        }
+
+        $swapRequest->update($updates);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Swap request updated successfully.',
+            'data' => $swapRequest->load(['requester', 'responder', 'publishedTrip.flight']),
+        ]);
+    }
+
     public function confirmSwap(Request $request, SwapRequest $swapRequest)
     {
         $user = $request->user();
@@ -57,7 +126,7 @@ class SwapController extends Controller
             // Check if user is trip owner (responder) approving
             if ($user->id === $swapRequest->responder_id && $swapRequest->isPending()) {
                 $swapRequest = $this->swapService->approveSwap($swapRequest);
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Swap approved and sent for manager review.',
@@ -86,7 +155,7 @@ class SwapController extends Controller
             // Check if user is trip owner (responder) rejecting
             if ($user->id === $swapRequest->responder_id && $swapRequest->isPending()) {
                 $swapRequest = $this->swapService->rejectSwap($swapRequest, $reason);
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Swap request rejected.',

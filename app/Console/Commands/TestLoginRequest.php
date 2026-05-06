@@ -32,7 +32,7 @@ class TestLoginRequest extends Command
             $this->info("\nStep 2: Submit login form...");
             $login_response = $client->post('http://localhost:8000/admin/login', [
                 'form_params' => [
-                    'email' => 'admin@flightSwap .com',
+                    'email' => 'admin@crewswap.com',
                     'password' => 'password',
                     'csrf_token' => $csrf_token,
                 ],
@@ -60,3 +60,4 @@ class TestLoginRequest extends Command
         }
     }
 }
+

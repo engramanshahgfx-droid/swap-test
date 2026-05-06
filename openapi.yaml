@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: flightSwap  Mobile App API
+  title: CrewSwap Mobile App API
   version: 1.0.0
   description: |
-    OpenAPI specification for flightSwap  mobile and admin API.
+    OpenAPI specification for CrewSwap mobile and admin API.
     All endpoints return a consistent JSON envelope.
 servers:
   - url: https://api.example.com/api/v1
@@ -485,7 +485,7 @@ paths:
                           items:
                             type: array
                             items:
-                              $ref: '#/components/schemas/FlightSwap'
+                              $ref: '#/components/schemas/CrewSwap'
     post:
       tags: [FlightSwaps]
       summary: Create flight swap
@@ -531,7 +531,7 @@ paths:
                         type: object
                         properties:
                           swap_detail:
-                            $ref: '#/components/schemas/FlightSwap'
+                            $ref: '#/components/schemas/CrewSwap'
     put:
       tags: [FlightSwaps]
       summary: Update flight swap
@@ -1287,7 +1287,7 @@ components:
         arrival_airport: { type: string }
         departure_date: { type: string, format: date }
 
-    FlightSwap:
+    CrewSwap:
       type: object
       properties:
         id: { type: integer }
@@ -1401,3 +1401,4 @@ components:
       properties:
         id: { type: integer }
         name: { type: string }
+

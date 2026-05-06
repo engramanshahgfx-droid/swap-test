@@ -1,6 +1,6 @@
 export default {
   app: {
-    title: 'بوابة إدارة flightSwap ',
+    title: 'بوابة إدارة CrewSwap',
     search: 'بحث سريع في الوحدات والمستخدمين والتقارير',
     logout: 'تسجيل الخروج',
     notifications: 'الإشعارات',
@@ -34,3 +34,4 @@ export default {
     noData: 'لا توجد بيانات',
   },
 };
+

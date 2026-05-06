@@ -13,7 +13,7 @@ class TestFilamentAccess extends Command
 
     public function handle()
     {
-        $user = User::where('email', 'admin@flightSwap .com')->first();
+        $user = User::where('email', 'admin@crewswap.com')->first();
 
         if (!$user) {
             $this->error('User not found');
@@ -38,3 +38,4 @@ class TestFilamentAccess extends Command
         }
     }
 }
+

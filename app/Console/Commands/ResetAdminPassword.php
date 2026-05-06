@@ -13,7 +13,7 @@ class ResetAdminPassword extends Command
 
     public function handle()
     {
-        $user = User::where('email', 'admin@flightSwap .com')->first();
+        $user = User::where('email', 'admin@crewswap.com')->first();
 
         if (!$user) {
             $this->error('Admin user not found');
@@ -28,3 +28,4 @@ class ResetAdminPassword extends Command
         $this->info("  Password: {$password}");
     }
 }
+

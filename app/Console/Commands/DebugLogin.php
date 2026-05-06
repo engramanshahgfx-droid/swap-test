@@ -14,7 +14,7 @@ class DebugLogin extends Command
     {
         $this->info('=== Checking User Data ===');
 
-        $user = User::where('email', 'admin@flightSwap .com')->first();
+        $user = User::where('email', 'admin@crewswap.com')->first();
 
         if (!$user) {
             $this->error('User not found!');
@@ -44,3 +44,4 @@ class DebugLogin extends Command
         }
     }
 }
+

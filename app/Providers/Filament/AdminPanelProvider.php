@@ -31,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
                 'danger' => Color::Red,
                 'gray' => Color::Gray,
             ])
-            ->brandName('flightSwap ')
+            ->brandName('CrewSwap')
             ->brandLogoHeight('2.5rem')
             ->userMenuItems([])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
@@ -86,3 +86,4 @@ class AdminPanelProvider extends PanelProvider
             ]);
     }
 }
+

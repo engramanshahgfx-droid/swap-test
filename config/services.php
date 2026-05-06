@@ -42,7 +42,7 @@ return [
     'africastalking' => [
         'username' => env('AFRICASTALKING_USERNAME', 'sandbox'),
         'api_key' => env('AFRICASTALKING_API_KEY'),
-        'from' => env('AFRICASTALKING_FROM', 'flightSwap '),
+        'from' => env('AFRICASTALKING_FROM', 'CrewSwap'),
     ],
 
     'firebase' => [
@@ -56,3 +56,4 @@ return [
     ],
 
 ];
+

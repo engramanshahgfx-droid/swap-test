@@ -12,7 +12,7 @@ class FixAdminUser extends Command
 
     public function handle()
     {
-        $user = User::where('email', 'admin@flightSwap .com')->first();
+        $user = User::where('email', 'admin@crewswap.com')->first();
 
         if (!$user) {
             $this->error('Admin user not found');
@@ -32,3 +32,4 @@ class FixAdminUser extends Command
         $this->info("  Email Verified: " . ($user->email_verified_at ? 'YES' : 'NO'));
     }
 }
+

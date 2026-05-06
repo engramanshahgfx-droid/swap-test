@@ -57,7 +57,7 @@ class TestApiEndpoints extends Command
         $this->line("\n=== Testing POST /api/login ===");
         try {
             $response = Http::post("$base_url/api/login", [
-                'email' => 'admin@flightSwap .com',
+                'email' => 'admin@crewswap.com',
                 'password' => 'password',
             ]);
 
@@ -88,7 +88,7 @@ class TestApiEndpoints extends Command
         try {
             // First get a token
             $loginResponse = Http::post("$base_url/api/login", [
-                'email' => 'admin@flightSwap .com',
+                'email' => 'admin@crewswap.com',
                 'password' => 'password',
             ]);
 
@@ -111,3 +111,4 @@ class TestApiEndpoints extends Command
         }
     }
 }
+

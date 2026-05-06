@@ -185,6 +185,32 @@ class TripController extends Controller
         return $parsed;
     }
 
+    private function normalizeInputValue(mixed $value): mixed
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value) && trim($value) === '') {
+            return null;
+        }
+
+        if (is_array($value) && empty($value)) {
+            return null;
+        }
+
+        return $value;
+    }
+
+    private function getRequestValue(Request $request, string $field, mixed $fallback = null): mixed
+    {
+        if (!$request->exists($field)) {
+            return $fallback;
+        }
+
+        return $this->normalizeInputValue($request->input($field));
+    }
+
     private function isBlankString(mixed $value): bool
     {
         return is_string($value) && trim($value) === '';
@@ -502,25 +528,25 @@ class TripController extends Controller
                     $publishedTripData['flight_number'] = $flightNumber;
                 }
                 if ($hasPublishedTripLegs) {
-                    $publishedTripData['legs'] = $this->valueOrFallback($request->input('legs'), $legacyTripDetails['legs'] ?? null);
+                    $publishedTripData['legs'] = $this->getRequestValue($request, 'legs', $legacyTripDetails['legs'] ?? null);
                 }
                 if ($hasPublishedTripFlyType) {
-                    $publishedTripData['fly_type'] = $this->valueOrFallback($request->input('fly_type'), $legacyTripDetails['fly_type'] ?? null);
+                    $publishedTripData['fly_type'] = $this->getRequestValue($request, 'fly_type', $legacyTripDetails['fly_type'] ?? null);
                 }
                 if ($hasPublishedTripReportTime) {
-                    $publishedTripData['report_time'] = $this->valueOrFallback($request->input('report_time'), $legacyTripDetails['report_time'] ?? null);
+                    $publishedTripData['report_time'] = $this->getRequestValue($request, 'report_time', $legacyTripDetails['report_time'] ?? null);
                 }
                 if ($hasPublishedTripOfferLo) {
-                    $publishedTripData['offer_lo'] = $this->serializeOfferLo($this->valueOrFallback($request->input('offer_lo'), $legacyTripDetails['offer_lo'] ?? null));
+                    $publishedTripData['offer_lo'] = $this->serializeOfferLo($this->getRequestValue($request, 'offer_lo', $legacyTripDetails['offer_lo'] ?? null));
                 }
                 if ($hasPublishedTripAskLo) {
-                    $publishedTripData['ask_lo'] = $this->serializeAskLo($this->valueOrFallback($request->input('ask_lo'), $legacyTripDetails['ask_lo'] ?? null));
+                    $publishedTripData['ask_lo'] = $this->serializeAskLo($this->getRequestValue($request, 'ask_lo', $legacyTripDetails['ask_lo'] ?? null));
                 }
                 if ($hasPublishedTripDetails) {
-                    $publishedTripData['details'] = $this->valueOrFallback($request->input('details'), $legacyTripDetails['details'] ?? null);
+                    $publishedTripData['details'] = $this->getRequestValue($request, 'details', $legacyTripDetails['details'] ?? null);
                 }
                 if ($hasPublishedTripNotes) {
-                    $publishedTripData['notes'] = $request->notes;
+                    $publishedTripData['notes'] = $this->getRequestValue($request, 'notes', $request->notes);
                 }
 
                 if ($hasPublishedTripImage) {
@@ -583,6 +609,251 @@ class TripController extends Controller
                 'notes' => $publishedTrip->notes,
             ],
         ], 201);
+    }
+
+    public function updatePublishedTrip(PublishTripRequest $request, PublishedTrip $publishedTrip)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        if ($publishedTrip->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to update this published trip.',
+            ], 403);
+        }
+
+        if (!$publishedTrip->isAvailable()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only active or available published trips can be updated.',
+            ], 422);
+        }
+
+        try {
+            $departureDate = \Carbon\Carbon::parse($request->date);
+        } catch (Throwable $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid departure date format. Use YYYY-MM-DD.',
+            ], 422);
+        }
+
+        $flightNumber = $this->isBlankString($request->input('flight_number')) ? null : trim($request->input('flight_number'));
+        $arrivalDateInput = $request->input('arrival_date');
+        if ($this->isBlankString($arrivalDateInput)) {
+            $arrivalTimeAsDate = $request->input('arrival_time');
+            if (is_string($arrivalTimeAsDate) && preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($arrivalTimeAsDate)) === 1) {
+                $arrivalDateInput = trim($arrivalTimeAsDate);
+            }
+        }
+
+        try {
+            $arrivalDate = $this->isBlankString($arrivalDateInput) ? null : \Carbon\Carbon::parse($arrivalDateInput);
+        } catch (Throwable $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid arrival date format. Use YYYY-MM-DD.',
+            ], 422);
+        }
+
+        $departureTime = $this->normalizeFlightTime($request->input('departure_time'), '08:00:00');
+        $arrivalTime = $this->normalizeFlightTime($request->input('arrival_time'), '10:30:00');
+        $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($publishedTrip->notes);
+        $hasFlightArrivalDate = $this->hasColumn('flights', 'arrival_date');
+
+        $hasPublishedTripFlightId = $this->hasColumn('published_trips', 'flight_id');
+        $hasPublishedTripUserTripId = $this->hasColumn('published_trips', 'user_trip_id');
+        $hasPublishedTripFlightNumber = $this->hasColumn('published_trips', 'flight_number');
+        $hasPublishedTripLegs = $this->hasColumn('published_trips', 'legs');
+        $hasPublishedTripFlyType = $this->hasColumn('published_trips', 'fly_type');
+        $hasPublishedTripReportTime = $this->hasColumn('published_trips', 'report_time');
+        $hasPublishedTripOfferLo = $this->hasColumn('published_trips', 'offer_lo');
+        $hasPublishedTripAskLo = $this->hasColumn('published_trips', 'ask_lo');
+        $hasPublishedTripDetails = $this->hasColumn('published_trips', 'details');
+        $hasPublishedTripNotes = $this->hasColumn('published_trips', 'notes');
+        $hasPublishedTripImage = $this->hasColumn('published_trips', 'image_path');
+
+        try {
+            [$flight, $userTrip] = DB::transaction(function () use ($request, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $legacyTripDetails, $hasFlightArrivalDate, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes, $hasPublishedTripImage, $flightNumber, $publishedTrip) {
+                $flightUpdateData = [
+                    'departure_airport' => $request->departure,
+                    'arrival_airport' => $request->arrival,
+                    'departure_date' => $departureDate->toDateString(),
+                    'departure_time' => $departureTime,
+                    'airline_id' => $user->airline_id,
+                    'plane_type_id' => $user->plane_type_id,
+                    'status' => 'scheduled',
+                ];
+
+                if ($hasFlightArrivalDate) {
+                    $flightUpdateData['arrival_date'] = $arrivalDate?->toDateString();
+                }
+
+                if ($flightNumber !== null) {
+                    $flight = Flight::updateOrCreate(
+                        [
+                            'flight_number' => $flightNumber,
+                        ],
+                        $flightUpdateData
+                    );
+                } else {
+                    $flight = Flight::create([
+                        'flight_number' => 'NOFL-' . strtoupper(Str::random(10)),
+                    ] + $flightUpdateData);
+                }
+
+                $userTrip = UserTrip::firstOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'flight_id' => $flight->id,
+                    ],
+                    [
+                        'status' => 'assigned',
+                    ]
+                );
+
+                $publishedTripData = [
+                    'status' => $publishedTrip->status,
+                    'published_at' => $publishedTrip->published_at ?? now(),
+                    'expires_at' => $request->expires_at ?? $publishedTrip->expires_at ?? now()->addDays(7),
+                ];
+
+                if ($hasPublishedTripFlightId) {
+                    $publishedTripData['flight_id'] = $flight->id;
+                }
+                if ($hasPublishedTripUserTripId) {
+                    $publishedTripData['user_trip_id'] = $userTrip->id;
+                }
+                if ($hasPublishedTripFlightNumber && $flightNumber !== null) {
+                    $publishedTripData['flight_number'] = $flightNumber;
+                }
+                if ($hasPublishedTripLegs) {
+                    $publishedTripData['legs'] = $this->getRequestValue($request, 'legs', $publishedTrip->legs ?? $legacyTripDetails['legs'] ?? null);
+                }
+                if ($hasPublishedTripFlyType) {
+                    $publishedTripData['fly_type'] = $this->getRequestValue($request, 'fly_type', $publishedTrip->fly_type ?? $legacyTripDetails['fly_type'] ?? null);
+                }
+                if ($hasPublishedTripReportTime) {
+                    $publishedTripData['report_time'] = $this->getRequestValue($request, 'report_time', $publishedTrip->report_time ?? $legacyTripDetails['report_time'] ?? null);
+                }
+                if ($hasPublishedTripOfferLo) {
+                    $publishedTripData['offer_lo'] = $this->serializeOfferLo($this->getRequestValue($request, 'offer_lo', $publishedTrip->offer_lo ?? $legacyTripDetails['offer_lo'] ?? null));
+                }
+                if ($hasPublishedTripAskLo) {
+                    $publishedTripData['ask_lo'] = $this->serializeAskLo($this->getRequestValue($request, 'ask_lo', $publishedTrip->ask_lo ?? $legacyTripDetails['ask_lo'] ?? null));
+                }
+                if ($hasPublishedTripDetails) {
+                    $publishedTripData['details'] = $this->getRequestValue($request, 'details', $publishedTrip->details ?? $legacyTripDetails['details'] ?? null);
+                }
+                if ($hasPublishedTripNotes) {
+                    $publishedTripData['notes'] = $this->getRequestValue($request, 'notes', $publishedTrip->notes);
+                }
+
+                if ($hasPublishedTripImage) {
+                    $imageFile = $request->file('image') ?? $request->file('image_path');
+                    if ($imageFile) {
+                        $publishedTripData['image_path'] = $imageFile->store('trip-images', 'public');
+                    }
+                }
+
+                $publishedTrip->update($publishedTripData);
+
+                return [$flight, $userTrip];
+            });
+        } catch (Throwable $exception) {
+            Log::error('Failed to update published trip', [
+                'user_id' => $user->id,
+                'published_trip_id' => $publishedTrip->id,
+                'flight_number' => $request->flight_number,
+                'error' => $exception->getMessage(),
+                'exception' => $exception,
+            ]);
+
+            $response = [
+                'success' => false,
+                'message' => __('messages.server_error'),
+            ];
+
+            if (config('app.debug')) {
+                $response['error'] = $exception->getMessage();
+            }
+
+            return response()->json($response, 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Published trip updated successfully.',
+            'data' => [
+                'id' => $publishedTrip->id,
+                'flight' => [
+                    'id' => $flight->id,
+                    'number' => $publishedTrip->flight_number ?? null,
+                    'departure' => $flight->departure_airport,
+                    'arrival' => $flight->arrival_airport,
+                    'departure_date' => $flight->departure_date->format('Y-m-d'),
+                    'arrival_date' => $flight->arrival_date ? $flight->arrival_date->format('Y-m-d') : null,
+                    'departure_time' => $flight->departure_time ? $flight->departure_time->format('H:i:s') : null,
+                    'arrival_time' => $flight->arrival_time ? $flight->arrival_time->format('H:i:s') : null,
+                ],
+                'position' => $userTrip->role,
+                'status' => $publishedTrip->status,
+                'expires_at' => $publishedTrip->expires_at,
+                'flight_number' => $publishedTrip->flight_number,
+                'legs' => $publishedTrip->legs,
+                'fly_type' => $publishedTrip->fly_type,
+                'report_time' => $publishedTrip->report_time,
+                'offer_lo' => $this->parseOfferLo($publishedTrip->offer_lo),
+                'ask_lo' => $this->parseAskLo($publishedTrip->ask_lo),
+                'details' => $publishedTrip->details,
+                'image_url' => $publishedTrip->image_path ? Storage::url($publishedTrip->image_path) : null,
+                'notes' => $publishedTrip->notes,
+            ],
+        ]);
+    }
+
+    public function destroyPublishedTrip(Request $request, PublishedTrip $publishedTrip)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        if ($publishedTrip->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to delete this published trip.',
+            ], 403);
+        }
+
+        if (!$publishedTrip->isAvailable()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only active or available published trips can be canceled.',
+            ], 422);
+        }
+
+        $publishedTrip->update(['status' => 'cancelled']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Published trip canceled successfully.',
+            'data' => [
+                'id' => $publishedTrip->id,
+                'status' => $publishedTrip->status,
+            ],
+        ]);
     }
 
     public function assignTripPosition(Request $request)

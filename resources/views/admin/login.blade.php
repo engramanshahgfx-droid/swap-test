@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 
-@section('title', 'Admin Login - flightSwap ')
+@section('title', 'Admin Login - CrewSwap')
 
 @section('styles')
     <style>
@@ -150,7 +150,7 @@
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <h1>flightSwap  Admin</h1>
+                <h1>CrewSwap Admin</h1>
                 <p>Sign in to your dashboard</p>
             </div>
 
@@ -204,9 +204,10 @@
 
             <!-- <div class="login-footer">
                 <p style="margin: 0; color: #94a3b8;">Demo Credentials:</p>
-                <p style="margin: 4px 0 0;"><strong>admin@flightswap.com</strong></p>
+                <p style="margin: 4px 0 0;"><strong>admin@crewswap.com</strong></p>
                 <p style="margin: 4px 0;"><strong>password</strong></p>
             </div> -->
         </div>
     </div>
 @endsection
+

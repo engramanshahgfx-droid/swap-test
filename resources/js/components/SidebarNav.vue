@@ -2,7 +2,7 @@
   <aside class="sidebar" :class="{ collapsed }">
     <div class="brand">
       <div class="brand-dot"></div>
-      <div v-if="!collapsed" class="brand-text">flightSwap  Administration Portal</div>
+      <div v-if="!collapsed" class="brand-text">CrewSwap Administration Portal</div>
     </div>
 
     <nav class="menu">
@@ -151,3 +151,4 @@ defineEmits(['toggle']);
   }
 }
 </style>
+

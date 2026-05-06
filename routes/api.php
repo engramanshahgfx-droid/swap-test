@@ -56,7 +56,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/browse-trips', [TripController::class, 'browseTrips']);
     Route::post('/assign-trip-position', [TripController::class, 'assignTripPosition']);
     Route::post('/publish-trip', [TripController::class, 'publishTrip']);
+    Route::put('/publish-trip/{publishedTrip}', [TripController::class, 'updatePublishedTrip']);
+    Route::delete('/publish-trip/{publishedTrip}', [TripController::class, 'destroyPublishedTrip']);
     Route::post('/request-swap', [SwapController::class, 'requestSwap']);
+    Route::put('/swap-request/{swapRequest}', [SwapController::class, 'updateSwapRequest']);
     Route::post('/confirm-swap/{swapRequest}', [SwapController::class, 'confirmSwap']);
     Route::post('/reject-swap/{swapRequest}', [SwapController::class, 'rejectSwap']);
     Route::post('/cancel-swap/{swapRequest}', [SwapController::class, 'cancelSwap']);

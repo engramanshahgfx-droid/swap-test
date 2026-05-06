@@ -17,7 +17,7 @@ class RecreateAdmin extends Command
     public function handle()
     {
         // Delete existing admin
-        User::where('email', 'admin@flightSwap .com')->delete();
+        User::where('email', 'admin@crewswap.com')->delete();
 
         // Get related models
         $airline = Airline::first();
@@ -29,7 +29,7 @@ class RecreateAdmin extends Command
             'employee_id' => 'ADMIN001',
             'full_name' => 'System Admin',
             'phone' => '+251911000001',
-            'email' => 'admin@flightSwap .com',
+            'email' => 'admin@crewswap.com',
             'country_base' => 'Ethiopia',
             'airline_id' => $airline->id,
             'plane_type_id' => $planeType->id,
@@ -44,8 +44,9 @@ class RecreateAdmin extends Command
 
         $password = $this->argument('password');
         $this->info("✓ Admin user recreated");
-        $this->info("  Email: admin@flightSwap .com");
+        $this->info("  Email: admin@crewswap.com");
         $this->info("  Password: {$password}");
         $this->info("  Role: super-admin");
     }
 }
+

@@ -11,7 +11,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
           </svg>
-          <span class="text-2xl font-bold text-white">flightSwap </span>
+          <span class="text-2xl font-bold text-white">CrewSwap</span>
         </div>
       </div>
     </nav>
@@ -26,7 +26,7 @@
 
         <!-- Footer Links -->
         <div class="mt-6 text-center text-white text-sm">
-          <p>&copy; 2026 flightSwap . All rights reserved.</p>
+          <p>&copy; 2026 CrewSwap. All rights reserved.</p>
           <div class="mt-2 space-x-4">
             <a href="#" class="hover:underline">Terms of Service</a>
             <span>•</span>
@@ -59,3 +59,4 @@
   background-position: 0 0, 0 0, 40px 70px, 40px 70px;
 }
 </style>
+

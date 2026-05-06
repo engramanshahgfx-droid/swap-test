@@ -16,10 +16,10 @@ class DebugApi extends Command
         $this->info('=== API Debug ===');
 
         // Check user exists
-        $user = User::where('email', 'admin@flightSwap .com')->first();
+        $user = User::where('email', 'admin@crewswap.com')->first();
 
         if (!$user) {
-            $this->error('User admin@flightSwap .com not found!');
+            $this->error('User admin@crewswap.com not found!');
             return;
         }
 
@@ -52,3 +52,4 @@ class DebugApi extends Command
         $this->info("\n✓ User is ready for API testing");
     }
 }
+

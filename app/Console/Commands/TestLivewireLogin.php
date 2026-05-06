@@ -37,7 +37,7 @@ class TestLivewireLogin extends Command
 
             // The form component name and action
             $form_state = [
-                'email' => 'admin@flightSwap .com',
+                'email' => 'admin@crewswap.com',
                 'password' => 'password',
                 'remember' => false,
             ];
@@ -49,7 +49,7 @@ class TestLivewireLogin extends Command
                 'updates' => [
                     [
                         'name' => 'data.email',
-                        'value' => 'admin@flightSwap .com',
+                        'value' => 'admin@crewswap.com',
                     ],
                     [
                         'name' => 'data.password',
@@ -123,3 +123,4 @@ class TestLivewireLogin extends Command
         }
     }
 }
+

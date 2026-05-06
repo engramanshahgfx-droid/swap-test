@@ -16,7 +16,7 @@ $superAdminRole = Role::firstOrCreate(
 );
 
 // Check if admin already exists
-$admin = User::where('email', 'admin@flightswap.com')->first();
+$admin = User::where('email', 'admin@crewswap.com')->first();
 
 if ($admin) {
     echo "Admin user already exists.\n";
@@ -28,7 +28,7 @@ if ($admin) {
     $admin = User::create([
         'employee_id' => 'ADMIN001',
         'full_name' => 'Admin User',
-        'email' => 'admin@flightswap.com',
+        'email' => 'admin@crewswap.com',
         'password' => bcrypt('password'),
         'phone' => '+1234567890',
         'country_base' => 'USA',
@@ -38,6 +38,6 @@ if ($admin) {
 
     $admin->assignRole('super-admin');
     echo "✓ Admin user created successfully!\n";
-    echo "Email: admin@flightswap.com\n";
+    echo "Email: admin@crewswap.com\n";
     echo "Password: password\n";
 }

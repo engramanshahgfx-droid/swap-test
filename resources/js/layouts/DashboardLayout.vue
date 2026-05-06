@@ -22,7 +22,7 @@
                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
               </div>
-              <span class="text-xl font-bold text-gray-900 hidden sm:block">flightSwap </span>
+              <span class="text-xl font-bold text-gray-900 hidden sm:block">CrewSwap</span>
             </router-link>
           </div>
 
@@ -408,3 +408,4 @@ onMounted(() => {
   background: rgb(156, 166, 176);
 }
 </style>
+
