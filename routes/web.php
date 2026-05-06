@@ -78,6 +78,7 @@ Route::middleware('auth')->group(function () {
     // User activation management
     Route::get('/activation', [ActivationController::class, 'index'])->name('activation');
     Route::put('/activation/{user}/status', [ActivationController::class, 'updateStatus'])->name('activation.status');
+    Route::delete('/activation/{user}', [ActivationController::class, 'destroy'])->name('activation.destroy');
 
     // Support / Chat
     Route::get('/support', [SupportController::class, 'index'])->name('support');

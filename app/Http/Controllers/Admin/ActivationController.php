@@ -99,4 +99,11 @@ class ActivationController extends Controller
 
         return redirect()->route('activation')->with('success', 'User status updated.');
     }
+
+    public function destroy(Request $request, User $user)
+    {
+        $user->delete();
+
+        return redirect()->route('activation', $request->only('status'))->with('success', 'User deleted.');
+    }
 }

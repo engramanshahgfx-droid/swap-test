@@ -66,6 +66,14 @@
                                 <div class="tbl-actions">
                                     <a class="tbl-btn tbl-btn-view" href="{{ route('activation', array_filter(['status' => request('status'), 'user_id' => $user->id])) }}">Open</a>
                                     <button type="button" class="tbl-btn tbl-btn-edit" onclick="setUserStatus({{ $user->id }}, '{{ $user->status ?? 'inactive' }}')">Status</button>
+                                    <form method="POST" action="{{ route('activation.destroy', $user) }}" onsubmit="return confirm('{{ __('admin.activation.delete_confirm') }}')">
+                                        @csrf
+                                        @method('DELETE')
+                                        @if(request('status'))
+                                            <input type="hidden" name="status" value="{{ request('status') }}" />
+                                        @endif
+                                        <button type="submit" class="tbl-btn tbl-btn-delete">{{ __('admin.delete') }}</button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

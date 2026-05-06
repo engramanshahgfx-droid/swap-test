@@ -378,7 +378,7 @@ body.sidebar-collapsed .sub-item span { display: none; }
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: var(--shadow);
 }
 

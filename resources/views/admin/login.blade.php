@@ -175,7 +175,7 @@
                         id="email"
                         name="email"
                         value="{{ old('email') }}"
-                        placeholder="admin@example.com"
+                        placeholder="admin@crewswap.com"
                         required
                         autofocus
                     />
@@ -202,11 +202,11 @@
                 <button type="submit" class="btn-login">Sign In</button>
             </form>
 
-            <div class="login-footer">
+            <!-- <div class="login-footer">
                 <p style="margin: 0; color: #94a3b8;">Demo Credentials:</p>
-                <p style="margin: 4px 0 0;"><strong>admin@flightSwap .com</strong></p>
+                <p style="margin: 4px 0 0;"><strong>admin@flightswap.com</strong></p>
                 <p style="margin: 4px 0;"><strong>password</strong></p>
-            </div>
+            </div> -->
         </div>
     </div>
 @endsection

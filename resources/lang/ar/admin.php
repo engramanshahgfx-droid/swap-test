@@ -232,6 +232,7 @@ return [
         'save_status' => 'حفظ حالة الحساب',
         'no_results' => 'لا يوجد مستخدمون',
         'modal_title' => 'تحديث حالة المستخدم',
+        'delete_confirm' => 'حذف هذا المستخدم؟',
     ],
 
     'support' => [

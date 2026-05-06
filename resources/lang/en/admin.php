@@ -232,6 +232,7 @@ return [
         'save_status' => 'Save account status',
         'no_results' => 'No users found',
         'modal_title' => 'Update User Status',
+        'delete_confirm' => 'Delete this user?',
     ],
 
     'support' => [
