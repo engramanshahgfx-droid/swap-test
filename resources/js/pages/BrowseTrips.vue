@@ -9,7 +9,16 @@
     <div class="bg-white rounded-lg shadow p-4 mb-6">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <input v-model="filters.departure_airport" @input="search" placeholder="From (e.g., DXB)" class="border-gray-300 rounded-lg text-sm" />
-        <input v-model="filters.arrival_airport" @input="search" placeholder="To (e.g., JFK)" class="border-gray-300 rounded-lg text-sm" />
+        <select v-model="filters.arrival_airport" @change="search" class="border-gray-300 rounded-lg text-sm">
+          <option value="" disabled>Select destination</option>
+          <option value="JED">JED</option>
+          <option value="RUH">RUH</option>
+          <option value="RT">RT</option>
+          <option value="RR">RR</option>
+          <option value="OFF">OFF</option>
+          <option value="LO">LO</option>
+          <option value="">Anything</option>
+        </select>
         <input v-model="filters.date" @change="search" type="date" class="border-gray-300 rounded-lg text-sm" />
         <button @click="resetFilters" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border rounded-lg">Clear</button>
       </div>
@@ -100,7 +109,7 @@ const filters = ref({
 const getUserInitials = (user) => {
   if (!user?.full_name) return 'U';
   const parts = user.full_name.split(' ');
-  return parts.length >= 2 
+  return parts.length >= 2
     ? (parts[0][0] + parts[1][0]).toUpperCase()
     : user.full_name.substring(0, 2).toUpperCase();
 };
