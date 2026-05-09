@@ -47,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/device-token', [UserController::class, 'storeDeviceToken']);
     Route::get('/user', [UserController::class, 'show']);
     Route::put('/user', [UserController::class, 'update']);
+    Route::delete('/user', [UserController::class, 'destroy']);
 
     // Trips
     Route::get('/my-trips', [TripController::class, 'myTrips']);

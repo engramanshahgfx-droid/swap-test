@@ -235,4 +235,23 @@ class UserController extends Controller
             'user' => $this->enrichUserPayload($request->user()),
         ]);
     }
+
+    /**
+     * Delete the authenticated user's account.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy(Request $request)
+    {
+        $user = $request->user();
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account deleted successfully.',
+        ]);
+    }
 }
