@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Airport;
 use App\Models\User;
+use App\Models\PlaneType;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -192,6 +193,51 @@ class UserController extends Controller
     public function show(Request $request)
     {
         return response()->json($this->enrichUserPayload($request->user()));
+    }
+
+    /**
+     * Get the authenticated user's selected plane types (aircraft types).
+     */
+    public function planeTypes(Request $request)
+    {
+        $types = $request->user()->planeTypes()->get(['id', 'name', 'code']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $types,
+        ]);
+    }
+
+    /**
+     * Update (sync) the authenticated user's plane types.
+     */
+    public function updatePlaneTypes(Request $request)
+    {
+        $validated = $request->validate([
+            'plane_type_ids' => 'required|array',
+            'plane_type_ids.*' => 'integer|exists:plane_types,id',
+        ]);
+
+        $request->user()->planeTypes()->sync($validated['plane_type_ids']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Plane types updated successfully.',
+            'data' => $request->user()->planeTypes()->get(['id', 'name', 'code']),
+        ]);
+    }
+
+    /**
+     * Detach a plane type from the authenticated user.
+     */
+    public function removePlaneType(Request $request, PlaneType $planeType)
+    {
+        $request->user()->planeTypes()->detach($planeType->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Plane type removed.',
+        ]);
     }
 
     public function showById(User $user)

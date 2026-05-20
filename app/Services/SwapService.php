@@ -243,17 +243,33 @@ class SwapService
     protected function validateUserForFlight(User $user, Flight $flight)
     {
         // Check if user has correct qualifications
+        $userPlaneTypeIds = $user->planeTypes()->pluck('id')->toArray();
+
+        if (empty($userPlaneTypeIds) && $user->plane_type_id) {
+            $userPlaneTypeIds = [$user->plane_type_id];
+        }
+
         return $user->airline_id === $flight->airline_id &&
-               $user->plane_type_id === $flight->plane_type_id &&
+               in_array($flight->plane_type_id, $userPlaneTypeIds, true) &&
                $user->isActive();
     }
 
     public function getUserEligibleTrips(User $user)
     {
+        $userPlaneTypeIds = $user->planeTypes()->pluck('id')->toArray();
+        if (empty($userPlaneTypeIds) && $user->plane_type_id) {
+            $userPlaneTypeIds = [$user->plane_type_id];
+        }
+
         return PublishedTrip::whereIn('status', ['available', 'active'])
-            ->whereHas('flight', function ($query) use ($user) {
-                $query->where('airline_id', $user->airline_id)
-                      ->where('plane_type_id', $user->plane_type_id);
+            ->whereHas('flight', function ($query) use ($user, $userPlaneTypeIds) {
+                $query->where('airline_id', $user->airline_id);
+                if (!empty($userPlaneTypeIds)) {
+                    $query->whereIn('plane_type_id', $userPlaneTypeIds);
+                } else {
+                    // Fallback to legacy single plane_type_id filter if set
+                    $query->where('plane_type_id', $user->plane_type_id);
+                }
             })
             ->where('user_id', '!=', $user->id)
             ->with(['user', 'flight'])

@@ -44,7 +44,7 @@ class User extends Authenticatable implements FilamentUser
 
         $result = !empty(array_intersect($userRoles, static::$adminRoles));
         $this->attributes['_can_access_panel_cached'] = $result;
-        
+
         return $result;
     }
 
@@ -102,6 +102,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsTo(PlaneType::class);
     }
 
+    public function planeTypes()
+    {
+        return $this->belongsToMany(PlaneType::class, 'plane_type_user');
+    }
+
     public function position()
     {
         return $this->belongsTo(Position::class);
@@ -157,7 +162,7 @@ class User extends Authenticatable implements FilamentUser
         $this->otp_code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $this->otp_expires_at = now()->addMinutes(10);
         $this->save();
-        
+
         return $this->otp_code;
     }
 

@@ -22,7 +22,7 @@ class PlaneType extends Model
 
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class, 'plane_type_user');
     }
 
     public function flights()

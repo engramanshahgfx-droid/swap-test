@@ -49,6 +49,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user', [UserController::class, 'update']);
     Route::delete('/user', [UserController::class, 'destroy']);
 
+    // User plane types (aircraft preferences)
+    Route::get('/user/plane-types', [UserController::class, 'planeTypes']);
+    Route::post('/user/plane-types', [UserController::class, 'updatePlaneTypes']);
+    Route::delete('/user/plane-types/{planeType}', [UserController::class, 'removePlaneType']);
+
     // Trips
     Route::get('/my-trips', [TripController::class, 'myTrips']);
     Route::put('/my-trips/{trip}', [TripController::class, 'updateMyTrip']);
