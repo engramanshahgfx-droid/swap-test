@@ -51,6 +51,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Trips
     Route::get('/my-trips', [TripController::class, 'myTrips']);
+    Route::put('/my-trips/{trip}', [TripController::class, 'updateMyTrip']);
+    Route::delete('/my-trips/{trip}', [TripController::class, 'destroyMyTrip']);
     Route::get('/trip-details/{id}', [TripController::class, 'tripDetails']);
 
     // Swap Marketplace

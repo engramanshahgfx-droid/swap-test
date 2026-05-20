@@ -293,6 +293,161 @@ class TripController extends Controller
         ]);
     }
 
+    public function updateMyTrip(Request $request, UserTrip $trip)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        if ($trip->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to update this trip.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'flight_number' => 'nullable|string|max:20',
+            'departure_date' => 'nullable|date',
+            'arrival_date' => 'nullable|date',
+            'departure_time' => 'nullable|string|max:50',
+            'arrival_time' => 'nullable|string|max:50',
+            'position' => 'nullable|string|in:Captain,First Officer,Purser,Flight Attendant',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            DB::transaction(function () use ($trip, $validated) {
+                $updateData = [];
+
+                if ($validated['notes'] ?? null) {
+                    $updateData['notes'] = $validated['notes'];
+                }
+
+                if ($validated['position'] ?? null) {
+                    $updateData['role'] = $validated['position'];
+                }
+
+                if (!empty($updateData)) {
+                    $trip->update($updateData);
+                }
+
+                // Update flight details if provided
+                if ($trip->flight_id) {
+                    $flightUpdateData = [];
+
+                    if ($validated['flight_number'] ?? null) {
+                        $flightUpdateData['flight_number'] = $validated['flight_number'];
+                    }
+
+                    if ($validated['departure_date'] ?? null) {
+                        $flightUpdateData['departure_date'] = $validated['departure_date'];
+                    }
+
+                    if ($validated['arrival_date'] ?? null) {
+                        $flightUpdateData['arrival_date'] = $validated['arrival_date'];
+                    }
+
+                    if ($validated['departure_time'] ?? null) {
+                        $flightUpdateData['departure_time'] = $this->normalizeFlightTime($validated['departure_time'], '08:00:00');
+                    }
+
+                    if ($validated['arrival_time'] ?? null) {
+                        $flightUpdateData['arrival_time'] = $this->normalizeFlightTime($validated['arrival_time'], '10:30:00');
+                    }
+
+                    if (!empty($flightUpdateData)) {
+                        $trip->flight->update($flightUpdateData);
+                    }
+                }
+            });
+
+            $trip->load(['flight' => function ($query) {
+                $query->with(['airline', 'planeType']);
+            }]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Trip updated successfully.',
+                'data' => [
+                    'id' => $trip->id,
+                    'flight_number' => $trip->flight?->flight_number,
+                    'departure_date' => $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null,
+                    'arrival_date' => $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : null,
+                    'departure_time' => $trip->flight?->departure_time,
+                    'arrival_time' => $trip->flight?->arrival_time,
+                    'position' => $trip->role,
+                    'notes' => $trip->notes,
+                ],
+            ]);
+        } catch (Throwable $exception) {
+            Log::error('Failed to update trip', [
+                'user_id' => $user->id,
+                'trip_id' => $trip->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update trip.',
+            ], 500);
+        }
+    }
+
+    public function destroyMyTrip(Request $request, UserTrip $trip)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        if ($trip->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to delete this trip.',
+            ], 403);
+        }
+
+        try {
+            $tripId = $trip->id;
+
+            DB::transaction(function () use ($trip) {
+                // Delete related published trips
+                PublishedTrip::where('user_trip_id', $trip->id)->delete();
+                // Delete the trip itself
+                $trip->delete();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Trip deleted successfully.',
+                'data' => [
+                    'id' => $tripId,
+                ],
+            ]);
+        } catch (Throwable $exception) {
+            Log::error('Failed to delete trip', [
+                'user_id' => $user->id,
+                'trip_id' => $trip->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete trip.',
+            ], 500);
+        }
+    }
+
     public function tripDetails($id)
     {
         $trip = UserTrip::with(['flight', 'user', 'flight.airline', 'flight.planeType', 'publishedTrips' => function ($query) {
