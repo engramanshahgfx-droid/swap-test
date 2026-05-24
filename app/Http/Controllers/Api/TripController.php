@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
@@ -312,7 +313,12 @@ class TripController extends Controller
         }
 
         $validated = $request->validate([
-            'flight_number' => 'nullable|string|max:20',
+            'flight_number' => [
+                'nullable',
+                'string',
+                'max:20',
+                Rule::unique('flights', 'flight_number')->ignore($trip->flight_id),
+            ],
             'departure_date' => 'nullable|date',
             'arrival_date' => 'nullable|date',
             'departure_time' => 'nullable|string|max:50',
@@ -339,6 +345,17 @@ class TripController extends Controller
 
                 // Update flight details if provided
                 if ($trip->flight_id) {
+                    $flight = $trip->flight;
+
+                    if (!$flight) {
+                        Log::warning('Trip update skipped flight update because related flight record is missing.', [
+                            'trip_id' => $trip->id,
+                            'flight_id' => $trip->flight_id,
+                            'user_id' => $trip->user_id,
+                        ]);
+                        return;
+                    }
+
                     $flightUpdateData = [];
 
                     if ($validated['flight_number'] ?? null) {
@@ -362,7 +379,7 @@ class TripController extends Controller
                     }
 
                     if (!empty($flightUpdateData)) {
-                        $trip->flight->update($flightUpdateData);
+                        $flight->update($flightUpdateData);
                     }
                 }
             });
@@ -392,10 +409,21 @@ class TripController extends Controller
                 'error' => $exception->getMessage(),
             ]);
 
+            $status = 500;
+            $message = 'Failed to update trip.';
+
+            if ($exception instanceof \Illuminate\Database\QueryException) {
+                $sqlState = $exception->errorInfo[0] ?? null;
+                if ($sqlState === '23000' || $sqlState === '23505') {
+                    $status = 422;
+                    $message = 'The flight number is already in use. Please choose another.';
+                }
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update trip.',
-            ], 500);
+                'message' => $message,
+            ], $status);
         }
     }
 

@@ -30,8 +30,18 @@ class PublishTripRequest extends FormRequest
             $time = $item['time'] ?? null;
             $type = $item['type'] ?? ($item['string'] ?? null);
 
-            if (!is_string($time) || !preg_match('/^([01]\\d|2[0-3]):[0-5]\\d$/', $time)) {
-                $fail('The ' . $attribute . '.' . $index . '.time must use HH:MM format.');
+            $timeIsValid = false;
+            if (is_string($time)) {
+                $trimmedTime = trim($time);
+                if (preg_match('/^([01]\\d|2[0-3]):[0-5]\\d$/', $trimmedTime) || $trimmedTime !== '' && ctype_digit($trimmedTime)) {
+                    $timeIsValid = true;
+                }
+            } elseif (is_int($time) || is_float($time)) {
+                $timeIsValid = true;
+            }
+
+            if (!$timeIsValid) {
+                $fail('The ' . $attribute . '.' . $index . '.time must be a number or use HH:MM format.');
                 return;
             }
 
