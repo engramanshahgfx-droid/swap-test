@@ -33,8 +33,8 @@ class PublishTripRequest extends FormRequest
             $timeIsValid = false;
             if (is_string($time)) {
                 $trimmedTime = trim($time);
-                // Accept HH:MM format (00:00-23:59) OR any positive number
-                if (preg_match('/^([01]\\d|2[0-3]):[0-5]\\d$/', $trimmedTime) || (is_numeric($trimmedTime) && (int)$trimmedTime >= 0)) {
+                // Accept H:MM or HH:MM with any non-negative hour count, or any non-negative number
+                if (preg_match('/^\d+:[0-5]\d$/', $trimmedTime) || preg_match('/^\d+(?:\.\d+)?$/', $trimmedTime)) {
                     $timeIsValid = true;
                 }
             } elseif (is_int($time) || is_float($time)) {
@@ -45,7 +45,7 @@ class PublishTripRequest extends FormRequest
             }
 
             if (!$timeIsValid) {
-                $fail('The ' . $attribute . '.' . $index . '.time must be a number or use HH:MM format.');
+                $fail('The ' . $attribute . '.' . $index . '.time must be a number or use H:MM format.');
                 return;
             }
 
