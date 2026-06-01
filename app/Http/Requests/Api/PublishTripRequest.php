@@ -33,11 +33,15 @@ class PublishTripRequest extends FormRequest
             $timeIsValid = false;
             if (is_string($time)) {
                 $trimmedTime = trim($time);
-                if (preg_match('/^([01]\\d|2[0-3]):[0-5]\\d$/', $trimmedTime) || $trimmedTime !== '' && ctype_digit($trimmedTime)) {
+                // Accept HH:MM format (00:00-23:59) OR any positive number
+                if (preg_match('/^([01]\\d|2[0-3]):[0-5]\\d$/', $trimmedTime) || (is_numeric($trimmedTime) && (int)$trimmedTime >= 0)) {
                     $timeIsValid = true;
                 }
             } elseif (is_int($time) || is_float($time)) {
-                $timeIsValid = true;
+                // Accept any non-negative number
+                if ($time >= 0) {
+                    $timeIsValid = true;
+                }
             }
 
             if (!$timeIsValid) {
