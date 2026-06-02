@@ -819,13 +819,18 @@ class TripController extends Controller
             ], 422);
         }
 
-        try {
-            $departureDate = \Carbon\Carbon::parse($request->date);
-        } catch (Throwable $exception) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid departure date format. Use YYYY-MM-DD.',
-            ], 422);
+        $existingFlight = $publishedTrip->flight;
+
+        $departureDate = $existingFlight?->departure_date;
+        if ($request->exists('date')) {
+            try {
+                $departureDate = \Carbon\Carbon::parse($request->date);
+            } catch (Throwable $exception) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid departure date format. Use YYYY-MM-DD.',
+                ], 422);
+            }
         }
 
         $flightNumber = $this->isBlankString($request->input('flight_number')) ? null : trim($request->input('flight_number'));
@@ -837,17 +842,24 @@ class TripController extends Controller
             }
         }
 
-        try {
-            $arrivalDate = $this->isBlankString($arrivalDateInput) ? null : \Carbon\Carbon::parse($arrivalDateInput);
-        } catch (Throwable $exception) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid arrival date format. Use YYYY-MM-DD.',
-            ], 422);
+        $arrivalDate = $existingFlight?->arrival_date;
+        if ($request->exists('arrival_date') || $request->exists('arrival_time') && is_string($arrivalDateInput) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $arrivalDateInput) === 1) {
+            try {
+                $arrivalDate = $this->isBlankString($arrivalDateInput) ? null : \Carbon\Carbon::parse($arrivalDateInput);
+            } catch (Throwable $exception) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid arrival date format. Use YYYY-MM-DD.',
+                ], 422);
+            }
         }
 
-        $departureTime = $this->normalizeFlightTime($request->input('departure_time'), '08:00:00');
-        $arrivalTime = $this->normalizeFlightTime($request->input('arrival_time'), '10:30:00');
+        $departureTime = $request->exists('departure_time')
+            ? $this->normalizeFlightTime($request->input('departure_time'), $existingFlight?->departure_time?->format('H:i:s') ?? '08:00:00')
+            : ($existingFlight?->departure_time?->format('H:i:s') ?? '08:00:00');
+        $arrivalTime = $request->exists('arrival_time')
+            ? $this->normalizeFlightTime($request->input('arrival_time'), $existingFlight?->arrival_time?->format('H:i:s') ?? '10:30:00')
+            : ($existingFlight?->arrival_time?->format('H:i:s') ?? '10:30:00');
         $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($publishedTrip->notes);
         $hasFlightArrivalDate = $this->hasColumn('flights', 'arrival_date');
 
@@ -866,9 +878,9 @@ class TripController extends Controller
         try {
             [$flight, $userTrip] = DB::transaction(function () use ($request, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $legacyTripDetails, $hasFlightArrivalDate, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes, $hasPublishedTripImage, $flightNumber, $publishedTrip) {
                 $flightUpdateData = [
-                    'departure_airport' => $request->departure,
-                    'arrival_airport' => $request->arrival,
-                    'departure_date' => $departureDate->toDateString(),
+                    'departure_airport' => $this->getRequestValue($request, 'departure', $existingFlight?->departure_airport),
+                    'arrival_airport' => $this->getRequestValue($request, 'arrival', $existingFlight?->arrival_airport),
+                    'departure_date' => $departureDate?->toDateString(),
                     'departure_time' => $departureTime,
                     'airline_id' => $user->airline_id,
                     'plane_type_id' => $user->plane_type_id,
@@ -886,6 +898,9 @@ class TripController extends Controller
                         ],
                         $flightUpdateData
                     );
+                } elseif ($existingFlight) {
+                    $existingFlight->update($flightUpdateData);
+                    $flight = $existingFlight;
                 } else {
                     $flight = Flight::create([
                         'flight_number' => 'NOFL-' . strtoupper(Str::random(10)),

@@ -56,6 +56,11 @@ class PublishTripRequest extends FormRequest
         }
     }
 
+    private function isUpdateRequest(): bool
+    {
+        return in_array($this->method(), ['PUT', 'PATCH'], true);
+    }
+
     public function authorize()
     {
         return true;
@@ -63,11 +68,13 @@ class PublishTripRequest extends FormRequest
 
     public function rules()
     {
+        $isUpdate = $this->isUpdateRequest();
+
         return [
             'flight_number' => 'nullable|string|max:20',
-            'departure' => 'required|string|min:2|max:3',
-            'arrival' => 'required|string|min:2|max:3',
-            'date' => 'required|date|after_or_equal:today',
+            'departure' => $isUpdate ? 'nullable|string|min:2|max:3' : 'required|string|min:2|max:3',
+            'arrival' => $isUpdate ? 'nullable|string|min:2|max:3' : 'required|string|min:2|max:3',
+            'date' => $isUpdate ? 'nullable|date|after_or_equal:today' : 'required|date|after_or_equal:today',
             'arrival_date' => 'nullable|date|after_or_equal:date',
             'position' => 'nullable|string|in:Captain,First Officer,Purser,Flight Attendant',
             'notes' => 'nullable|string|max:500',
