@@ -212,6 +212,20 @@ class TripController extends Controller
         return $this->normalizeInputValue($request->input($field));
     }
 
+    private function getUpdateRequestValue(Request $request, string $field, mixed $fallback = null): mixed
+    {
+        if (!$request->exists($field)) {
+            return $fallback;
+        }
+
+        $value = $request->input($field);
+        if ($value === null || $value === '' || (is_array($value) && empty($value))) {
+            return $fallback;
+        }
+
+        return $this->normalizeInputValue($value);
+    }
+
     private function isBlankString(mixed $value): bool
     {
         return is_string($value) && trim($value) === '';
@@ -876,10 +890,10 @@ class TripController extends Controller
         $hasPublishedTripImage = $this->hasColumn('published_trips', 'image_path');
 
         try {
-            [$flight, $userTrip] = DB::transaction(function () use ($request, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $legacyTripDetails, $hasFlightArrivalDate, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes, $hasPublishedTripImage, $flightNumber, $publishedTrip) {
+            [$flight, $userTrip] = DB::transaction(function () use ($request, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $legacyTripDetails, $hasFlightArrivalDate, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes, $hasPublishedTripImage, $flightNumber, $publishedTrip, $existingFlight) {
                 $flightUpdateData = [
-                    'departure_airport' => $this->getRequestValue($request, 'departure', $existingFlight?->departure_airport),
-                    'arrival_airport' => $this->getRequestValue($request, 'arrival', $existingFlight?->arrival_airport),
+                    'departure_airport' => $this->getUpdateRequestValue($request, 'departure', $existingFlight?->departure_airport),
+                    'arrival_airport' => $this->getUpdateRequestValue($request, 'arrival', $existingFlight?->arrival_airport),
                     'departure_date' => $departureDate?->toDateString(),
                     'departure_time' => $departureTime,
                     'airline_id' => $user->airline_id,
@@ -933,25 +947,25 @@ class TripController extends Controller
                     $publishedTripData['flight_number'] = $flightNumber;
                 }
                 if ($hasPublishedTripLegs) {
-                    $publishedTripData['legs'] = $this->getRequestValue($request, 'legs', $publishedTrip->legs ?? $legacyTripDetails['legs'] ?? null);
+                    $publishedTripData['legs'] = $this->getUpdateRequestValue($request, 'legs', $publishedTrip->legs ?? $legacyTripDetails['legs'] ?? null);
                 }
                 if ($hasPublishedTripFlyType) {
-                    $publishedTripData['fly_type'] = $this->getRequestValue($request, 'fly_type', $publishedTrip->fly_type ?? $legacyTripDetails['fly_type'] ?? null);
+                    $publishedTripData['fly_type'] = $this->getUpdateRequestValue($request, 'fly_type', $publishedTrip->fly_type ?? $legacyTripDetails['fly_type'] ?? null);
                 }
                 if ($hasPublishedTripReportTime) {
-                    $publishedTripData['report_time'] = $this->getRequestValue($request, 'report_time', $publishedTrip->report_time ?? $legacyTripDetails['report_time'] ?? null);
+                    $publishedTripData['report_time'] = $this->getUpdateRequestValue($request, 'report_time', $publishedTrip->report_time ?? $legacyTripDetails['report_time'] ?? null);
                 }
                 if ($hasPublishedTripOfferLo) {
-                    $publishedTripData['offer_lo'] = $this->serializeOfferLo($this->getRequestValue($request, 'offer_lo', $publishedTrip->offer_lo ?? $legacyTripDetails['offer_lo'] ?? null));
+                    $publishedTripData['offer_lo'] = $this->serializeOfferLo($this->getUpdateRequestValue($request, 'offer_lo', $publishedTrip->offer_lo ?? $legacyTripDetails['offer_lo'] ?? null));
                 }
                 if ($hasPublishedTripAskLo) {
-                    $publishedTripData['ask_lo'] = $this->serializeAskLo($this->getRequestValue($request, 'ask_lo', $publishedTrip->ask_lo ?? $legacyTripDetails['ask_lo'] ?? null));
+                    $publishedTripData['ask_lo'] = $this->serializeAskLo($this->getUpdateRequestValue($request, 'ask_lo', $publishedTrip->ask_lo ?? $legacyTripDetails['ask_lo'] ?? null));
                 }
                 if ($hasPublishedTripDetails) {
-                    $publishedTripData['details'] = $this->getRequestValue($request, 'details', $publishedTrip->details ?? $legacyTripDetails['details'] ?? null);
+                    $publishedTripData['details'] = $this->getUpdateRequestValue($request, 'details', $publishedTrip->details ?? $legacyTripDetails['details'] ?? null);
                 }
                 if ($hasPublishedTripNotes) {
-                    $publishedTripData['notes'] = $this->getRequestValue($request, 'notes', $publishedTrip->notes);
+                    $publishedTripData['notes'] = $this->getUpdateRequestValue($request, 'notes', $publishedTrip->notes);
                 }
 
                 if ($hasPublishedTripImage) {
