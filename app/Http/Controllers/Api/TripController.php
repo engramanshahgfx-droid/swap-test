@@ -235,6 +235,29 @@ class TripController extends Controller
         return $value;
     }
 
+    private function buildFlightLookupCriteria(?string $flightNumber, ?string $departureDate, ?string $departureAirport, ?string $arrivalAirport): array
+    {
+        $criteria = [];
+
+        if ($flightNumber !== null) {
+            $criteria['flight_number'] = $flightNumber;
+        }
+
+        if ($departureDate !== null) {
+            $criteria['departure_date'] = $departureDate;
+        }
+
+        if ($departureAirport !== null) {
+            $criteria['departure_airport'] = $departureAirport;
+        }
+
+        if ($arrivalAirport !== null) {
+            $criteria['arrival_airport'] = $arrivalAirport;
+        }
+
+        return $criteria;
+    }
+
     public function __construct(SwapService $swapService)
     {
         $this->swapService = $swapService;
@@ -326,7 +349,27 @@ class TripController extends Controller
                 'nullable',
                 'string',
                 'max:20',
-                Rule::unique('flights', 'flight_number')->ignore($trip->flight_id),
+                Rule::unique('flights', 'flight_number')
+                    ->where(function ($query) use ($trip, $request) {
+                        $departureDate = $request->input('departure_date', $trip->flight?->departure_date?->format('Y-m-d'));
+                        $departureAirport = $request->input('departure', $trip->flight?->departure_airport);
+                        $arrivalAirport = $request->input('arrival', $trip->flight?->arrival_airport);
+
+                        if ($departureDate !== null) {
+                            $query->where('departure_date', $departureDate);
+                        }
+
+                        if ($departureAirport !== null) {
+                            $query->where('departure_airport', $departureAirport);
+                        }
+
+                        if ($arrivalAirport !== null) {
+                            $query->where('arrival_airport', $arrivalAirport);
+                        }
+
+                        return $query;
+                    })
+                    ->ignore($trip->flight_id),
             ],
             'departure_date' => 'nullable|date',
             'arrival_date' => 'nullable|date',
@@ -659,7 +702,6 @@ class TripController extends Controller
 
         try {
             [$flight, $userTrip, $publishedTrip] = DB::transaction(function () use ($request, $user, $departureDate, $arrivalDate, $departureTime, $arrivalTime, $legacyTripDetails, $hasFlightArrivalDate, $hasPublishedTripUserId, $hasPublishedTripFlightId, $hasPublishedTripUserTripId, $hasPublishedTripFlightNumber, $hasPublishedTripLegs, $hasPublishedTripFlyType, $hasPublishedTripReportTime, $hasPublishedTripOfferLo, $hasPublishedTripAskLo, $hasPublishedTripDetails, $hasPublishedTripNotes, $hasPublishedTripImage, $flightNumber) {
-                // flights.flight_number is unique, so update or create using that key.
                 $flightUpdateData = [
                     'departure_airport' => $request->departure,
                     'arrival_airport' => $request->arrival,
@@ -677,9 +719,12 @@ class TripController extends Controller
 
                 if ($flightNumber !== null) {
                     $flight = Flight::updateOrCreate(
-                        [
-                            'flight_number' => $flightNumber,
-                        ],
+                        $this->buildFlightLookupCriteria(
+                            $flightNumber,
+                            $departureDate->toDateString(),
+                            $request->departure,
+                            $request->arrival
+                        ),
                         $flightUpdateData
                     );
                 } else {
@@ -902,9 +947,12 @@ class TripController extends Controller
 
                 if ($flightNumber !== null) {
                     $flight = Flight::updateOrCreate(
-                        [
-                            'flight_number' => $flightNumber,
-                        ],
+                        $this->buildFlightLookupCriteria(
+                            $flightNumber,
+                            $departureDate?->toDateString(),
+                            $flightUpdateData['departure_airport'],
+                            $flightUpdateData['arrival_airport']
+                        ),
                         $flightUpdateData
                     );
                 } elseif ($existingFlight) {
