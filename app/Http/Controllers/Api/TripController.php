@@ -218,12 +218,7 @@ class TripController extends Controller
             return $fallback;
         }
 
-        $value = $request->input($field);
-        if ($value === null || $value === '' || (is_array($value) && empty($value))) {
-            return $fallback;
-        }
-
-        return $this->normalizeInputValue($value);
+        return $this->normalizeInputValue($request->input($field));
     }
 
     private function isBlankString(mixed $value): bool
