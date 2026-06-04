@@ -371,6 +371,8 @@ class TripController extends Controller
                     })
                     ->ignore($trip->flight_id),
             ],
+            'departure' => 'nullable|string|min:2|max:3',
+            'arrival' => 'nullable|string|min:2|max:3',
             'departure_date' => 'nullable|date',
             'arrival_date' => 'nullable|date',
             'departure_time' => 'nullable|string|max:50',
@@ -430,6 +432,14 @@ class TripController extends Controller
                         $flightUpdateData['arrival_time'] = $this->normalizeFlightTime($validated['arrival_time'], '10:30:00');
                     }
 
+                    if ($validated['departure'] ?? null) {
+                        $flightUpdateData['departure_airport'] = $validated['departure'];
+                    }
+
+                    if ($validated['arrival'] ?? null) {
+                        $flightUpdateData['arrival_airport'] = $validated['arrival'];
+                    }
+
                     if (!empty($flightUpdateData)) {
                         $flight->update($flightUpdateData);
                     }
@@ -446,6 +456,8 @@ class TripController extends Controller
                 'data' => [
                     'id' => $trip->id,
                     'flight_number' => $trip->flight?->flight_number,
+                    'departure' => $trip->flight?->departure_airport,
+                    'arrival' => $trip->flight?->arrival_airport,
                     'departure_date' => $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null,
                     'arrival_date' => $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : null,
                     'departure_time' => $trip->flight?->departure_time,
