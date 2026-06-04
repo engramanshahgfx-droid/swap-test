@@ -343,7 +343,7 @@ class TripController extends Controller
                         'duration' => $trip->flight?->formatted_duration,
                         'status' => $trip->flight?->status,
                     ],
-                    'flight_number' => $this->valueOrFallback($publishedTrip?->flight_number, $trip->flight?->flight_number),
+                    'flight_number' => $this->valueOrFallback($trip->flight?->flight_number, $publishedTrip?->flight_number),
                     'departure_date' => $departureDate,
                     'arrival_date' => $arrivalDate,
                     'legs' => $this->valueOrFallback($publishedTrip?->legs, $legacyTripDetails['legs'] ?? null),
@@ -397,27 +397,6 @@ class TripController extends Controller
                 'nullable',
                 'string',
                 'max:20',
-                Rule::unique('flights', 'flight_number')
-                    ->where(function ($query) use ($trip, $request) {
-                        $departureDate = $request->input('departure_date', $trip->flight?->departure_date?->format('Y-m-d'));
-                        $departureAirport = $request->input('departure', $trip->flight?->departure_airport);
-                        $arrivalAirport = $request->input('arrival', $trip->flight?->arrival_airport);
-
-                        if ($departureDate !== null) {
-                            $query->where('departure_date', $departureDate);
-                        }
-
-                        if ($departureAirport !== null) {
-                            $query->where('departure_airport', $departureAirport);
-                        }
-
-                        if ($arrivalAirport !== null) {
-                            $query->where('arrival_airport', $arrivalAirport);
-                        }
-
-                        return $query;
-                    })
-                    ->ignore($trip->flight_id),
             ],
             'departure' => 'nullable|string|min:2|max:3',
             'arrival' => 'nullable|string|min:2|max:3',
@@ -512,6 +491,9 @@ class TripController extends Controller
                     if ($publishedTrip) {
                         $publishedTripUpdate = [];
 
+                        if (array_key_exists('flight_number', $validated)) {
+                            $publishedTripUpdate['flight_number'] = $validated['flight_number'];
+                        }
                         if (array_key_exists('legs', $validated)) {
                             $publishedTripUpdate['legs'] = $validated['legs'];
                         }
@@ -680,7 +662,7 @@ class TripController extends Controller
                     'airline' => $trip->flight?->airline?->name,
                     'plane_type' => $trip->flight?->planeType?->name,
                 ],
-                'flight_number' => $this->valueOrFallback($publishedTrip?->flight_number, $trip->flight?->flight_number),
+                'flight_number' => $this->valueOrFallback($trip->flight?->flight_number, $publishedTrip?->flight_number),
                 'departure_date' => $departureDate,
                 'arrival_date' => $arrivalDate,
                 'legs' => $this->valueOrFallback($publishedTrip?->legs, $legacyTripDetails['legs'] ?? null),
@@ -1436,7 +1418,7 @@ class TripController extends Controller
                         'status' => $swap->publishedTrip->flight->status,
                     ] : null,
                     'trip_details' => $swap->publishedTrip ? [
-                        'flight_number' => $this->valueOrFallback($swap->publishedTrip->flight_number, $swap->publishedTrip->flight?->flight_number),
+                        'flight_number' => $this->valueOrFallback($swap->publishedTrip->flight?->flight_number, $swap->publishedTrip->flight_number),
                         'departure_date' => $departureDate,
                         'arrival_date' => $arrivalDate,
                         'legs' => $this->valueOrFallback($swap->publishedTrip->legs, $legacyTripDetails['legs'] ?? null),
