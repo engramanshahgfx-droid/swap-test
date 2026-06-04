@@ -108,6 +108,54 @@ class TripController extends Controller
         }
     }
 
+    private function validateLoField(string $attribute, mixed $value, \Closure $fail): void
+    {
+        if (is_string($value)) {
+            if (mb_strlen($value) > 5000) {
+                $fail('The ' . $attribute . ' field is too long.');
+            }
+
+            return;
+        }
+
+        if (!is_array($value)) {
+            $fail('The ' . $attribute . ' field must be a string or list.');
+            return;
+        }
+
+        foreach ($value as $index => $item) {
+            if (!is_array($item)) {
+                $fail('Each item in ' . $attribute . ' must be an object.');
+                return;
+            }
+
+            $time = $item['time'] ?? null;
+            $type = $item['type'] ?? ($item['string'] ?? null);
+
+            $timeIsValid = false;
+            if (is_string($time)) {
+                $trimmedTime = trim($time);
+                if (preg_match('/^\d+:[0-5]\d$/', $trimmedTime) || preg_match('/^\d+(?:\.\d+)?$/', $trimmedTime)) {
+                    $timeIsValid = true;
+                }
+            } elseif (is_int($time) || is_float($time)) {
+                if ($time >= 0) {
+                    $timeIsValid = true;
+                }
+            }
+
+            if (!$timeIsValid) {
+                $fail('The ' . $attribute . '.' . $index . '.time must be a number or use H:MM format.');
+                return;
+            }
+
+            if (!is_string($type) || trim($type) === '') {
+                $fail('The ' . $attribute . '.' . $index . '.type (or .string) is required.');
+                return;
+            }
+        }
+    }
+
     private function parseLegacyLoLine(?string $value): string|array|null
     {
         if ($value === null) {
@@ -378,6 +426,22 @@ class TripController extends Controller
             'departure_time' => 'nullable|string|max:50',
             'arrival_time' => 'nullable|string|max:50',
             'position' => 'nullable|string|in:Captain,First Officer,Purser,Flight Attendant',
+            'legs' => 'nullable|integer|min:1',
+            'fly_type' => 'nullable|string|max:50',
+            'report_time' => 'nullable|string|max:50',
+            'details' => 'nullable|string|max:1000',
+            'offer_lo' => [
+                'nullable',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $this->validateLoField($attribute, $value, $fail);
+                },
+            ],
+            'ask_lo' => [
+                'nullable',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $this->validateLoField($attribute, $value, $fail);
+                },
+            ],
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -443,12 +507,47 @@ class TripController extends Controller
                     if (!empty($flightUpdateData)) {
                         $flight->update($flightUpdateData);
                     }
+
+                    $publishedTrip = $trip->publishedTrips()->latest('id')->first();
+                    if ($publishedTrip) {
+                        $publishedTripUpdate = [];
+
+                        if (array_key_exists('legs', $validated)) {
+                            $publishedTripUpdate['legs'] = $validated['legs'];
+                        }
+                        if (array_key_exists('fly_type', $validated)) {
+                            $publishedTripUpdate['fly_type'] = $validated['fly_type'];
+                        }
+                        if (array_key_exists('report_time', $validated)) {
+                            $publishedTripUpdate['report_time'] = $validated['report_time'];
+                        }
+                        if (array_key_exists('details', $validated)) {
+                            $publishedTripUpdate['details'] = $validated['details'];
+                        }
+                        if (array_key_exists('offer_lo', $validated)) {
+                            $publishedTripUpdate['offer_lo'] = $this->serializeOfferLo($validated['offer_lo']);
+                        }
+                        if (array_key_exists('ask_lo', $validated)) {
+                            $publishedTripUpdate['ask_lo'] = $this->serializeAskLo($validated['ask_lo']);
+                        }
+
+                        if (!empty($publishedTripUpdate)) {
+                            $publishedTrip->update($publishedTripUpdate);
+                        }
+                    }
                 }
             });
 
-            $trip->load(['flight' => function ($query) {
-                $query->with(['airline', 'planeType']);
-            }]);
+            $trip->load([
+                'flight' => function ($query) {
+                    $query->with(['airline', 'planeType']);
+                },
+                'publishedTrips' => function ($query) {
+                    $query->latest('id');
+                },
+            ]);
+
+            $publishedTrip = $trip->publishedTrips->first();
 
             return response()->json([
                 'success' => true,
@@ -464,6 +563,12 @@ class TripController extends Controller
                     'arrival_time' => $trip->flight?->arrival_time,
                     'position' => $trip->role,
                     'notes' => $trip->notes,
+                    'legs' => $publishedTrip?->legs,
+                    'fly_type' => $publishedTrip?->fly_type,
+                    'report_time' => $publishedTrip?->report_time,
+                    'details' => $publishedTrip?->details,
+                    'offer_lo' => $this->parseOfferLo($publishedTrip?->offer_lo),
+                    'ask_lo' => $this->parseAskLo($publishedTrip?->ask_lo),
                 ],
             ]);
         } catch (Throwable $exception) {
