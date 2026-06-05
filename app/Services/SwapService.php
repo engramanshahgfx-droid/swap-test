@@ -262,6 +262,7 @@ class SwapService
         }
 
         return PublishedTrip::whereIn('status', ['available', 'active'])
+            ->whereNotNull('user_id')
             ->whereHas('flight', function ($query) use ($user, $userPlaneTypeIds) {
                 $query->where('airline_id', $user->airline_id);
                 if (!empty($userPlaneTypeIds)) {

@@ -695,9 +695,9 @@ class TripController extends Controller
             return [
                 'id' => $trip->id,
                 'user' => [
-                    'id' => $trip->user->id,
-                    'name' => $trip->user->full_name,
-                    'employee_id' => $trip->user->employee_id,
+                    'id' => $trip->user?->id,
+                    'name' => $trip->user?->full_name,
+                    'employee_id' => $trip->user?->employee_id,
                 ],
                 'flight' => [
                     'id' => $trip->flight?->id,
