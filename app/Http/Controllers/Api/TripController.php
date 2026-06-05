@@ -684,9 +684,10 @@ class TripController extends Controller
     {
         $perPage = max(1, min((int) $request->integer('per_page', 20), 100));
         $page = max(1, (int) $request->integer('page', 1));
-        $eligibleTrips = $this->swapService->getUserEligibleTrips($request->user());
+        try {
+            $eligibleTrips = $this->swapService->getUserEligibleTrips($request->user());
 
-        $items = $eligibleTrips->forPage($page, $perPage)->map(function ($trip) {
+            $items = $eligibleTrips->forPage($page, $perPage)->map(function ($trip) {
             $legacyTripDetails = $this->parseLegacyTripFieldsFromNotes($trip->notes);
             $departureDate = $trip->flight?->departure_date ? $trip->flight->departure_date->format('Y-m-d') : null;
             $arrivalDate = $trip->flight?->arrival_date ? $trip->flight->arrival_date->format('Y-m-d') : null;
@@ -726,6 +727,20 @@ class TripController extends Controller
                 'expires_at' => $trip->expires_at,
             ];
         })->values();
+        } catch (Throwable $e) {
+            Log::error('Failed to browse trips', [
+                'user_id' => $request->user()?->id,
+                'page' => $page,
+                'per_page' => $perPage,
+                'error' => $e->getMessage(),
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.server_error'),
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,
@@ -860,8 +875,8 @@ class TripController extends Controller
                 if ($hasPublishedTripUserTripId) {
                     $publishedTripData['user_trip_id'] = $userTrip->id;
                 }
-                if ($hasPublishedTripFlightNumber && $flightNumber !== null) {
-                    $publishedTripData['flight_number'] = $flightNumber;
+                if ($hasPublishedTripFlightNumber) {
+                    $publishedTripData['flight_number'] = $flight->flight_number;
                 }
                 if ($hasPublishedTripLegs) {
                     $publishedTripData['legs'] = $this->getRequestValue($request, 'legs', $legacyTripDetails['legs'] ?? null);
@@ -886,9 +901,13 @@ class TripController extends Controller
                 }
 
                 if ($hasPublishedTripImage) {
-                    $imageFile = $request->file('image') ?? $request->file('image_path');
+                    $imageFile = $request->file('image');
+                    $imagePathInput = $request->input('image_path');
                     if ($imageFile) {
                         $publishedTripData['image_path'] = $imageFile->store('trip-images', 'public');
+                    } elseif (is_string($imagePathInput) && trim($imagePathInput) !== '') {
+                        // Accept client-supplied image path (already uploaded elsewhere)
+                        $publishedTripData['image_path'] = $imagePathInput;
                     }
                 }
 
@@ -923,7 +942,7 @@ class TripController extends Controller
                 'id' => $publishedTrip->id,
                 'flight' => [
                     'id' => $flight->id,
-                    'number' => $publishedTrip->flight_number ?? null,
+                    'number' => $flight->flight_number,
                     'departure' => $flight->departure_airport,
                     'arrival' => $flight->arrival_airport,
                     'departure_date' => $flight->departure_date->format('Y-m-d'),
@@ -934,7 +953,7 @@ class TripController extends Controller
                 'position' => $userTrip->role,
                 'status' => 'available',
                 'expires_at' => $publishedTrip->expires_at,
-                'flight_number' => $publishedTrip->flight_number,
+                'flight_number' => $flight->flight_number,
                 'legs' => $publishedTrip->legs,
                 'fly_type' => $publishedTrip->fly_type,
                 'report_time' => $publishedTrip->report_time,
@@ -1085,8 +1104,8 @@ class TripController extends Controller
                 if ($hasPublishedTripUserTripId) {
                     $publishedTripData['user_trip_id'] = $userTrip->id;
                 }
-                if ($hasPublishedTripFlightNumber && $flightNumber !== null) {
-                    $publishedTripData['flight_number'] = $flightNumber;
+                if ($hasPublishedTripFlightNumber) {
+                    $publishedTripData['flight_number'] = $flight->flight_number;
                 }
                 if ($hasPublishedTripLegs) {
                     $publishedTripData['legs'] = $this->getUpdateRequestValue($request, 'legs', $publishedTrip->legs ?? $legacyTripDetails['legs'] ?? null);
@@ -1111,9 +1130,13 @@ class TripController extends Controller
                 }
 
                 if ($hasPublishedTripImage) {
-                    $imageFile = $request->file('image') ?? $request->file('image_path');
+                    $imageFile = $request->file('image');
+                    $imagePathInput = $request->input('image_path');
                     if ($imageFile) {
                         $publishedTripData['image_path'] = $imageFile->store('trip-images', 'public');
+                    } elseif (is_string($imagePathInput) && trim($imagePathInput) !== '') {
+                        // Accept client-supplied image path (already uploaded elsewhere)
+                        $publishedTripData['image_path'] = $imagePathInput;
                     }
                 }
 
@@ -1149,7 +1172,7 @@ class TripController extends Controller
                 'id' => $publishedTrip->id,
                 'flight' => [
                     'id' => $flight->id,
-                    'number' => $publishedTrip->flight_number ?? null,
+                    'number' => $flight->flight_number,
                     'departure' => $flight->departure_airport,
                     'arrival' => $flight->arrival_airport,
                     'departure_date' => $flight->departure_date->format('Y-m-d'),
@@ -1160,7 +1183,7 @@ class TripController extends Controller
                 'position' => $userTrip->role,
                 'status' => $publishedTrip->status,
                 'expires_at' => $publishedTrip->expires_at,
-                'flight_number' => $publishedTrip->flight_number,
+                'flight_number' => $flight->flight_number,
                 'legs' => $publishedTrip->legs,
                 'fly_type' => $publishedTrip->fly_type,
                 'report_time' => $publishedTrip->report_time,

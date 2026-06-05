@@ -98,7 +98,37 @@ class PublishTripRequest extends FormRequest
             ],
             'details' => 'nullable|string|max:1000',
             'image' => 'nullable|image|max:5120',
-            'image_path' => 'nullable|image|max:5120',
+            'image_path' => [
+                'nullable',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if ($this->hasFile($attribute)) {
+                        $file = $this->file($attribute);
+                        if (!$file->isValid()) {
+                            $fail('The ' . $attribute . ' file upload is invalid.');
+                            return;
+                        }
+
+                        if (!in_array($file->extension(), ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'], true)) {
+                            $fail('The ' . $attribute . ' must be a valid image file.');
+                            return;
+                        }
+
+                        if ($file->getSize() > 5120 * 1024) {
+                            $fail('The ' . $attribute . ' must not be greater than 5120 kilobytes.');
+                        }
+
+                        return;
+                    }
+
+                    if ($value === null || (is_string($value) && trim($value) === '')) {
+                        return;
+                    }
+
+                    if (!is_string($value)) {
+                        $fail('The ' . $attribute . ' must be a valid string path or image file.');
+                    }
+                },
+            ],
         ];
     }
 
@@ -124,12 +154,42 @@ class PublishTripRequest extends FormRequest
             $date = $this->input('departure_date', $this->input('departureDate', $this->input('departure date')));
         }
 
+        $imagePath = $this->input('image_path');
+        if ($imagePath === null || (is_string($imagePath) && trim($imagePath) === '')) {
+            $imagePath = $this->input('imagePath', $this->input('image path'));
+        }
+
+        $offerLo = $this->input('offer_lo');
+        if ($offerLo === null || (is_string($offerLo) && trim($offerLo) === '')) {
+            $offerLo = $this->input('offerLo', $this->input('offer lo'));
+        }
+        if (is_string($offerLo) && $offerLo !== '') {
+            $decoded = json_decode($offerLo, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $offerLo = $decoded;
+            }
+        }
+
+        $askLo = $this->input('ask_lo');
+        if ($askLo === null || (is_string($askLo) && trim($askLo) === '')) {
+            $askLo = $this->input('askLo', $this->input('ask lo'));
+        }
+        if (is_string($askLo) && $askLo !== '') {
+            $decoded = json_decode($askLo, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $askLo = $decoded;
+            }
+        }
+
         $this->merge([
             'arrival_date' => $arrivalDate,
             'date' => $date,
             'flight_number' => $flightNumber,
             'departure_time' => $this->input('departure_time', $this->input('departureTime', $this->input('departure time'))),
             'arrival_time' => $this->input('arrival_time', $this->input('arrivalTime', $this->input('arrival time'))),
+            'image_path' => $imagePath,
+            'offer_lo' => $offerLo,
+            'ask_lo' => $askLo,
         ]);
     }
 }
