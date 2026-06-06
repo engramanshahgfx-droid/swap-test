@@ -767,9 +767,10 @@ class TripController extends Controller
             ], 401);
         }
 
-        // Parse the date from request
+        // Parse the departure date from request. Prefer departure_date over date.
+        $departureDateInput = $request->input('departure_date', $request->input('date'));
         try {
-            $departureDate = \Carbon\Carbon::parse($request->date);
+            $departureDate = \Carbon\Carbon::parse($departureDateInput);
         } catch (Throwable $exception) {
             return response()->json([
                 'success' => false,
@@ -901,7 +902,7 @@ class TripController extends Controller
                 }
 
                 if ($hasPublishedTripImage) {
-                    $imageFile = $request->file('image');
+                    $imageFile = $request->file('image') ?: $request->file('image_path');
                     $imagePathInput = $request->input('image_path');
                     if ($imageFile) {
                         $publishedTripData['image_path'] = $imageFile->store('trip-images', 'public');
@@ -994,9 +995,10 @@ class TripController extends Controller
         $existingFlight = $publishedTrip->flight;
 
         $departureDate = $existingFlight?->departure_date;
-        if ($request->exists('date')) {
+        if ($request->exists('departure_date') || $request->exists('date')) {
+            $departureDateInput = $request->input('departure_date', $request->input('date'));
             try {
-                $departureDate = \Carbon\Carbon::parse($request->date);
+                $departureDate = \Carbon\Carbon::parse($departureDateInput);
             } catch (Throwable $exception) {
                 return response()->json([
                     'success' => false,
@@ -1130,7 +1132,7 @@ class TripController extends Controller
                 }
 
                 if ($hasPublishedTripImage) {
-                    $imageFile = $request->file('image');
+                    $imageFile = $request->file('image') ?: $request->file('image_path');
                     $imagePathInput = $request->input('image_path');
                     if ($imageFile) {
                         $publishedTripData['image_path'] = $imageFile->store('trip-images', 'public');

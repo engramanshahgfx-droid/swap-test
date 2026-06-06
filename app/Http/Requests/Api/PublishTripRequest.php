@@ -74,8 +74,9 @@ class PublishTripRequest extends FormRequest
             'flight_number' => 'nullable|string|max:20',
             'departure' => $isUpdate ? 'nullable|string|min:2|max:3' : 'required|string|min:2|max:3',
             'arrival' => $isUpdate ? 'nullable|string|min:2|max:3' : 'required|string|min:2|max:3',
-            'date' => $isUpdate ? 'nullable|date|after_or_equal:today' : 'required|date|after_or_equal:today',
-            'arrival_date' => 'nullable|date|after_or_equal:date',
+            'date' => 'nullable|date|after_or_equal:today',
+            'departure_date' => $isUpdate ? 'nullable|date|after_or_equal:today' : 'required_without:date|date|after_or_equal:today',
+            'arrival_date' => 'nullable|date|after_or_equal:departure_date',
             'position' => 'nullable|string|in:Captain,First Officer,Purser,Flight Attendant',
             'notes' => 'nullable|string|max:500',
             'expires_at' => 'nullable|date|after:now',
@@ -149,9 +150,18 @@ class PublishTripRequest extends FormRequest
             $flightNumber = $this->input('flightNumber', $this->input('flight number'));
         }
 
+        $departureDate = $this->input('departure_date');
+        if ($departureDate === null || (is_string($departureDate) && trim($departureDate) === '')) {
+            $departureDate = $this->input('departureDate', $this->input('departure date', $this->input('date')));
+        }
+
         $date = $this->input('date');
         if ($date === null || (is_string($date) && trim($date) === '')) {
-            $date = $this->input('departure_date', $this->input('departureDate', $this->input('departure date')));
+            $date = $departureDate;
+        }
+
+        if ($departureDate === null || (is_string($departureDate) && trim($departureDate) === '')) {
+            $departureDate = $date;
         }
 
         $imagePath = $this->input('image_path');
@@ -183,6 +193,7 @@ class PublishTripRequest extends FormRequest
 
         $this->merge([
             'arrival_date' => $arrivalDate,
+            'departure_date' => $departureDate,
             'date' => $date,
             'flight_number' => $flightNumber,
             'departure_time' => $this->input('departure_time', $this->input('departureTime', $this->input('departure time'))),
