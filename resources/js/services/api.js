@@ -109,7 +109,15 @@ export const apiService = {
     getMyTrips: (params) => api.get('/my-trips', { params }),
     getTripDetails: (id) => api.get(`/trip-details/${id}`),
     browseTrips: (params) => api.get('/browse-trips', { params }),
-    publishTrip: (data) => api.post('/publish-trip', data),
+    publishTrip: (data) => {
+      // If there's a file, use multipart/form-data
+      if (data instanceof FormData) {
+        return api.post('/publish-trip', data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
+      return api.post('/publish-trip', data);
+    },
     unpublishTrip: (id) => api.post(`/unpublish-trip/${id}`),
     getSwapHistory: (params) => api.get('/swap-history', { params }),
   },

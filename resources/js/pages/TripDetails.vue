@@ -108,20 +108,74 @@
 
         <!-- Actions -->
         <div class="flex flex-wrap gap-3">
-          <button 
+          <button
             v-if="!trip.is_published"
-            @click="publishForSwap"
+            @click="showPublishDialog = true"
             class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
           >
             Publish for Swap
           </button>
-          <button 
+          <button
             v-if="trip.is_published"
             @click="unpublishTrip"
             class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition"
           >
             Unpublish Trip
           </button>
+        </div>
+      </div>
+
+      <!-- Publish Dialog -->
+      <div
+        v-if="showPublishDialog"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        @click.self="showPublishDialog = false"
+      >
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Publish Trip for Swap</h3>
+
+          <!-- Image Upload -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Add Trip Image (Optional)</label>
+            <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition">
+              <input
+                ref="fileInput"
+                type="file"
+                accept="image/*"
+                @change="handleImageSelected"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div v-if="!selectedImage" class="text-gray-500">
+                <svg class="mx-auto h-12 w-12 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                  <path d="M28 8H12a4 4 0 00-4 4v20a4 4 0 004 4h24a4 4 0 004-4V20m-14-2l-3.172-3.172a4 4 0 00-5.656 0L2 28m26-20l4 4m6-6v20a4 4 0 01-4 4H12a4 4 0 01-4-4V12a4 4 0 014-4h16a4 4 0 014 4z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <p class="text-sm">Click to upload or drag and drop</p>
+              </div>
+              <div v-else class="text-green-600">
+                <svg class="mx-auto h-12 w-12 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <p class="text-sm font-medium">{{ selectedImage.name }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex gap-3">
+            <button
+              @click="showPublishDialog = false"
+              class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition"
+            >
+              Cancel
+            </button>
+            <button
+              @click="publishForSwap"
+              :disabled="publishing"
+              class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition disabled:opacity-50"
+            >
+              {{ publishing ? 'Publishing...' : 'Publish' }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -147,6 +201,10 @@ const router = useRouter();
 
 const trip = ref(null);
 const loading = ref(true);
+const publishing = ref(false);
+const showPublishDialog = ref(false);
+const selectedImage = ref(null);
+const fileInput = ref(null);
 
 const getStatusClass = (status) => {
   const classes = {
@@ -180,12 +238,34 @@ const fetchTripDetails = async () => {
   }
 };
 
+const handleImageSelected = (event) => {
+  const file = event.target.files?.[0];
+  if (file) {
+    selectedImage.value = file;
+  }
+};
+
 const publishForSwap = async () => {
   try {
-    await apiService.trips.publishTrip({ trip_id: trip.value.id });
+    publishing.value = true;
+
+    // Create FormData to support multipart/form-data for file upload
+    const formData = new FormData();
+    formData.append('trip_id', trip.value.id);
+
+    if (selectedImage.value) {
+      formData.append('image', selectedImage.value);
+    }
+
+    await apiService.trips.publishTrip(formData);
+    showPublishDialog.value = false;
+    selectedImage.value = null;
     await fetchTripDetails();
   } catch (error) {
     console.error('Failed to publish trip:', error);
+    alert(error.response?.data?.message || 'Failed to publish trip');
+  } finally {
+    publishing.value = false;
   }
 };
 
