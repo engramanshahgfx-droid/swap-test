@@ -76,7 +76,7 @@ class PublishTripRequest extends FormRequest
             'arrival' => $isUpdate ? 'nullable|string|min:2|max:3' : 'required|string|min:2|max:3',
             'date' => 'nullable|date|after_or_equal:today',
             'departure_date' => $isUpdate ? 'nullable|date|after_or_equal:today' : 'required_without:date|date|after_or_equal:today',
-            'arrival_date' => 'nullable|date|after_or_equal:departure_date',
+            'arrival_date' => 'nullable|date',
             'position' => 'nullable|string|in:Captain,First Officer,Purser,Flight Attendant',
             'notes' => 'nullable|string|max:500',
             'expires_at' => 'nullable|date|after:now',
