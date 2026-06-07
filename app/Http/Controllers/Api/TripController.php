@@ -857,11 +857,26 @@ class TripController extends Controller
                 }
 
                 // Create assignment for this user and flight (allow duplicates)
-                $userTrip = UserTrip::create([
-                    'user_id' => $user->id,
-                    'flight_id' => $flight->id,
-                    'status' => 'assigned',
-                ]);
+                try {
+                    $userTrip = UserTrip::create([
+                        'user_id' => $user->id,
+                        'flight_id' => $flight->id,
+                        'status' => 'assigned',
+                    ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    // If unique constraint violation, use firstOrCreate as fallback
+                    if (strpos($e->getMessage(), '1062') !== false || $e->getCode() == '23000') {
+                        $userTrip = UserTrip::firstOrCreate(
+                            [
+                                'user_id' => $user->id,
+                                'flight_id' => $flight->id,
+                            ],
+                            ['status' => 'assigned']
+                        );
+                    } else {
+                        throw $e;
+                    }
+                }
 
                 $publishedTripData = [
                     'status' => 'active',
@@ -1087,11 +1102,26 @@ class TripController extends Controller
                 }
 
                 // Create assignment for this user and flight (allow duplicates)
-                $userTrip = UserTrip::create([
-                    'user_id' => $user->id,
-                    'flight_id' => $flight->id,
-                    'status' => 'assigned',
-                ]);
+                try {
+                    $userTrip = UserTrip::create([
+                        'user_id' => $user->id,
+                        'flight_id' => $flight->id,
+                        'status' => 'assigned',
+                    ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    // If unique constraint violation, use firstOrCreate as fallback
+                    if (strpos($e->getMessage(), '1062') !== false || $e->getCode() == '23000') {
+                        $userTrip = UserTrip::firstOrCreate(
+                            [
+                                'user_id' => $user->id,
+                                'flight_id' => $flight->id,
+                            ],
+                            ['status' => 'assigned']
+                        );
+                    } else {
+                        throw $e;
+                    }
+                }
 
                 $publishedTripData = [
                     'status' => $publishedTrip->status,
@@ -1343,7 +1373,26 @@ class TripController extends Controller
                     $userTripData['notes'] = $validated['notes'] ?? null;
                 }
 
-                $userTrip = UserTrip::create($userTripData);
+                try {
+                    $userTrip = UserTrip::create($userTripData);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    // If unique constraint violation, use firstOrCreate as fallback
+                    if (strpos($e->getMessage(), '1062') !== false || $e->getCode() == '23000') {
+                        $userTrip = UserTrip::firstOrCreate(
+                            [
+                                'user_id' => $user->id,
+                                'flight_id' => $flight->id,
+                            ],
+                            ['status' => 'assigned']
+                        );
+                        // Update the other fields if needed
+                        if ($hasUserTripRole || $hasUserTripNotes) {
+                            $userTrip->update(array_filter($userTripData, fn($k) => $k !== 'user_id' && $k !== 'flight_id' && $k !== 'status', ARRAY_FILTER_USE_KEY));
+                        }
+                    } else {
+                        throw $e;
+                    }
+                }
 
                 return [$flight, $userTrip];
             });
