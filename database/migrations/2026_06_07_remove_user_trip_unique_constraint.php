@@ -13,8 +13,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Use raw SQL to drop the unique constraint since it's tied to foreign keys
-        DB::statement('ALTER TABLE `user_trips` DROP INDEX `user_trips_user_id_flight_id_unique`');
+        // Ensure single-column indexes exist so foreign keys remain satisfied,
+        // then drop the composite unique index that prevented duplicate trips.
+        Schema::table('user_trips', function (Blueprint $table) {
+            $table->index('user_id');
+            $table->index('flight_id');
+        });
+
+        // Drop the unique constraint (use explicit name to be safe)
+        Schema::table('user_trips', function (Blueprint $table) {
+            $table->dropUnique('user_trips_user_id_flight_id_unique');
+        });
     }
 
     /**
