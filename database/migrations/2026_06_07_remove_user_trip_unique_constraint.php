@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,9 +13,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('user_trips', function (Blueprint $table) {
-            $table->dropUnique(['user_id', 'flight_id']);
-        });
+        // Use raw SQL to drop the unique constraint since it's tied to foreign keys
+        DB::statement('ALTER TABLE `user_trips` DROP INDEX `user_trips_user_id_flight_id_unique`');
     }
 
     /**
