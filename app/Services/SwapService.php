@@ -243,7 +243,7 @@ class SwapService
     protected function validateUserForFlight(User $user, Flight $flight)
     {
         // Check if user has correct qualifications
-        $userPlaneTypeIds = $user->planeTypes()->pluck('id')->toArray();
+        $userPlaneTypeIds = $user->planeTypes()->pluck('plane_types.id')->toArray();
 
         if (empty($userPlaneTypeIds) && $user->plane_type_id) {
             $userPlaneTypeIds = [$user->plane_type_id];
@@ -256,7 +256,7 @@ class SwapService
 
     public function getUserEligibleTrips(User $user)
     {
-        $userPlaneTypeIds = $user->planeTypes()->pluck('id')->toArray();
+        $userPlaneTypeIds = $user->planeTypes()->pluck('plane_types.id')->toArray();
         if (empty($userPlaneTypeIds) && $user->plane_type_id) {
             $userPlaneTypeIds = [$user->plane_type_id];
         }
