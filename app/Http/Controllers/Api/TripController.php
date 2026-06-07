@@ -13,8 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -105,6 +106,53 @@ class TripController extends Controller
             return \Carbon\Carbon::parse($normalized)->format('H:i:s');
         } catch (\Throwable) {
             return $default;
+        }
+    }
+
+    private function resolvePublishedTripImagePath(Request $request): ?string
+    {
+        $imageFile = $request->file('image') ?: $request->file('image_path');
+        if ($imageFile) {
+            return $imageFile->store('trip-images', 'public');
+        }
+
+        $imagePathInput = $request->input('image_path');
+        if (!is_string($imagePathInput) || trim($imagePathInput) === '') {
+            return null;
+        }
+
+        if (preg_match('/^https?:\/\//i', trim($imagePathInput))) {
+            return $this->downloadRemoteImageToStorage(trim($imagePathInput)) ?? trim($imagePathInput);
+        }
+
+        return trim($imagePathInput);
+    }
+
+    private function downloadRemoteImageToStorage(string $url): ?string
+    {
+        try {
+            $response = Http::timeout(10)->get($url);
+            if (!$response->successful()) {
+                return null;
+            }
+
+            $contentType = $response->header('Content-Type', '');
+            if (!str_starts_with($contentType, 'image/')) {
+                return null;
+            }
+
+            $extension = explode('/', $contentType)[1] ?? 'jpg';
+            $extension = preg_replace('/[^a-z0-9]+/i', '', $extension) ?: 'jpg';
+            $path = 'trip-images/' . uniqid('img_', true) . '.' . $extension;
+
+            Storage::disk('public')->put($path, $response->body());
+            return $path;
+        } catch (Throwable $exception) {
+            Log::warning('Failed to download remote image for published trip', [
+                'url' => $url,
+                'error' => $exception->getMessage(),
+            ]);
+            return null;
         }
     }
 
@@ -919,13 +967,9 @@ class TripController extends Controller
                 }
 
                 if ($hasPublishedTripImage) {
-                    $imageFile = $request->file('image') ?: $request->file('image_path');
-                    $imagePathInput = $request->input('image_path');
-                    if ($imageFile) {
-                        $publishedTripData['image_path'] = $imageFile->store('trip-images', 'public');
-                    } elseif (is_string($imagePathInput) && trim($imagePathInput) !== '') {
-                        // Accept client-supplied image path (already uploaded elsewhere)
-                        $publishedTripData['image_path'] = $imagePathInput;
+                    $storedImagePath = $this->resolvePublishedTripImagePath($request);
+                    if ($storedImagePath !== null) {
+                        $publishedTripData['image_path'] = $storedImagePath;
                     }
                 }
 
@@ -1161,13 +1205,9 @@ class TripController extends Controller
                 }
 
                 if ($hasPublishedTripImage) {
-                    $imageFile = $request->file('image') ?: $request->file('image_path');
-                    $imagePathInput = $request->input('image_path');
-                    if ($imageFile) {
-                        $publishedTripData['image_path'] = $imageFile->store('trip-images', 'public');
-                    } elseif (is_string($imagePathInput) && trim($imagePathInput) !== '') {
-                        // Accept client-supplied image path (already uploaded elsewhere)
-                        $publishedTripData['image_path'] = $imagePathInput;
+                    $storedImagePath = $this->resolvePublishedTripImagePath($request);
+                    if ($storedImagePath !== null) {
+                        $publishedTripData['image_path'] = $storedImagePath;
                     }
                 }
 
@@ -1594,13 +1634,9 @@ class TripController extends Controller
 
             // Handle image upload (accepts both 'image' and 'image_path' field names)
             if ($hasPublishedTripImage) {
-                $imageFile = $request->file('image') ?: $request->file('image_path');
-                $imagePathInput = $request->input('image_path');
-                if ($imageFile) {
-                    $publishedTripData['image_path'] = $imageFile->store('trip-images', 'public');
-                } elseif (is_string($imagePathInput) && trim($imagePathInput) !== '') {
-                    // Accept client-supplied image path (already uploaded elsewhere)
-                    $publishedTripData['image_path'] = $imagePathInput;
+                $storedImagePath = $this->resolvePublishedTripImagePath($request);
+                if ($storedImagePath !== null) {
+                    $publishedTripData['image_path'] = $storedImagePath;
                 }
             }
 
