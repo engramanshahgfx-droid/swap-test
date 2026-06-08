@@ -113,7 +113,35 @@ class TripController extends Controller
     {
         $imageFile = $request->file('image') ?: $request->file('image_path');
         if ($imageFile) {
-            return $imageFile->store('trip-images', 'public');
+            try {
+                if (!$imageFile->isValid()) {
+                    Log::warning('Image upload file validation failed', [
+                        'file_name' => $imageFile->getClientOriginalName(),
+                        'mime' => $imageFile->getMimeType(),
+                        'size' => $imageFile->getSize(),
+                        'error' => $imageFile->getError(),
+                    ]);
+                    return null;
+                }
+
+                $storedPath = $imageFile->store('trip-images', 'public');
+
+                Log::info('Image uploaded successfully', [
+                    'original_name' => $imageFile->getClientOriginalName(),
+                    'stored_path' => $storedPath,
+                    'size' => $imageFile->getSize(),
+                    'mime' => $imageFile->getMimeType(),
+                ]);
+
+                return $storedPath;
+            } catch (Throwable $exception) {
+                Log::error('Image upload failed', [
+                    'file_name' => $imageFile?->getClientOriginalName(),
+                    'error' => $exception->getMessage(),
+                    'exception' => $exception,
+                ]);
+                return null;
+            }
         }
 
         $imagePathInput = $request->input('image_path');
@@ -121,11 +149,20 @@ class TripController extends Controller
             return null;
         }
 
-        if (preg_match('/^https?:\/\//i', trim($imagePathInput))) {
-            return $this->downloadRemoteImageToStorage(trim($imagePathInput)) ?? trim($imagePathInput);
+        $imagePathInput = trim($imagePathInput);
+
+        if (preg_match('/^https?:\/\//i', $imagePathInput)) {
+            Log::info('Attempting to download remote image', [
+                'url' => $imagePathInput,
+            ]);
+            return $this->downloadRemoteImageToStorage($imagePathInput) ?? $imagePathInput;
         }
 
-        return trim($imagePathInput);
+        Log::info('Using provided image path', [
+            'path' => $imagePathInput,
+        ]);
+
+        return $imagePathInput;
     }
 
     private function downloadRemoteImageToStorage(string $url): ?string
