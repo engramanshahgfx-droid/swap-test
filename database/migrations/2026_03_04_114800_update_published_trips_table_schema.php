@@ -26,6 +26,26 @@ return new class extends Migration
             }
             $table->enum('status', ['available', 'active', 'closed', 'expired'])->default('available')->after('expires_at');
         });
+
+        if (Schema::hasColumn('published_trips', 'flight_id')) {
+            try {
+                Schema::table('published_trips', function (Blueprint $table) {
+                    $table->dropForeign(['flight_id']);
+                });
+            } catch (\Throwable $e) {
+                // Ignore when the foreign key is already absent or the driver does not support it.
+            }
+        }
+
+        if (Schema::hasColumn('published_trips', 'user_id')) {
+            try {
+                Schema::table('published_trips', function (Blueprint $table) {
+                    $table->dropForeign(['user_id']);
+                });
+            } catch (\Throwable $e) {
+                // Ignore when the foreign key is already absent or the driver does not support it.
+            }
+        }
     }
 
     /**
@@ -33,15 +53,32 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('published_trips', function (Blueprint $table) {
-            if (Schema::hasColumn('published_trips', 'flight_id')) {
-                $table->dropForeignIdFor(\App\Models\Flight::class);
+        if (Schema::hasColumn('published_trips', 'flight_id')) {
+            try {
+                Schema::table('published_trips', function (Blueprint $table) {
+                    $table->dropForeign(['flight_id']);
+                });
+            } catch (\Throwable $e) {
+                // Ignore when the foreign key is already absent or the driver does not support it.
+            }
+
+            Schema::table('published_trips', function (Blueprint $table) {
                 $table->dropColumn('flight_id');
+            });
+        }
+
+        if (Schema::hasColumn('published_trips', 'user_id')) {
+            try {
+                Schema::table('published_trips', function (Blueprint $table) {
+                    $table->dropForeign(['user_id']);
+                });
+            } catch (\Throwable $e) {
+                // Ignore when the foreign key is already absent or the driver does not support it.
             }
-            if (Schema::hasColumn('published_trips', 'user_id')) {
-                $table->dropForeignIdFor(\App\Models\User::class);
+
+            Schema::table('published_trips', function (Blueprint $table) {
                 $table->dropColumn('user_id');
-            }
-        });
+            });
+        }
     }
 };

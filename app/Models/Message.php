@@ -14,6 +14,7 @@ class Message extends Model
         'sender_id',
         'body',
         'message_type',
+        'mentioned_trip_id',
         'delivered_at',
         'read_at',
     ];
@@ -26,6 +27,11 @@ class Message extends Model
     public function conversation()
     {
         return $this->belongsTo(Conversation::class);
+    }
+
+    public function mentionedTrip()
+    {
+        return $this->belongsTo(PublishedTrip::class, 'mentioned_trip_id');
     }
 
     public function sender()

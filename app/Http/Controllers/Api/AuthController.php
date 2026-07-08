@@ -105,6 +105,13 @@ class AuthController extends Controller
             ], 403);
         }
 
+        if ($user->status === 'expired' || $user->status === 'inactive' || $user->status === 'suspended') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account access has expired. Please contact support to reactivate it.',
+            ], 403);
+        }
+
         if (!$user->phone_verified_at) {
             // Send new OTP (prefer email for mobile, fallback to SMS)
             $otp = $user->generateOtp();

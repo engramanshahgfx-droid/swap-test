@@ -103,7 +103,7 @@ class FlightController extends Controller
                     'status' => $validated['status'],
                 ]
             ]);
-            
+
             return redirect()->route('frontend.flights.index')->with('success', 'Flight added successfully! (Saved locally)');
         }
     }

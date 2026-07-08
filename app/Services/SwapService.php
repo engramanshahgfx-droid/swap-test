@@ -49,6 +49,13 @@ class SwapService
                 throw new \Exception('You cannot request a swap for the same trip.');
             }
 
+            // Enforce allowed swap window (same day / day before / any)
+            if (method_exists($publishedTrip, 'allowsSwapWith')) {
+                if (!$publishedTrip->allowsSwapWith($requesterTrip)) {
+                    throw new \Exception('Swap window rules do not allow swapping with this trip date.');
+                }
+            }
+
             // Create swap request
             $swapRequest = SwapRequest::create([
                 'requester_id' => $requester->id,

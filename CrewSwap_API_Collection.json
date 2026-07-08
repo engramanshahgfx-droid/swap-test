@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "7a62dc87-c7f2-4d5a-90b8-c6b2a4ef17d1",
-    "name": "CrewSwap API - Route Accurate",
-    "description": "Postman collection aligned with implemented Laravel routes in routes/api.php",
+    "name": "CrewSwap API - Complete Collection",
+    "description": "Complete Postman collection with ALL implemented routes including Password Reset, Biometric Auth, Payment/Subscription, Favorites, Trip Preferences, and more.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,7 +13,10 @@
     { "key": "published_trip_id", "value": "1", "type": "string" },
     { "key": "swap_id", "value": "1", "type": "string" },
     { "key": "conversation_id", "value": "1", "type": "string" },
-    { "key": "notification_id", "value": "1", "type": "string" }
+    { "key": "notification_id", "value": "1", "type": "string" },
+    { "key": "reset_token", "value": "", "type": "string" },
+    { "key": "biometric_code", "value": "1234", "type": "string" },
+    { "key": "plan_id", "value": "1", "type": "string" }
   ],
   "item": [
     {
@@ -84,56 +87,6 @@
           ]
         },
         {
-          "name": "POST /verify-otp",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"user_id\": {{user_id}},\n  \"otp\": \"123456\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/verify-otp",
-              "host": ["{{base_url}}"],
-              "path": ["verify-otp"]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const json = pm.response.json();",
-                  "if (json?.data?.token) pm.collectionVariables.set('token', json.data.token);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST /resend-otp",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"user_id\": {{user_id}}\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/resend-otp",
-              "host": ["{{base_url}}"],
-              "path": ["resend-otp"]
-            }
-          }
-        },
-        {
           "name": "POST /login",
           "request": {
             "method": "POST",
@@ -149,33 +102,6 @@
               "raw": "{{base_url}}/login",
               "host": ["{{base_url}}"],
               "path": ["login"]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const json = pm.response.json();",
-                  "if (json?.data?.token) pm.collectionVariables.set('token', json.data.token);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST /refresh-token",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/refresh-token",
-              "host": ["{{base_url}}"],
-              "path": ["refresh-token"]
             }
           },
           "event": [
@@ -209,54 +135,317 @@
       ]
     },
     {
-      "name": "1A. Public Reference Data",
+      "name": "2. Password Reset",
       "item": [
         {
-          "name": "GET /registration-options",
+          "name": "POST /password/forgot",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tester@crewswap.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/password/forgot",
+              "host": ["{{base_url}}"],
+              "path": ["password", "forgot"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "console.log('Reset token from email:', json.data?.token);",
+                  "if (json.data?.token) pm.collectionVariables.set('reset_token', json.data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /password/validate-token",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Accept", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{base_url}}/registration-options",
+              "raw": "{{base_url}}/password/validate-token?token={{reset_token}}&email=tester@crewswap.com",
               "host": ["{{base_url}}"],
-              "path": ["registration-options"]
+              "path": ["password", "validate-token"],
+              "query": [
+                { "key": "token", "value": "{{reset_token}}" },
+                { "key": "email", "value": "tester@crewswap.com" }
+              ]
             }
           }
         },
         {
-          "name": "GET /registration-option (alias)",
+          "name": "POST /password/reset",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
+              { "key": "Content-Type", "value": "application/json" },
               { "key": "Accept", "value": "application/json" }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{reset_token}}\",\n  \"email\": \"tester@crewswap.com\",\n  \"password\": \"NewSecret123!\",\n  \"password_confirmation\": \"NewSecret123!\"\n}"
+            },
             "url": {
-              "raw": "{{base_url}}/registration-option",
+              "raw": "{{base_url}}/password/reset",
               "host": ["{{base_url}}"],
-              "path": ["registration-option"]
+              "path": ["password", "reset"]
+            }
+          }
+        },
+        {
+          "name": "POST /password/change (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"Secret123!\",\n  \"new_password\": \"NewSecret123!\",\n  \"new_password_confirmation\": \"NewSecret123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/password/change",
+              "host": ["{{base_url}}"],
+              "path": ["password", "change"]
             }
           }
         }
       ]
     },
     {
-      "name": "2. Users",
+      "name": "3. Biometric Authentication",
       "item": [
         {
-          "name": "GET /user",
+          "name": "POST /auth/setup-code (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"1234\",\n  \"code_confirmation\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/setup-code",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "setup-code"]
+            }
+          }
+        },
+        {
+          "name": "POST /auth/login-code",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tester@crewswap.com\",\n  \"code\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login-code",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login-code"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.token) pm.collectionVariables.set('token', json.data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/setup-faceid (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"public_key\": \"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC...\",\n  \"device_id\": \"device_test_123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/setup-faceid",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "setup-faceid"]
+            }
+          }
+        },
+        {
+          "name": "POST /auth/login-faceid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tester@crewswap.com\",\n  \"device_id\": \"device_test_123\",\n  \"signature\": \"test_signature_here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login-faceid",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login-faceid"]
+            }
+          }
+        },
+        {
+          "name": "GET /auth/biometric-status (Authenticated)",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/user", "host": ["{{base_url}}"], "path": ["user"] }
+            "url": {
+              "raw": "{{base_url}}/auth/biometric-status",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "biometric-status"]
+            }
           }
         },
         {
-          "name": "PUT /user",
+          "name": "DELETE /auth/disable-biometric (Authenticated)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/disable-biometric",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "disable-biometric"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Payment & Subscription",
+      "item": [
+        {
+          "name": "GET /subscription/plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/subscription/plans",
+              "host": ["{{base_url}}"],
+              "path": ["subscription", "plans"]
+            }
+          }
+        },
+        {
+          "name": "POST /subscription/subscribe (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_id\": {{plan_id}},\n  \"payment_method\": \"stripe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/subscription/subscribe",
+              "host": ["{{base_url}}"],
+              "path": ["subscription", "subscribe"]
+            }
+          }
+        },
+        {
+          "name": "GET /subscription/status (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/subscription/status",
+              "host": ["{{base_url}}"],
+              "path": ["subscription", "status"]
+            }
+          }
+        },
+        {
+          "name": "POST /subscription/cancel (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/subscription/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["subscription", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "GET /payment/history (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment/history?page=1&per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["payment", "history"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. User Settings & Preferences",
+      "item": [
+        {
+          "name": "PUT /user/notification-settings (Authenticated)",
           "request": {
             "method": "PUT",
             "header": [
@@ -266,15 +455,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"full_name\": \"Updated Tester\",\n  \"phone\": \"+966500000123\",\n  \"country\": \"Saudi Arabia\"\n}"
+              "raw": "{\n  \"swap_requests\": true,\n  \"messages\": true,\n  \"system_updates\": false\n}"
             },
-            "url": { "raw": "{{base_url}}/user", "host": ["{{base_url}}"], "path": ["user"] }
+            "url": {
+              "raw": "{{base_url}}/user/notification-settings",
+              "host": ["{{base_url}}"],
+              "path": ["user", "notification-settings"]
+            }
           }
         },
         {
-          "name": "POST /user/device-token",
+          "name": "PUT /user/privacy-settings (Authenticated)",
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Content-Type", "value": "application/json" },
@@ -282,13 +475,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"device_token\": \"sample-fcm-token-for-testing\"\n}"
+              "raw": "{\n  \"hide_employee_id\": true,\n  \"show_online_status\": false,\n  \"allow_messages_from\": \"everyone\"\n}"
             },
-            "url": { "raw": "{{base_url}}/user/device-token", "host": ["{{base_url}}"], "path": ["user", "device-token"] }
+            "url": {
+              "raw": "{{base_url}}/user/privacy-settings",
+              "host": ["{{base_url}}"],
+              "path": ["user", "privacy-settings"]
+            }
           }
         },
         {
-          "name": "GET /users",
+          "name": "GET /user/trip-preferences (Authenticated)",
           "request": {
             "method": "GET",
             "header": [
@@ -296,198 +493,105 @@
               { "key": "Accept", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{base_url}}/users?page=1&per_page=20&search=&status=active",
+              "raw": "{{base_url}}/user/trip-preferences",
               "host": ["{{base_url}}"],
-              "path": ["users"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "per_page", "value": "20" },
-                { "key": "search", "value": "" },
-                { "key": "status", "value": "active" }
-              ]
+              "path": ["user", "trip-preferences"]
             }
           }
         },
         {
-          "name": "GET /users/{id}",
+          "name": "PUT /user/trip-preferences (Authenticated)",
           "request": {
-            "method": "GET",
+            "method": "PUT",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}"] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prefer_destinations\": [\"LHR\", \"JFK\", \"DXB\"],\n  \"exclude_destinations\": [\"NBO\", \"DIR\"],\n  \"prefer_flight_types\": [\"international\", \"long_haul\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/trip-preferences",
+              "host": ["{{base_url}}"],
+              "path": ["user", "trip-preferences"]
+            }
           }
         }
       ]
     },
     {
-      "name": "3. Trips & Swaps",
+      "name": "6. Favorites",
       "item": [
         {
-          "name": "GET /my-trips",
+          "name": "GET /favorites (Authenticated)",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/my-trips?per_page=20", "host": ["{{base_url}}"], "path": ["my-trips"], "query": [{ "key": "per_page", "value": "20" }] }
+            "url": {
+              "raw": "{{base_url}}/favorites",
+              "host": ["{{base_url}}"],
+              "path": ["favorites"]
+            }
           }
         },
         {
-          "name": "GET /trip-details/{id}",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": { "raw": "{{base_url}}/trip-details/{{trip_id}}", "host": ["{{base_url}}"], "path": ["trip-details", "{{trip_id}}"] }
-          }
-        },
-        {
-          "name": "GET /browse-trips",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": { "raw": "{{base_url}}/browse-trips?page=1&per_page=20", "host": ["{{base_url}}"], "path": ["browse-trips"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "20" }] }
-          }
-        },
-        {
-          "name": "POST /publish-trip",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"flight_number\": \"SV123\",\n  \"departure\": \"RUH\",\n  \"arrival\": \"JED\",\n  \"date\": \"2026-12-31\",\n  \"position\": \"Captain\",\n  \"legs\": 2,\n  \"fly_type\": \"Turnaround\",\n  \"report_time\": \"06:45\",\n  \"offer_lo\": \"Yes\",\n  \"ask_lo\": [\n    {\n      \"time\": \"12:00\",\n      \"type\": \"dom\"\n    },\n    {\n      \"time\": \"18:30\",\n      \"type\": \"intl\"\n    }\n  ],\n  \"details\": \"Crew prefers same-day swap only\",\n  \"notes\": \"Ready to swap\",\n  \"expires_at\": \"2027-01-05T12:00:00Z\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/publish-trip", "host": ["{{base_url}}"], "path": ["publish-trip"] }
-          }
-        },
-        {
-          "name": "POST /request-swap",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"published_trip_id\": {{published_trip_id}},\n  \"message\": \"Can we exchange this trip?\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/request-swap", "host": ["{{base_url}}"], "path": ["request-swap"] }
-          }
-        },
-        {
-          "name": "POST /confirm-swap/{id}",
+          "name": "POST /favorites/{trip} (Authenticated)",
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/confirm-swap/{{swap_id}}", "host": ["{{base_url}}"], "path": ["confirm-swap", "{{swap_id}}"] }
+            "url": {
+              "raw": "{{base_url}}/favorites/{{published_trip_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["favorites", "{{published_trip_id}}"]
+            }
           }
         },
         {
-          "name": "POST /reject-swap/{id}",
+          "name": "DELETE /favorites/{trip} (Authenticated)",
           "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"reason\": \"Not available\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/reject-swap/{{swap_id}}", "host": ["{{base_url}}"], "path": ["reject-swap", "{{swap_id}}"] }
-          }
-        },
-        {
-          "name": "POST /cancel-swap/{id}",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"reason\": \"No longer needed\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/cancel-swap/{{swap_id}}", "host": ["{{base_url}}"], "path": ["cancel-swap", "{{swap_id}}"] }
-          }
-        },
-        {
-          "name": "GET /swap-history",
-          "request": {
-            "method": "GET",
+            "method": "DELETE",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/swap-history?page=1&per_page=20", "host": ["{{base_url}}"], "path": ["swap-history"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "20" }] }
-          }
-        },
-        {
-          "name": "GET /vacation-swaps",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": { "raw": "{{base_url}}/vacation-swaps?page=1&per_page=20", "host": ["{{base_url}}"], "path": ["vacation-swaps"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "20" }] }
-          }
-        },
-        {
-          "name": "POST /vacation-swaps/request",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"published_trip_id\": {{published_trip_id}},\n  \"message\": \"Vacation swap request\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/vacation-swaps/request", "host": ["{{base_url}}"], "path": ["vacation-swaps", "request"] }
-          }
-        },
-        {
-          "name": "GET /vacation-swaps/history",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": { "raw": "{{base_url}}/vacation-swaps/history?page=1&per_page=20", "host": ["{{base_url}}"], "path": ["vacation-swaps", "history"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "20" }] }
+            "url": {
+              "raw": "{{base_url}}/favorites/{{published_trip_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["favorites", "{{published_trip_id}}"]
+            }
           }
         }
       ]
     },
     {
-      "name": "3B. Vacation Publishing",
+      "name": "7. Trips & Swaps",
       "item": [
         {
-          "name": "POST /publish-vacation",
+          "name": "GET /my-trips (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/my-trips?per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["my-trips"],
+              "query": [{ "key": "per_page", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "POST /publish-trip (Authenticated)",
           "request": {
             "method": "POST",
             "header": [
@@ -497,9 +601,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"publisher_id\": {{user_id}},\n  \"departure_month\": \"APR\",\n  \"arrival_month\": \"MAY\",\n  \"position\": \"Captain\",\n  \"notes\": \"Available for vacation swap\"\n}"
+              "raw": "{\n  \"flight_number\": \"SV123\",\n  \"departure\": \"RUH\",\n  \"arrival\": \"JED\",\n  \"date\": \"2026-12-31\",\n  \"position\": \"Captain\",\n  \"legs\": 2,\n  \"fly_type\": \"Turnaround\",\n  \"report_time\": \"06:45\",\n  \"offer_lo\": \"Yes\",\n  \"ask_lo\": [],\n  \"details\": \"Crew prefers same-day swap only\",\n  \"notes\": \"Ready to swap\",\n  \"swap_window\": \"day_before\",\n  \"is_urgent\": false,\n  \"expires_at\": \"2027-01-05T12:00:00Z\"\n}"
             },
-            "url": { "raw": "{{base_url}}/publish-vacation", "host": ["{{base_url}}"], "path": ["publish-vacation"] }
+            "url": {
+              "raw": "{{base_url}}/publish-trip",
+              "host": ["{{base_url}}"],
+              "path": ["publish-trip"]
+            }
           },
           "event": [
             {
@@ -515,56 +623,62 @@
           ]
         },
         {
-          "name": "GET /my-vacations",
+          "name": "PUT /publish-trip/{id} (Authenticated)",
           "request": {
-            "method": "GET",
+            "method": "PUT",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/my-vacations?page=1&per_page=20", "host": ["{{base_url}}"], "path": ["my-vacations"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "20" }] }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flight_number\": \"SV123\",\n  \"departure\": \"RUH\",\n  \"arrival\": \"LHR\",\n  \"date\": \"2027-01-01\",\n  \"details\": \"Updated trip details\",\n  \"is_urgent\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/publish-trip/{{published_trip_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["publish-trip", "{{published_trip_id}}"]
+            }
           }
         },
         {
-          "name": "GET /browse-vacations",
+          "name": "DELETE /publish-trip/{id} (Authenticated)",
           "request": {
-            "method": "GET",
+            "method": "DELETE",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/browse-vacations?page=1&per_page=20", "host": ["{{base_url}}"], "path": ["browse-vacations"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "20" }] }
-          }
-        }
-      ]
-    },
-    {
-      "name": "4. Chat",
-      "item": [
-        {
-          "name": "GET /chat/conversations",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": { "raw": "{{base_url}}/chat/conversations?page=1&per_page=20", "host": ["{{base_url}}"], "path": ["chat", "conversations"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "20" }] }
+            "url": {
+              "raw": "{{base_url}}/publish-trip/{{published_trip_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["publish-trip", "{{published_trip_id}}"]
+            }
           }
         },
         {
-          "name": "GET /chat/messages/{conversation}",
+          "name": "GET /browse-trips (Authenticated)",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/chat/messages/{{conversation_id}}?per_page=50", "host": ["{{base_url}}"], "path": ["chat", "messages", "{{conversation_id}}"], "query": [{ "key": "per_page", "value": "50" }] }
+            "url": {
+              "raw": "{{base_url}}/browse-trips?page=1&per_page=20&is_urgent=true",
+              "host": ["{{base_url}}"],
+              "path": ["browse-trips"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "20" },
+                { "key": "is_urgent", "value": "true" }
+              ]
+            }
           }
         },
         {
-          "name": "POST /chat/send",
+          "name": "POST /request-swap (Authenticated)",
           "request": {
             "method": "POST",
             "header": [
@@ -574,24 +688,205 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"receiver_id\": {{user_id}},\n  \"message\": \"Hello from Postman\",\n  \"message_type\": \"text\"\n}"
+              "raw": "{\n  \"published_trip_id\": {{published_trip_id}},\n  \"message\": \"Can we exchange this trip?\"\n}"
             },
-            "url": { "raw": "{{base_url}}/chat/send", "host": ["{{base_url}}"], "path": ["chat", "send"] }
+            "url": {
+              "raw": "{{base_url}}/request-swap",
+              "host": ["{{base_url}}"],
+              "path": ["request-swap"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) pm.collectionVariables.set('swap_id', String(json.data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /confirm-swap/{id} (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/confirm-swap/{{swap_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["confirm-swap", "{{swap_id}}"]
+            }
           }
         },
         {
-          "name": "GET /chat/unread-count",
+          "name": "POST /reject-swap/{id} (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Not available\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reject-swap/{{swap_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["reject-swap", "{{swap_id}}"]
+            }
+          }
+        },
+        {
+          "name": "GET /swap-history (Authenticated)",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/chat/unread-count", "host": ["{{base_url}}"], "path": ["chat", "unread-count"] }
+            "url": {
+              "raw": "{{base_url}}/swap-history?page=1&per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["swap-history"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Vacation",
+      "item": [
+        {
+          "name": "POST /publish-vacation (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"departure_month\": \"APR\",\n  \"arrival_month\": \"MAY\",\n  \"position\": \"Captain\",\n  \"notes\": \"Available for vacation swap\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/publish-vacation",
+              "host": ["{{base_url}}"],
+              "path": ["publish-vacation"]
+            }
           }
         },
         {
-          "name": "POST /chat/mark-read",
+          "name": "GET /my-vacations (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/my-vacations?page=1&per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["my-vacations"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /browse-vacations (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/browse-vacations?page=1&per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["browse-vacations"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Chat",
+      "item": [
+        {
+          "name": "GET /chat/conversations (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chat/conversations?page=1&per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "conversations"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /chat/send (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiver_id\": {{user_id}},\n  \"message\": \"Hello from Postman\",\n  \"message_type\": \"text\",\n  \"mentioned_trip_id\": {{published_trip_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat/send",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "send"]
+            }
+          }
+        },
+        {
+          "name": "GET /chat/unread-count (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chat/unread-count",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "unread-count"]
+            }
+          }
+        },
+        {
+          "name": "POST /chat/mark-read (Authenticated)",
           "request": {
             "method": "POST",
             "header": [
@@ -603,16 +898,76 @@
               "mode": "raw",
               "raw": "{\n  \"conversation_id\": {{conversation_id}}\n}"
             },
-            "url": { "raw": "{{base_url}}/chat/mark-read", "host": ["{{base_url}}"], "path": ["chat", "mark-read"] }
+            "url": {
+              "raw": "{{base_url}}/chat/mark-read",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "mark-read"]
+            }
           }
         }
       ]
     },
     {
-      "name": "5. Reports",
+      "name": "10. Support",
       "item": [
         {
-          "name": "POST /report-user",
+          "name": "GET /support/conversation (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/support/conversation",
+              "host": ["{{base_url}}"],
+              "path": ["support", "conversation"]
+            }
+          }
+        },
+        {
+          "name": "POST /support/send-message (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversation_id\": {{conversation_id}},\n  \"message\": \"I need help with my account\",\n  \"message_type\": \"text\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/support/send-message",
+              "host": ["{{base_url}}"],
+              "path": ["support", "send-message"]
+            }
+          }
+        },
+        {
+          "name": "GET /support/messages/{id} (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/support/messages/{{conversation_id}}?per_page=50",
+              "host": ["{{base_url}}"],
+              "path": ["support", "messages", "{{conversation_id}}"],
+              "query": [{ "key": "per_page", "value": "50" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Reports & Notifications",
+      "item": [
+        {
+          "name": "POST /report-user (Authenticated)",
           "request": {
             "method": "POST",
             "header": [
@@ -624,81 +979,124 @@
               "mode": "raw",
               "raw": "{\n  \"reported_user_id\": {{user_id}},\n  \"reason\": \"disrespect\",\n  \"details\": \"Test report from Postman\"\n}"
             },
-            "url": { "raw": "{{base_url}}/report-user", "host": ["{{base_url}}"], "path": ["report-user"] }
+            "url": {
+              "raw": "{{base_url}}/report-user",
+              "host": ["{{base_url}}"],
+              "path": ["report-user"]
+            }
           }
         },
         {
-          "name": "GET /my-reports",
+          "name": "GET /notifications (Authenticated)",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/my-reports?page=1&per_page=20", "host": ["{{base_url}}"], "path": ["my-reports"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "20" }] }
-          }
-        }
-      ]
-    },
-    {
-      "name": "6. Notifications",
-      "item": [
-        {
-          "name": "GET /notifications",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "url": { "raw": "{{base_url}}/notifications?per_page=20", "host": ["{{base_url}}"], "path": ["notifications"], "query": [{ "key": "per_page", "value": "20" }] }
+            "url": {
+              "raw": "{{base_url}}/notifications?per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["notifications"],
+              "query": [{ "key": "per_page", "value": "20" }]
+            }
           }
         },
         {
-          "name": "POST /notifications/send",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"user_ids\": [{{user_id}}],\n  \"title\": \"System Update\",\n  \"message\": \"New swap rules activated\",\n  \"type\": \"system\",\n  \"sound\": \"system_notification_sound.mp3\",\n  \"payload\": {\n    \"source\": \"postman\"\n  }\n}"
-            },
-            "url": { "raw": "{{base_url}}/notifications/send", "host": ["{{base_url}}"], "path": ["notifications", "send"] }
-          }
-        },
-        {
-          "name": "PUT /notifications/{id}/read",
+          "name": "PUT /notifications/{id}/read (Authenticated)",
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/notifications/{{notification_id}}/read", "host": ["{{base_url}}"], "path": ["notifications", "{{notification_id}}", "read"] }
+            "url": {
+              "raw": "{{base_url}}/notifications/{{notification_id}}/read",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "{{notification_id}}", "read"]
+            }
           }
         }
       ]
     },
     {
-      "name": "7. Analytics",
+      "name": "12. Analytics & Public",
       "item": [
         {
-          "name": "GET /dashboard/analytics",
+          "name": "GET /dashboard/analytics (Authenticated)",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" },
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": { "raw": "{{base_url}}/dashboard/analytics", "host": ["{{base_url}}"], "path": ["dashboard", "analytics"] }
+            "url": {
+              "raw": "{{base_url}}/dashboard/analytics",
+              "host": ["{{base_url}}"],
+              "path": ["dashboard", "analytics"]
+            }
+          }
+        },
+        {
+          "name": "GET /languages",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/languages",
+              "host": ["{{base_url}}"],
+              "path": ["languages"]
+            }
+          }
+        },
+        {
+          "name": "GET /registration-options",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/registration-options",
+              "host": ["{{base_url}}"],
+              "path": ["registration-options"]
+            }
           }
         }
       ]
     }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Pre-request script - runs before each request",
+          "console.log('Running request to: ' + pm.request.url);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Test script - runs after each response",
+          "pm.test('Status code is 200 or 201', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+          "});",
+          "",
+          "pm.test('Response has success flag', function () {",
+          "    const json = pm.response.json();",
+          "    if (json?.success !== undefined) {",
+          "        pm.expect(json.success).to.be.true;",
+          "    }",
+          "});"
+        ]
+      }
+    }
   ]
 }
-

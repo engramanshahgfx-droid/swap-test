@@ -177,6 +177,40 @@
     <h1 class="page-title">{{ __('admin.dashboard.title') }}</h1>
     <p class="page-sub">{{ __('admin.dashboard.subtitle') }}</p>
 
+    @if($expiringAccounts->isNotEmpty())
+        <div class="custom-dashboard-card span-12" style="margin-top:10px;">
+            <div class="dashboard-block-head">
+                <div>
+                    <h3>Users with expiring activation</h3>
+                    <p>These accounts need attention before their activation period ends.</p>
+                </div>
+                <span class="dashboard-chip">{{ $expiringAccounts->count() }} pending</span>
+            </div>
+            <div style="padding:0 16px 16px;">
+                <table class="table-mini">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Ends on</th>
+                            <th>Days left</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($expiringAccounts as $account)
+                            <tr>
+                                <td>{{ $account->full_name }}</td>
+                                <td>{{ $account->email }}</td>
+                                <td>{{ $account->activation_end_date->format('M d, Y') }}</td>
+                                <td>{{ now()->diffInDays($account->activation_end_date, false) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     <div class="stats-grid" id="dashboard-stats-grid">
         <div
             class="stat-card js-stat-card is-active"
@@ -498,7 +532,7 @@
                     <p>Manage all crew members and employees</p>
                 </div>
             </div>
-            
+
             <div style="padding: 14px 16px; border-top: 1px solid var(--border);">
                 <div class="actions" style="margin-bottom: 14px;">
                     <div class="search-box">
@@ -690,7 +724,7 @@
                 searchInput.addEventListener('input', function(e) {
                     const query = e.target.value.toLowerCase();
                     const rows = document.querySelectorAll('table tbody tr');
-                    
+
                     rows.forEach(row => {
                         if (row.textContent.toLowerCase().includes(query)) {
                             row.style.display = '';
@@ -704,7 +738,7 @@
             // Select all checkbox functionality
             const selectAllCheckbox = document.querySelector('.select-all-checkbox');
             const userCheckboxes = document.querySelectorAll('.user-checkbox');
-            
+
             if (selectAllCheckbox) {
                 selectAllCheckbox.addEventListener('change', function() {
                     userCheckboxes.forEach(checkbox => {
@@ -712,7 +746,7 @@
                     });
                 });
             }
-            
+
             userCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     const allChecked = Array.from(userCheckboxes).every(cb => cb.checked);

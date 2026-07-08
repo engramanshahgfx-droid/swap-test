@@ -83,21 +83,41 @@ class ActivationController extends Controller
     public function updateStatus(Request $request, User $user)
     {
         $request->validate([
-            'status' => 'required|in:active,inactive,blocked',
+            'status' => 'required|in:active,inactive,blocked,expired,suspended',
+            'months' => 'nullable|integer|min:0|max:60',
+            'years' => 'nullable|integer|min:0|max:10',
+            'custom_end_date' => 'nullable|date',
+            'permanent' => 'nullable|boolean',
+            'grace_period_days' => 'nullable|integer|min:1|max:30',
         ]);
 
-        $user->update(['status' => $request->status]);
+        $permanent = (bool) $request->boolean('permanent');
+
+        if ($permanent || $request->filled('months') || $request->filled('years') || $request->filled('custom_end_date')) {
+            $user->activateForDuration(
+                $request->input('months'),
+                $request->input('years'),
+                $request->input('custom_end_date'),
+                $permanent,
+                $request->input('grace_period_days')
+            );
+
+            $message = $permanent ? 'User activated permanently.' : 'User activation updated.';
+        } else {
+            $user->update(['status' => $request->status]);
+            $message = 'User status updated.';
+        }
 
         $this->mobileNotificationService->createForUser(
             $user,
             'Account Status Updated',
-            'Your account status is now: ' . $request->status,
+            'Your account status is now: ' . $user->status,
             'system',
             'system_notification_sound.mp3',
-            ['status' => (string) $request->status]
+            ['status' => (string) $user->status]
         );
 
-        return redirect()->route('activation')->with('success', 'User status updated.');
+        return redirect()->route('activation')->with('success', $message);
     }
 
     public function destroy(Request $request, User $user)

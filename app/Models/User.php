@@ -7,6 +7,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -73,11 +74,24 @@ class User extends Authenticatable implements FilamentUser
         'position_id',
         'password',
         'status',
+        'activation_start_date',
+        'activation_end_date',
+        'activation_type',
+        'is_permanent',
+        'grace_period_days',
+        'grace_period_end_date',
+        'last_expiry_notification_at',
+        'last_expiry_notification_stage',
+        'activation_notes',
         'otp_code',
         'otp_expires_at',
         'phone_verified_at',
         'firebase_uid',
         'device_token',
+        'hide_employee_id',
+        'show_online_status',
+        'allow_messages_from',
+        'willing_fly_days',
     ];
 
     protected $hidden = [
@@ -90,6 +104,14 @@ class User extends Authenticatable implements FilamentUser
         'email_verified_at' => 'datetime',
         'phone_verified_at' => 'datetime',
         'otp_expires_at' => 'datetime',
+        'activation_start_date' => 'date',
+        'activation_end_date' => 'date',
+        'grace_period_end_date' => 'date',
+        'last_expiry_notification_at' => 'datetime',
+        'hide_employee_id' => 'boolean',
+        'show_online_status' => 'boolean',
+        'is_permanent' => 'boolean',
+        'willing_fly_days' => 'array',
     ];
 
     public function airline()
@@ -125,6 +147,11 @@ class User extends Authenticatable implements FilamentUser
     public function publishedTrips()
     {
         return $this->hasMany(PublishedTrip::class);
+    }
+
+    public function tripPreferences()
+    {
+        return $this->hasOne(\App\Models\TripPreference::class);
     }
 
     public function swapRequestsAsRequester()
@@ -181,5 +208,133 @@ class User extends Authenticatable implements FilamentUser
     public function isActive()
     {
         return $this->status === 'active';
+    }
+
+    public function isActivationExpired(): bool
+    {
+        if ($this->is_permanent) {
+            return false;
+        }
+
+        if (empty($this->activation_end_date)) {
+            return false;
+        }
+
+        return Carbon::parse($this->activation_end_date)->isPast();
+    }
+
+    public function isInGracePeriod(): bool
+    {
+        if ($this->is_permanent || empty($this->grace_period_end_date)) {
+            return false;
+        }
+
+        return Carbon::parse($this->grace_period_end_date)->isFuture() || Carbon::parse($this->grace_period_end_date)->isToday();
+    }
+
+    public function activateForDuration(?int $months = null, ?int $years = null, ?string $customEndDate = null, bool $permanent = false, ?int $gracePeriodDays = 7): void
+    {
+        $this->status = 'active';
+        $this->activation_type = $permanent ? 'permanent' : 'temporary';
+        $this->is_permanent = $permanent;
+        $this->activation_start_date = now()->toDateString();
+        $this->grace_period_days = $gracePeriodDays ?? 7;
+        $this->grace_period_end_date = null;
+        $this->last_expiry_notification_at = null;
+        $this->last_expiry_notification_stage = null;
+        $this->activation_notes = null;
+
+        if ($permanent) {
+            $this->activation_end_date = null;
+            $this->save();
+            return;
+        }
+
+        if (!empty($customEndDate)) {
+            $this->activation_end_date = Carbon::parse($customEndDate)->toDateString();
+        } else {
+            $durationMonths = max(0, (int) $months);
+            $durationYears = max(0, (int) $years);
+            $this->activation_end_date = now()->addMonths($durationMonths)->addYears($durationYears)->toDateString();
+        }
+
+        $this->save();
+    }
+
+    public function processActivationExpiry(): void
+    {
+        if ($this->is_permanent || empty($this->activation_end_date)) {
+            return;
+        }
+
+        $today = now()->toDateString();
+        $expiryDate = Carbon::parse($this->activation_end_date)->toDateString();
+
+        if ($this->status === 'active' && $expiryDate < $today) {
+            $this->status = 'expired';
+            $this->grace_period_end_date = Carbon::parse($this->activation_end_date)->addDays($this->grace_period_days ?? 7)->toDateString();
+            $this->save();
+            return;
+        }
+
+        if ($this->status === 'expired' && !empty($this->grace_period_end_date) && Carbon::parse($this->grace_period_end_date)->toDateString() < $today) {
+            $this->status = 'inactive';
+            $this->save();
+        }
+    }
+
+    public function getActivationStatusLabelAttribute(): string
+    {
+        if ($this->is_permanent) {
+            return 'permanent';
+        }
+
+        if ($this->status === 'expired' || $this->isActivationExpired()) {
+            return 'expired';
+        }
+
+        if ($this->status === 'active' && !empty($this->activation_end_date)) {
+            $days = now()->diffInDays(Carbon::parse($this->activation_end_date), false);
+            if ($days <= 7 && $days >= 0) {
+                return 'expiring_soon';
+            }
+        }
+
+        return $this->status;
+    }
+
+    public function getActivationDurationLabelAttribute(): string
+    {
+        if ($this->is_permanent) {
+            return 'Permanent / unlimited activation';
+        }
+
+        if (empty($this->activation_start_date) || empty($this->activation_end_date)) {
+            return 'No expiry set';
+        }
+
+        $startDate = Carbon::parse($this->activation_start_date);
+        $endDate = Carbon::parse($this->activation_end_date);
+
+        if ($endDate->lt($startDate)) {
+            return 'Custom expiry date';
+        }
+
+        $years = $startDate->diffInYears($endDate);
+        $months = $startDate->copy()->addYears($years)->diffInMonths($endDate);
+
+        if ($years > 0 && $months > 0) {
+            return $years . ' year' . ($years === 1 ? '' : 's') . ' and ' . $months . ' month' . ($months === 1 ? '' : 's');
+        }
+
+        if ($years > 0) {
+            return $years . ' year' . ($years === 1 ? '' : 's');
+        }
+
+        if ($months > 0) {
+            return $months . ' month' . ($months === 1 ? '' : 's');
+        }
+
+        return 'Less than a month';
     }
 }

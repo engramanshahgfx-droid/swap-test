@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\ActivationController;
 use App\Http\Controllers\Admin\SupportController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Frontend\AuthController as FrontendAuthController;
 use App\Http\Controllers\Frontend\FlightController;
 use App\Http\Controllers\Admin\LoginController;
@@ -34,7 +35,7 @@ Route::get('/admin/login', function () {
 })->name('login');
 
 // Admin Login POST handler
-Route::post('/admin/login', [LoginController::class, 'store'])->name('login');
+Route::post('/admin/login', [LoginController::class, 'store'])->name('login.submit');
 
 // Custom Admin Dashboard (protected by web auth)
 Route::middleware('auth')->group(function () {
@@ -88,6 +89,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.page');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    Route::get('/blogs', [BlogController::class, 'index'])->name('blogs');
+    Route::post('/blogs', [BlogController::class, 'store'])->name('blogs.store');
+    Route::put('/blogs/{blog}', [BlogController::class, 'update'])->name('blogs.update');
+    Route::delete('/blogs/{blog}', [BlogController::class, 'destroy'])->name('blogs.destroy');
 });
 
 // ============================================

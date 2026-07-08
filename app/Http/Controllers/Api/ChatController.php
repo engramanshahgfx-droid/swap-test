@@ -46,7 +46,7 @@ class ChatController extends Controller
         $perPage = max(1, min((int) $request->integer('per_page', 50), 100));
 
         // Check if user is part of this conversation
-        if ($conversation->user_one_id !== $request->user()->id && 
+        if ($conversation->user_one_id !== $request->user()->id &&
             $conversation->user_two_id !== $request->user()->id) {
             return response()->json([
                 'success' => false,
@@ -74,13 +74,13 @@ class ChatController extends Controller
     {
         $user = $request->user();
         $messageType = $request->input('message_type', 'text');
-        
+
         // Get conversation - either by ID or by recipient
         if ($request->conversation_id) {
             $conversation = Conversation::findOrFail($request->conversation_id);
-            
+
             // Check if user is part of this conversation
-            if ($conversation->user_one_id !== $user->id && 
+            if ($conversation->user_one_id !== $user->id &&
                 $conversation->user_two_id !== $user->id) {
                 return response()->json([
                     'success' => false,
@@ -98,7 +98,8 @@ class ChatController extends Controller
             $conversation,
             $user,
             $request->message,
-            $messageType
+            $messageType,
+            $request->input('mentioned_trip_id')
         );
 
         $receiverId = $conversation->user_one_id === $user->id
@@ -125,7 +126,7 @@ class ChatController extends Controller
         $conversation = Conversation::findOrFail($conversationId);
 
         // Check if user is part of this conversation
-        if ($conversation->user_one_id !== $request->user()->id && 
+        if ($conversation->user_one_id !== $request->user()->id &&
             $conversation->user_two_id !== $request->user()->id) {
             return response()->json([
                 'success' => false,

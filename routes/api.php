@@ -1,4 +1,5 @@
 <?php
+// routes/api.php - CLEAN VERSION
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
@@ -13,41 +14,81 @@ use App\Http\Controllers\Api\RegistrationOptionsController;
 use App\Http\Controllers\Api\VacationController;
 use App\Http\Controllers\Api\SupportController;
 use App\Http\Controllers\Api\AdminSettingsController;
+use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\BiometricAuthController;
+use App\Http\Controllers\Api\TripPreferencesController;
+use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\UserSettingsController;
+use App\Http\Controllers\Api\BlogController as ApiBlogController;
 use Illuminate\Support\Facades\Route;
+
+// ==================== PUBLIC ROUTES ====================
 
 // Language routes
 Route::get('/languages', [LanguageController::class, 'getSupportedLanguages']);
 Route::get('/current-language', [LanguageController::class, 'getCurrentLanguage']);
 Route::post('/set-language/{lang}', [LanguageController::class, 'setLanguage']);
 
-// Firebase Notifications (pushed to authenticated users)
-// Routes for push notifications will be added here
-
 // Simple Public routes (for testing)
 Route::post('/simple-register', [AuthController::class, 'simpleRegister']);
 Route::post('/simple-login', [AuthController::class, 'simpleLogin']);
 
+// Public blog routes
+Route::get('/blogs', [ApiBlogController::class, 'index']);
+Route::get('/blogs/{blog}', [ApiBlogController::class, 'show']);
+Route::get('/blog/posts', [ApiBlogController::class, 'index']);
+Route::get('/blog/posts/{blog}', [ApiBlogController::class, 'show']);
+
 // Legacy Public routes
 Route::get('/registration-options', [RegistrationOptionsController::class, 'index']);
 Route::get('/registration-option', [RegistrationOptionsController::class, 'index']);
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register'])->name('api.register');
+Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
-// Protected routes
+// Password Reset Routes (Public)
+Route::post('/password/forgot', [PasswordResetController::class, 'sendResetLink']);
+Route::post('/password/reset', [PasswordResetController::class, 'resetPassword']);
+Route::post('/password/resend', [PasswordResetController::class, 'resendResetLink']);
+Route::get('/password/validate-token', [PasswordResetController::class, 'validateToken']);
+
+// Biometric Login Routes (Public)
+Route::post('/auth/login-code', [BiometricAuthController::class, 'loginWithCode']);
+Route::post('/auth/login-faceid', [BiometricAuthController::class, 'loginWithFaceId']);
+
+// ==================== PROTECTED ROUTES ====================
+
 Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
 
-    // User
-    Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/{user}', [UserController::class, 'showById']);
-    Route::post('/user/device-token', [UserController::class, 'storeDeviceToken']);
+    // User Profile
     Route::get('/user', [UserController::class, 'show']);
     Route::put('/user', [UserController::class, 'update']);
     Route::delete('/user', [UserController::class, 'destroy']);
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/{user}', [UserController::class, 'showById']);
+    Route::post('/user/device-token', [UserController::class, 'storeDeviceToken']);
+
+    // User Settings
+    Route::put('/user/notification-settings', [UserSettingsController::class, 'updateNotificationSettings']);
+    Route::put('/user/privacy-settings', [UserSettingsController::class, 'updatePrivacySettings']);
+
+    // Password Change (Authenticated)
+    Route::post('/password/change', [PasswordResetController::class, 'changePassword']);
+
+    // Biometric Setup (Authenticated)
+    Route::post('/auth/setup-code', [BiometricAuthController::class, 'setupCode']);
+    Route::post('/auth/setup-faceid', [BiometricAuthController::class, 'setupFaceId']);
+    Route::delete('/auth/disable-biometric', [BiometricAuthController::class, 'disableBiometric']);
+    Route::get('/auth/biometric-status', [BiometricAuthController::class, 'getBiometricStatus']);
+    Route::post('/auth/update-code', [BiometricAuthController::class, 'updateCode']);
+
+    // Trip Preferences
+    Route::get('/user/trip-preferences', [TripPreferencesController::class, 'show']);
+    Route::put('/user/trip-preferences', [TripPreferencesController::class, 'update']);
 
     // User plane types (aircraft preferences)
     Route::get('/user/plane-types', [UserController::class, 'planeTypes']);
@@ -77,12 +118,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/settings', [AdminSettingsController::class, 'index']);
     Route::post('/admin/settings', [AdminSettingsController::class, 'update']);
 
-    // Vacation swap aliases (using existing swap workflow)
+    // Vacation
     Route::get('/vacation-swaps', [TripController::class, 'browseTrips']);
     Route::post('/vacation-swaps/request', [SwapController::class, 'requestSwap']);
     Route::get('/vacation-swaps/history', [TripController::class, 'swapHistory']);
-
-    // NEW: Vacation Publishing (month-based)
     Route::post('/publish-vacation', [VacationController::class, 'publishVacation']);
     Route::get('/my-vacations', [VacationController::class, 'myVacations']);
     Route::get('/browse-vacations', [VacationController::class, 'browseVacations']);
@@ -97,6 +136,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chat/send', [ChatController::class, 'sendMessage']);
     Route::get('/chat/unread-count', [ChatController::class, 'unreadCount']);
     Route::post('/chat/mark-read', [ChatController::class, 'markRead']);
+
+    // Favorites
+    Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::post('/favorites/{trip}', [FavoriteController::class, 'store']);
+    Route::delete('/favorites/{trip}', [FavoriteController::class, 'destroy']);
 
     // Support
     Route::get('/support/conversation', [SupportController::class, 'getSupportConversation']);
@@ -116,3 +160,4 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dashboard analytics
     Route::get('/dashboard/analytics', [AnalyticsController::class, 'index']);
 });
+

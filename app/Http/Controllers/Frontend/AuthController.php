@@ -37,20 +37,20 @@ class AuthController extends Controller
             $airlines = Airline::all();
             $planeTypes = PlaneType::all();
             $positions = Position::all();
-            
+
             // If no data exists, create some defaults for testing
             if ($airlines->isEmpty()) {
                 Airline::create(['name' => 'Emirates Airlines', 'code' => 'EK']);
                 Airline::create(['name' => 'Qatar Airways', 'code' => 'QR']);
                 $airlines = Airline::all();
             }
-            
+
             if ($planeTypes->isEmpty()) {
                 PlaneType::create(['name' => 'Boeing 747', 'code' => 'B747']);
                 PlaneType::create(['name' => 'Airbus A380', 'code' => 'A380']);
                 $planeTypes = PlaneType::all();
             }
-            
+
             if ($positions->isEmpty()) {
                 Position::create(['name' => 'Captain']);
                 Position::create(['name' => 'First Officer']);
@@ -74,7 +74,7 @@ class AuthController extends Controller
                 (object)['id' => 3, 'name' => 'Flight Attendant'],
             ]);
         }
-        
+
         return view('frontend.register', compact('airlines', 'planeTypes', 'positions'));
     }
 
@@ -116,12 +116,12 @@ class AuthController extends Controller
             try {
                 // Check if database is online
                 \Illuminate\Support\Facades\DB::connection()->getPdo();
-                
+
                 // Database is online - do normal database validation and save
                 $validated['email'] = $request->email;
                 $validated['phone'] = $request->phone;
                 $validated['employee_id'] = $request->employee_id;
-                
+
                 $user = User::create([
                     'employee_id' => $validated['employee_id'],
                     'full_name' => $validated['full_name'],
@@ -133,12 +133,12 @@ class AuthController extends Controller
                     'position_id' => $validated['position_id'],
                     'password' => Hash::make($validated['password']),
                 ]);
-                
+
                 $userId = $user->id;
             } catch (Throwable $dbError) {
                 // Database offline - use session to simulate registration
                 \Log::warning('Database offline during registration - using session');
-                
+
                 // Store registration data in session (for testing without DB)
                 $userId = time();  // Use timestamp as fake ID
                 session([
@@ -192,7 +192,7 @@ class AuthController extends Controller
         if (!session('user_id')) {
             return redirect()->route('frontend.register')->with('error', 'Please register first');
         }
-        
+
         return view('frontend.verify-otp', [
             'test_otp' => session('otp_code'),
         ]);
@@ -215,7 +215,7 @@ class AuthController extends Controller
 
         // Check if user data exists in session (offline registration) or database (online registration)
         $tempUserData = session('temp_user_data');
-        
+
         if ($tempUserData) {
             // Database was offline - user data is in session
             // Mark as verified in session and prepare for login
@@ -275,17 +275,17 @@ class AuthController extends Controller
         $verifiedUserData = session('verified_user_data');
         if ($verifiedUserData) {
             // User registered offline and passed OTP verification
-            if ($verifiedUserData['email'] === $validated['email'] && 
+            if ($verifiedUserData['email'] === $validated['email'] &&
                 // For offline users, we can't check password hash, so just check password is provided
                 !empty($validated['password'])) {
-                
+
                 // Create a session-based login
                 session([
                     'authenticated' => true,
                     'user_data' => $verifiedUserData,
                     'remember' => $request->boolean('remember'),
                 ]);
-                
+
                 return redirect()->route('frontend.dashboard')->with('success', 'Logged in successfully!');
             } else {
                 return back()->with('error', 'Invalid credentials. Email or password does not match registration.');
@@ -306,6 +306,10 @@ class AuthController extends Controller
 
             if ($user->status === 'blocked') {
                 return back()->with('error', 'Your account has been blocked. Please contact support.');
+            }
+
+            if ($user->status === 'expired' || $user->status === 'inactive' || $user->status === 'suspended') {
+                return back()->with('error', 'Your account access has expired. Please contact support to reactivate it.');
             }
 
             if (!$user->phone_verified_at) {
@@ -353,7 +357,7 @@ class AuthController extends Controller
         // Check if phone exists (database or session)
         try {
             $user = User::where('phone', $validated['phone'])->first();
-            
+
             if (!$user) {
                 return back()->with('error', 'Phone number not found. Please check and try again.');
             }
@@ -365,15 +369,15 @@ class AuthController extends Controller
             $user->save();
 
             session([
-                'otp_code' => $otp, 
-                'user_id' => $user->id, 
+                'otp_code' => $otp,
+                'user_id' => $user->id,
                 'forgot_password' => true,
                 'reset_phone' => $validated['phone'],
             ]);
         } catch (\Exception $e) {
             // Database offline - check session data
             $userData = session('verified_user_data');
-            
+
             if (!$userData || ($userData['phone'] ?? null) !== $validated['phone']) {
                 return back()->with('error', 'Phone number not found. Please check and try again.');
             }
@@ -475,9 +479,9 @@ class AuthController extends Controller
 
         // Clear reset session data
         session()->forget([
-            'user_id', 
-            'otp_code', 
-            'forgot_password', 
+            'user_id',
+            'otp_code',
+            'forgot_password',
             'reset_verified',
             'reset_user_data',
             'reset_phone',

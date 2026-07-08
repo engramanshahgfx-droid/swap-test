@@ -85,6 +85,7 @@ class PublishTripRequest extends FormRequest
             'departure_time' => 'nullable|string|max:50',
             'arrival_time' => 'nullable|string|max:50',
             'report_time' => 'nullable|string|max:50',
+                'is_urgent' => 'nullable|boolean',
             'offer_lo' => [
                 'nullable',
                 function (string $attribute, mixed $value, \Closure $fail) {
@@ -98,6 +99,7 @@ class PublishTripRequest extends FormRequest
                 },
             ],
             'details' => 'nullable|string|max:1000',
+            'swap_window' => 'nullable|string|in:same_day,day_before,any',
             'image' => 'nullable|image|max:5120',
             'image_path' => [
                 'nullable',
@@ -201,6 +203,7 @@ class PublishTripRequest extends FormRequest
             'image_path' => $imagePath,
             'offer_lo' => $offerLo,
             'ask_lo' => $askLo,
+            'swap_window' => $this->input('swap_window', $this->input('swapWindow', $this->input('swap window'))),
         ]);
     }
 }

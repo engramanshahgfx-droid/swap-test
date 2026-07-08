@@ -61,6 +61,11 @@
             <span class="nav-label">{{ __('admin.report') }}</span>
         </a>
 
+        <a href="{{ route('blogs') }}" class="nav-item" data-nav="blogs">
+            <svg viewBox="0 0 24 24"><path d="M4 5h16"/><path d="M4 12h10"/><path d="M4 19h7"/><path d="M17 16l3 3 3-3"/></svg>
+            <span class="nav-label">{{ __('admin.nav.blogs') }}</span>
+        </a>
+
         <a href="{{ route('support') }}" class="nav-item" data-nav="support">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             <span class="nav-label">{{ __('admin.nav.support') }}</span>

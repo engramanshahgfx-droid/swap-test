@@ -19,6 +19,7 @@ class SendMessageRequest extends FormRequest
             'conversation_id' => 'required_without_all:recipient_id,receiver_id|exists:conversations,id',
             'message' => 'required|string|max:1000',
             'message_type' => 'nullable|string|in:text,image,file,system',
+            'mentioned_trip_id' => 'nullable|exists:published_trips,id',
         ];
     }
 

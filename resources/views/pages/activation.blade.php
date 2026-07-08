@@ -121,6 +121,26 @@
                         </div>
                     </div>
 
+                    <div style="padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-soft);">
+                        <div style="font-weight:700;margin-bottom:8px;">Activation duration</div>
+                        <div style="font-size:14px;color:var(--muted);">{{ $selectedUser->activation_duration_label }}</div>
+                        @if(!$selectedUser->is_permanent && !empty($selectedUser->activation_end_date))
+                            <div style="margin-top:6px;font-size:13px;color:var(--muted);">
+                                Active until {{ \Carbon\Carbon::parse($selectedUser->activation_end_date)->format('M d, Y') }}
+                            </div>
+                            <div style="margin-top:4px;font-size:13px;color:var(--muted);">
+                                @php
+                                    $daysLeft = now()->diffInDays(\Carbon\Carbon::parse($selectedUser->activation_end_date), false);
+                                @endphp
+                                @if($daysLeft >= 0)
+                                    {{ $daysLeft }} day{{ $daysLeft === 1 ? '' : 's' }} left
+                                @else
+                                    Expired
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+
                     <form method="POST" action="{{ route('activation.status', $selectedUser) }}" style="display:flex;flex-direction:column;gap:12px;">
                         @csrf
                         @method('PUT')
@@ -130,8 +150,32 @@
                                 <option value="active" {{ ($selectedUser->status ?? 'inactive') === 'active' ? 'selected' : '' }}>{{ __('admin.status_values.active') }}</option>
                                 <option value="inactive" {{ ($selectedUser->status ?? 'inactive') === 'inactive' ? 'selected' : '' }}>{{ __('admin.status_values.inactive') }}</option>
                                 <option value="blocked" {{ ($selectedUser->status ?? 'inactive') === 'blocked' ? 'selected' : '' }}>{{ __('admin.status_values.blocked') }}</option>
+                                <option value="expired" {{ ($selectedUser->status ?? 'inactive') === 'expired' ? 'selected' : '' }}>{{ __('admin.status_values.expired') }}</option>
+                                <option value="suspended" {{ ($selectedUser->status ?? 'inactive') === 'suspended' ? 'selected' : '' }}>{{ __('admin.status_values.suspended') }}</option>
                             </select>
                         </div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;">
+                            <div>
+                                <label>Months</label>
+                                <input type="number" name="months" min="0" max="60" value="0">
+                            </div>
+                            <div>
+                                <label>Years</label>
+                                <input type="number" name="years" min="0" max="10" value="0">
+                            </div>
+                            <div>
+                                <label>Custom end date</label>
+                                <input type="date" name="custom_end_date" value="">
+                            </div>
+                            <div>
+                                <label>Grace period</label>
+                                <input type="number" name="grace_period_days" min="1" max="30" value="7">
+                            </div>
+                        </div>
+                        <label style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" name="permanent" value="1">
+                            Permanent / unlimited activation
+                        </label>
                         <div style="color:var(--muted);font-size:13px;">{{ __('admin.activation.profile_help') }}</div>
                         <div class="modal-footer" style="padding:0;">
                             <button type="submit">{{ __('admin.activation.save_status') }}</button>

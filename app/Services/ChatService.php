@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\PublishedTrip;
 use App\Events\NewMessage;
 use Illuminate\Support\Facades\DB;
 
@@ -36,7 +37,7 @@ class ChatService
         return $conversation;
     }
 
-    public function sendMessage(Conversation $conversation, User $sender, string $messageText, string $messageType = 'text')
+    public function sendMessage(Conversation $conversation, User $sender, string $messageText, string $messageType = 'text', ?int $mentionedTripId = null)
     {
         return DB::transaction(function () use ($conversation, $sender, $messageText, $messageType) {
             $message = Message::create([
@@ -44,6 +45,7 @@ class ChatService
                 'sender_id' => $sender->id,
                 'body' => $messageText,
                 'message_type' => $messageType,
+                'mentioned_trip_id' => null,
                 'delivered_at' => now(),
             ]);
 
@@ -68,6 +70,38 @@ class ChatService
                         'message_id' => (string) $message->id,
                     ]
                 );
+            }
+
+            // Handle mentioned trip notifications
+            if ($mentionedTripId) {
+                try {
+                    $trip = PublishedTrip::find($mentionedTripId);
+                    if ($trip && $trip->user_id) {
+                        $tripOwner = User::find($trip->user_id);
+                        if ($tripOwner && $tripOwner->id !== $recipient?->id) {
+                            $this->mobileNotificationService->createForUser(
+                                $tripOwner,
+                                'You were mentioned',
+                                $sender->full_name . ' mentioned your trip #' . $trip->id,
+                                'trip_mention',
+                                'mention_sound.mp3',
+                                [
+                                    'published_trip_id' => (string) $trip->id,
+                                    'conversation_id' => (string) $conversation->id,
+                                    'message_id' => (string) $message->id,
+                                ]
+                            );
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // swallow; do not block message send for notification failures
+                }
+            }
+
+            // If mentioned_trip_id provided, update message record
+            if ($mentionedTripId) {
+                $message->mentioned_trip_id = $mentionedTripId;
+                $message->save();
             }
 
             return $message->load('sender');

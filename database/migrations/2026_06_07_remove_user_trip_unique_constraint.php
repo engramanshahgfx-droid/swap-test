@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -13,17 +13,28 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Ensure single-column indexes exist so foreign keys remain satisfied,
-        // then drop the composite unique index that prevented duplicate trips.
-        Schema::table('user_trips', function (Blueprint $table) {
-            $table->index('user_id');
-            $table->index('flight_id');
-        });
+        $indexes = DB::select('SHOW INDEX FROM user_trips');
+        $indexNames = array_map(fn ($row) => $row->Key_name, $indexes);
 
-        // Drop the unique constraint (use explicit name to be safe)
-        Schema::table('user_trips', function (Blueprint $table) {
-            $table->dropUnique('user_trips_user_id_flight_id_unique');
-        });
+        if (!in_array('user_trips_user_id_index', $indexNames, true)) {
+            Schema::table('user_trips', function (Blueprint $table) {
+                $table->index('user_id');
+            });
+        }
+
+        if (!in_array('user_trips_flight_id_index', $indexNames, true)) {
+            Schema::table('user_trips', function (Blueprint $table) {
+                $table->index('flight_id');
+            });
+        }
+
+        try {
+            Schema::table('user_trips', function (Blueprint $table) {
+                $table->dropUnique('user_trips_user_id_flight_id_unique');
+            });
+        } catch (\Throwable $e) {
+            // Ignore when the unique index is already absent.
+        }
     }
 
     /**

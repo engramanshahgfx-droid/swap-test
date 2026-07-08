@@ -132,6 +132,20 @@
     });
   }
 
+  /* ── Blog inline form ───────────────────────────────────── */
+  const openBlogBtn   = document.querySelector('.js-open-blog-form');
+  const cancelBlogBtn = document.querySelector('.js-cancel-blog-form');
+  const blogForm      = document.getElementById('create-blog-form');
+
+  if (openBlogBtn && blogForm) {
+    openBlogBtn.addEventListener('click', () => {
+      blogForm.style.display = blogForm.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+  if (cancelBlogBtn && blogForm) {
+    cancelBlogBtn.addEventListener('click', () => { blogForm.style.display = 'none'; });
+  }
+
   /* ── Positions inline form ──────────────────────────────── */
   const openPosBtn   = document.querySelector('.js-open-position-form');
   const cancelPosBtn = document.querySelector('.js-cancel-position-form');
@@ -202,6 +216,36 @@
     modal.querySelector('form').action = '/positions/' + id;
     openModal('edit-position-modal');
   };
+
+  window.editBlog = function (id, title, heading, description, isPublished) {
+    const modal = document.getElementById('edit-blog-modal');
+    if (!modal) return;
+
+    const form = modal.querySelector('form');
+    if (!form) return;
+
+    const titleInput = form.querySelector('[name="title"]');
+    const headingInput = form.querySelector('[name="heading"]');
+    const descriptionInput = form.querySelector('[name="description"]');
+    const publishedInput = form.querySelector('[name="is_published"]');
+
+    if (titleInput) titleInput.value = title || '';
+    if (headingInput) headingInput.value = heading || '';
+    if (descriptionInput) descriptionInput.value = description || '';
+    if (publishedInput) publishedInput.checked = Boolean(isPublished);
+
+    form.action = '/blogs/' + id;
+    openModal('edit-blog-modal');
+  };
+
+  const editBlogButtons = document.querySelectorAll('.js-edit-blog');
+  editBlogButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const blogData = button.dataset.blog ? JSON.parse(button.dataset.blog) : null;
+      if (!blogData) return;
+      window.editBlog(blogData.id, blogData.title, blogData.heading, blogData.description, blogData.is_published);
+    });
+  });
 
   /* ── Update status modals (swap / report / user) ─────────── */
   window.setSwapStatus = function (id, currentStatus) {

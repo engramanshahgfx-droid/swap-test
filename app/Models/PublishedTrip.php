@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\UserTrip;
 
 class PublishedTrip extends Model
 {
@@ -27,12 +28,16 @@ class PublishedTrip extends Model
         'ask_lo',
         'details',
         'image_path',
+        'allowed_swap_window',
+        'is_urgent',
     ];
 
     protected $casts = [
         'metadata' => 'array',
         'published_at' => 'datetime',
         'expires_at' => 'datetime',
+        'allowed_swap_window' => 'string',
+        'is_urgent' => 'boolean',
     ];
 
     public function user()
@@ -58,5 +63,31 @@ class PublishedTrip extends Model
     public function isAvailable()
     {
         return in_array($this->status, ['active', 'available'], true);
+    }
+
+    public function allowsSwapWith(UserTrip $requesterTrip): bool
+    {
+        $allowed = $this->allowed_swap_window ?? 'same_day';
+
+        $ownerDate = $this->flight?->departure_date;
+        $requesterDate = $requesterTrip->flight?->departure_date;
+
+        if (!$ownerDate || !$requesterDate) {
+            return false;
+        }
+
+        if ($allowed === 'any') {
+            return true;
+        }
+
+        if ($allowed === 'same_day') {
+            return $ownerDate->toDateString() === $requesterDate->toDateString();
+        }
+
+        if ($allowed === 'day_before') {
+            return $ownerDate->toDateString() === $requesterDate->toDateString() || $ownerDate->copy()->subDay()->toDateString() === $requesterDate->toDateString();
+        }
+
+        return false;
     }
 }

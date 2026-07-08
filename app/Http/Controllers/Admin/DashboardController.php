@@ -113,6 +113,14 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $expiringAccounts = User::query()
+            ->where('status', 'active')
+            ->whereNotNull('activation_end_date')
+            ->where('is_permanent', false)
+            ->where('activation_end_date', '<=', now()->addDays(30)->toDateString())
+            ->orderBy('activation_end_date')
+            ->get();
+
         $recent_reports = Report::with(['reporter', 'reportedUser'])
             ->latest()
             ->take(5)
@@ -144,7 +152,7 @@ class DashboardController extends Controller
         $users = User::with(['airline', 'planeType', 'position'])
             ->paginate(15);
 
-        return view('pages.dashboard', compact('stats', 'trends', 'dashboardData', 'recent_swaps', 'recent_reports', 'tripWidgetStats', 'recent_trips', 'users'));
+        return view('pages.dashboard', compact('stats', 'trends', 'dashboardData', 'recent_swaps', 'recent_reports', 'tripWidgetStats', 'recent_trips', 'users', 'expiringAccounts'));
     }
 
     private function compareCurrentToPreviousWeek(Builder $query): array
