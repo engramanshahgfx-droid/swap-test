@@ -445,6 +445,44 @@
       "name": "5. User Settings & Preferences",
       "item": [
         {
+          "name": "GET /user (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user",
+              "host": ["{{base_url}}"],
+              "path": ["user"]
+            }
+          },
+          "response": [
+            {
+              "name": "Profile visibility example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Accept", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/user",
+                  "host": ["{{base_url}}"],
+                  "path": ["user"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"phone_visibility\": false,\n    \"profile_visibility\": false,\n    \"roster_visibility\": false\n  }\n}",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ]
+            }
+          ]
+        },
+        {
           "name": "PUT /user/notification-settings (Authenticated)",
           "request": {
             "method": "PUT",
@@ -455,7 +493,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"swap_requests\": true,\n  \"messages\": true,\n  \"system_updates\": false\n}"
+              "raw": "{\n  \"friends_notification\": true,\n  \"not_friend_notification\": false,\n  \"matching_notification\": true\n}"
             },
             "url": {
               "raw": "{{base_url}}/user/notification-settings",
@@ -601,7 +639,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"flight_number\": \"SV123\",\n  \"departure\": \"RUH\",\n  \"arrival\": \"JED\",\n  \"date\": \"2026-12-31\",\n  \"position\": \"Captain\",\n  \"legs\": 2,\n  \"fly_type\": \"Turnaround\",\n  \"report_time\": \"06:45\",\n  \"offer_lo\": \"Yes\",\n  \"ask_lo\": [],\n  \"details\": \"Crew prefers same-day swap only\",\n  \"notes\": \"Ready to swap\",\n  \"swap_window\": \"day_before\",\n  \"is_urgent\": false,\n  \"expires_at\": \"2027-01-05T12:00:00Z\"\n}"
+              "raw": "{\n  \"card_id\": \"3241\",\n  \"offer_type\": \"standby\",\n  \"ask_type\": \"standby\",\n  \"offer_destination\": \"RUH\",\n  \"ask_destination\": \"RUH\",\n  \"route_type\": \"RT\",\n  \"willing_to_fly\": \"15,16,17,18,19,20\",\n  \"ask_dates\": [\"21\", \"22\", \"23\", \"24\", \"25\", \"26\", \"27\", \"28\", \"29\", \"30\", \"31\"],\n  \"ask_months\": [\"Oct\", \"Jan\", \"Jul\"],\n  \"layover_from\": \"15:50\",\n  \"layover_to\": \"50:00\",\n  \"excluded_trips\": [\"Des/Oct/Sep/Apr\"],\n  \"wanted_trips\": [\"Des/Oct/Sep\"]\n}"
             },
             "url": {
               "raw": "{{base_url}}/publish-trip",
@@ -633,7 +671,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"flight_number\": \"SV123\",\n  \"departure\": \"RUH\",\n  \"arrival\": \"LHR\",\n  \"date\": \"2027-01-01\",\n  \"details\": \"Updated trip details\",\n  \"is_urgent\": true\n}"
+              "raw": "{\n  \"card_id\": \"3241\",\n  \"offer_type\": \"flight\",\n  \"ask_type\": \"day_off\",\n  \"offer_destination\": \"RUH\",\n  \"ask_destination\": \"RUH\",\n  \"route_type\": \"RT\",\n  \"willing_to_fly\": \"15,16,17,18,19,20\",\n  \"ask_dates\": [\"21\", \"22\", \"23\"],\n  \"ask_months\": [\"Oct\", \"Jan\", \"Jul\"],\n  \"layover_from\": \"15:50\",\n  \"layover_to\": \"50:00\",\n  \"excluded_trips\": [\"Des/Oct/Sep/Apr\"],\n  \"wanted_trips\": [\"Des/Oct/Sep\"]\n}"
             },
             "url": {
               "raw": "{{base_url}}/publish-trip/{{published_trip_id}}",
@@ -656,6 +694,44 @@
               "path": ["publish-trip", "{{published_trip_id}}"]
             }
           }
+        },
+        {
+          "name": "GET /trip-details/{id} (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/trip-details/123",
+              "host": ["{{base_url}}"],
+              "path": ["trip-details", "123"]
+            }
+          },
+          "response": [
+            {
+              "name": "Trip details example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Accept", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/trip-details/123",
+                  "host": ["{{base_url}}"],
+                  "path": ["trip-details", "123"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 123,\n    \"card_id\": \"3241\",\n    \"user_id\": 10,\n    \"user_name\": \"Ahmed Mohammed\",\n    \"user_employee_id\": \"AD123456\",\n    \"flight_number\": \"SV123\",\n    \"departure\": \"RUH\",\n    \"arrival\": \"JED\",\n    \"date\": \"2026-03-01\",\n    \"departure_date\": \"2026-03-01\",\n    \"arrival_date\": \"2026-03-01\",\n    \"report_time\": \"19:50\",\n    \"legs\": 2,\n    \"fly_type\": \"Turnaround\",\n    \"offer_lo\": [{\"time\": \"15:50\", \"type\": \"Dom\"}],\n    \"ask_lo\": [{\"time\": \"50:00\", \"type\": \"Int\"}],\n    \"details\": \"Crew prefers same-day swap only\",\n    \"notes\": \"Ready to swap\",\n    \"image_url\": \"https://.../trip.jpg\",\n    \"status\": \"active\",\n    \"matching_percentage\": 40,\n    \"willing_to_fly\": \"15,16,17,18\",\n    \"created_at\": \"2026-07-12T10:00:00Z\"\n  }\n}",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ]
+            }
+          ]
         },
         {
           "name": "GET /browse-trips (Authenticated)",
@@ -848,7 +924,34 @@
                 { "key": "per_page", "value": "20" }
               ]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Conversation list example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Accept", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/chat/conversations?page=1&per_page=20",
+                  "host": ["{{base_url}}"],
+                  "path": ["chat", "conversations"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "per_page", "value": "20" }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [\n      {\n        \"id\": 500,\n        \"message_type\": \"trip_card\",\n        \"message\": \"Ahmed card\",\n        \"trip\": {\n          \"id\": 123,\n          \"card_id\": \"3241\",\n          \"departure\": \"RUH\",\n          \"arrival\": \"JED\",\n          \"date\": \"2026-03-01\"\n        },\n        \"mentioned_trip_id\": 123,\n        \"created_at\": \"2026-07-12T21:55:00Z\"\n      }\n    ]\n  }\n}",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ]
+            }
+          ]
         },
         {
           "name": "POST /chat/send (Authenticated)",
@@ -861,7 +964,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"receiver_id\": {{user_id}},\n  \"message\": \"Hello from Postman\",\n  \"message_type\": \"text\",\n  \"mentioned_trip_id\": {{published_trip_id}}\n}"
+              "raw": "{\n  \"receiver_id\": 1,\n  \"message\": \"Ahmed card\",\n  \"message_type\": \"trip_card\",\n  \"trip_id\": 123\n}"
             },
             "url": {
               "raw": "{{base_url}}/chat/send",
@@ -869,6 +972,44 @@
               "path": ["chat", "send"]
             }
           }
+        },
+        {
+          "name": "GET /chat/messages/{id} (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chat/messages/500",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "messages", "500"]
+            }
+          },
+          "response": [
+            {
+              "name": "Chat message example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Accept", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/chat/messages/500",
+                  "host": ["{{base_url}}"],
+                  "path": ["chat", "messages", "500"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 500,\n    \"message_type\": \"trip_card\",\n    \"message\": \"Ahmed card\",\n    \"trip\": {\n      \"id\": 123,\n      \"card_id\": \"3241\",\n      \"departure\": \"RUH\",\n      \"arrival\": \"JED\",\n      \"date\": \"2026-03-01\"\n    },\n    \"mentioned_trip_id\": 123,\n    \"created_at\": \"2026-07-12T21:55:00Z\"\n  }\n}",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ]
+            }
+          ]
         },
         {
           "name": "GET /chat/unread-count (Authenticated)",
