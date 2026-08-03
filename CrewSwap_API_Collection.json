@@ -6,17 +6,61 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://127.0.0.1:8000/api", "type": "string" },
-    { "key": "token", "value": "", "type": "string" },
-    { "key": "user_id", "value": "1", "type": "string" },
-    { "key": "trip_id", "value": "1", "type": "string" },
-    { "key": "published_trip_id", "value": "1", "type": "string" },
-    { "key": "swap_id", "value": "1", "type": "string" },
-    { "key": "conversation_id", "value": "1", "type": "string" },
-    { "key": "notification_id", "value": "1", "type": "string" },
-    { "key": "reset_token", "value": "", "type": "string" },
-    { "key": "biometric_code", "value": "1234", "type": "string" },
-    { "key": "plan_id", "value": "1", "type": "string" }
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "trip_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "published_trip_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "swap_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "conversation_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "reset_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "biometric_code",
+      "value": "1234",
+      "type": "string"
+    },
+    {
+      "key": "plan_id",
+      "value": "1",
+      "type": "string"
+    }
   ],
   "item": [
     {
@@ -27,8 +71,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -36,8 +86,12 @@
             },
             "url": {
               "raw": "{{base_url}}/simple-register",
-              "host": ["{{base_url}}"],
-              "path": ["simple-register"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "simple-register"
+              ]
             }
           },
           "event": [
@@ -59,8 +113,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -68,8 +128,12 @@
             },
             "url": {
               "raw": "{{base_url}}/simple-login",
-              "host": ["{{base_url}}"],
-              "path": ["simple-login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "simple-login"
+              ]
             }
           },
           "event": [
@@ -91,8 +155,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -100,8 +170,12 @@
             },
             "url": {
               "raw": "{{base_url}}/login",
-              "host": ["{{base_url}}"],
-              "path": ["login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
             }
           },
           "event": [
@@ -122,13 +196,23 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/logout",
-              "host": ["{{base_url}}"],
-              "path": ["logout"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "logout"
+              ]
             }
           }
         }
@@ -142,8 +226,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -151,8 +241,13 @@
             },
             "url": {
               "raw": "{{base_url}}/password/forgot",
-              "host": ["{{base_url}}"],
-              "path": ["password", "forgot"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "password",
+                "forgot"
+              ]
             }
           },
           "event": [
@@ -174,15 +269,29 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/password/validate-token?token={{reset_token}}&email=tester@crewswap.com",
-              "host": ["{{base_url}}"],
-              "path": ["password", "validate-token"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "password",
+                "validate-token"
+              ],
               "query": [
-                { "key": "token", "value": "{{reset_token}}" },
-                { "key": "email", "value": "tester@crewswap.com" }
+                {
+                  "key": "token",
+                  "value": "{{reset_token}}"
+                },
+                {
+                  "key": "email",
+                  "value": "tester@crewswap.com"
+                }
               ]
             }
           }
@@ -192,8 +301,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -201,8 +316,13 @@
             },
             "url": {
               "raw": "{{base_url}}/password/reset",
-              "host": ["{{base_url}}"],
-              "path": ["password", "reset"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "password",
+                "reset"
+              ]
             }
           }
         },
@@ -211,9 +331,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -221,8 +350,13 @@
             },
             "url": {
               "raw": "{{base_url}}/password/change",
-              "host": ["{{base_url}}"],
-              "path": ["password", "change"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "password",
+                "change"
+              ]
             }
           }
         }
@@ -236,9 +370,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -246,8 +389,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/setup-code",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "setup-code"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "setup-code"
+              ]
             }
           }
         },
@@ -256,8 +404,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -265,8 +419,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/login-code",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "login-code"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login-code"
+              ]
             }
           },
           "event": [
@@ -287,9 +446,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -297,8 +465,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/setup-faceid",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "setup-faceid"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "setup-faceid"
+              ]
             }
           }
         },
@@ -307,8 +480,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -316,8 +495,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/login-faceid",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "login-faceid"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login-faceid"
+              ]
             }
           }
         },
@@ -326,13 +510,24 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/auth/biometric-status",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "biometric-status"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "biometric-status"
+              ]
             }
           }
         },
@@ -341,13 +536,24 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/auth/disable-biometric",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "disable-biometric"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "disable-biometric"
+              ]
             }
           }
         }
@@ -361,12 +567,20 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/subscription/plans",
-              "host": ["{{base_url}}"],
-              "path": ["subscription", "plans"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "subscription",
+                "plans"
+              ]
             }
           }
         },
@@ -375,9 +589,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -385,8 +608,13 @@
             },
             "url": {
               "raw": "{{base_url}}/subscription/subscribe",
-              "host": ["{{base_url}}"],
-              "path": ["subscription", "subscribe"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "subscription",
+                "subscribe"
+              ]
             }
           }
         },
@@ -395,13 +623,24 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/subscription/status",
-              "host": ["{{base_url}}"],
-              "path": ["subscription", "status"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "subscription",
+                "status"
+              ]
             }
           }
         },
@@ -410,13 +649,24 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/subscription/cancel",
-              "host": ["{{base_url}}"],
-              "path": ["subscription", "cancel"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "subscription",
+                "cancel"
+              ]
             }
           }
         },
@@ -425,16 +675,33 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/payment/history?page=1&per_page=20",
-              "host": ["{{base_url}}"],
-              "path": ["payment", "history"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payment",
+                "history"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "per_page", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -449,13 +716,23 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/user",
-              "host": ["{{base_url}}"],
-              "path": ["user"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user"
+              ]
             }
           },
           "response": [
@@ -464,20 +741,33 @@
               "originalRequest": {
                 "method": "GET",
                 "header": [
-                  { "key": "Authorization", "value": "Bearer {{token}}" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
                 "url": {
                   "raw": "{{base_url}}/user",
-                  "host": ["{{base_url}}"],
-                  "path": ["user"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "user"
+                  ]
                 }
               },
               "status": "OK",
               "code": 200,
               "body": "{\n  \"success\": true,\n  \"data\": {\n    \"phone_visibility\": false,\n    \"profile_visibility\": false,\n    \"roster_visibility\": false\n  }\n}",
               "header": [
-                { "key": "Content-Type", "value": "application/json" }
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
               ]
             }
           ]
@@ -487,9 +777,18 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -497,8 +796,13 @@
             },
             "url": {
               "raw": "{{base_url}}/user/notification-settings",
-              "host": ["{{base_url}}"],
-              "path": ["user", "notification-settings"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "notification-settings"
+              ]
             }
           }
         },
@@ -507,9 +811,18 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -517,8 +830,13 @@
             },
             "url": {
               "raw": "{{base_url}}/user/privacy-settings",
-              "host": ["{{base_url}}"],
-              "path": ["user", "privacy-settings"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "privacy-settings"
+              ]
             }
           }
         },
@@ -527,13 +845,24 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/user/trip-preferences",
-              "host": ["{{base_url}}"],
-              "path": ["user", "trip-preferences"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "trip-preferences"
+              ]
             }
           }
         },
@@ -542,9 +871,18 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -552,8 +890,13 @@
             },
             "url": {
               "raw": "{{base_url}}/user/trip-preferences",
-              "host": ["{{base_url}}"],
-              "path": ["user", "trip-preferences"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "trip-preferences"
+              ]
             }
           }
         }
@@ -567,13 +910,23 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/favorites",
-              "host": ["{{base_url}}"],
-              "path": ["favorites"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites"
+              ]
             }
           }
         },
@@ -582,13 +935,24 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/favorites/{{published_trip_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["favorites", "{{published_trip_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites",
+                "{{published_trip_id}}"
+              ]
             }
           }
         },
@@ -597,13 +961,24 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/favorites/{{published_trip_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["favorites", "{{published_trip_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites",
+                "{{published_trip_id}}"
+              ]
             }
           }
         }
@@ -617,14 +992,29 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/my-trips?per_page=20",
-              "host": ["{{base_url}}"],
-              "path": ["my-trips"],
-              "query": [{ "key": "per_page", "value": "20" }]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "my-trips"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
             }
           }
         },
@@ -633,9 +1023,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -643,8 +1042,12 @@
             },
             "url": {
               "raw": "{{base_url}}/publish-trip",
-              "host": ["{{base_url}}"],
-              "path": ["publish-trip"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "publish-trip"
+              ]
             }
           },
           "event": [
@@ -665,9 +1068,18 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -675,8 +1087,13 @@
             },
             "url": {
               "raw": "{{base_url}}/publish-trip/{{published_trip_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["publish-trip", "{{published_trip_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "publish-trip",
+                "{{published_trip_id}}"
+              ]
             }
           }
         },
@@ -685,13 +1102,24 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/publish-trip/{{published_trip_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["publish-trip", "{{published_trip_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "publish-trip",
+                "{{published_trip_id}}"
+              ]
             }
           }
         },
@@ -700,13 +1128,24 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/trip-details/123",
-              "host": ["{{base_url}}"],
-              "path": ["trip-details", "123"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "trip-details",
+                "123"
+              ]
             }
           },
           "response": [
@@ -715,20 +1154,34 @@
               "originalRequest": {
                 "method": "GET",
                 "header": [
-                  { "key": "Authorization", "value": "Bearer {{token}}" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
                 "url": {
                   "raw": "{{base_url}}/trip-details/123",
-                  "host": ["{{base_url}}"],
-                  "path": ["trip-details", "123"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "trip-details",
+                    "123"
+                  ]
                 }
               },
               "status": "OK",
               "code": 200,
               "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 123,\n    \"card_id\": \"3241\",\n    \"user_id\": 10,\n    \"user_name\": \"Ahmed Mohammed\",\n    \"user_employee_id\": \"AD123456\",\n    \"flight_number\": \"SV123\",\n    \"departure\": \"RUH\",\n    \"arrival\": \"JED\",\n    \"date\": \"2026-03-01\",\n    \"departure_date\": \"2026-03-01\",\n    \"arrival_date\": \"2026-03-01\",\n    \"report_time\": \"19:50\",\n    \"legs\": 2,\n    \"fly_type\": \"Turnaround\",\n    \"offer_lo\": [{\"time\": \"15:50\", \"type\": \"Dom\"}],\n    \"ask_lo\": [{\"time\": \"50:00\", \"type\": \"Int\"}],\n    \"details\": \"Crew prefers same-day swap only\",\n    \"notes\": \"Ready to swap\",\n    \"image_url\": \"https://.../trip.jpg\",\n    \"status\": \"active\",\n    \"matching_percentage\": 40,\n    \"willing_to_fly\": \"15,16,17,18\",\n    \"created_at\": \"2026-07-12T10:00:00Z\"\n  }\n}",
               "header": [
-                { "key": "Content-Type", "value": "application/json" }
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
               ]
             }
           ]
@@ -738,17 +1191,36 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/browse-trips?page=1&per_page=20&is_urgent=true",
-              "host": ["{{base_url}}"],
-              "path": ["browse-trips"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "browse-trips"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "per_page", "value": "20" },
-                { "key": "is_urgent", "value": "true" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                },
+                {
+                  "key": "is_urgent",
+                  "value": "true"
+                }
               ]
             }
           }
@@ -758,9 +1230,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -768,8 +1249,12 @@
             },
             "url": {
               "raw": "{{base_url}}/request-swap",
-              "host": ["{{base_url}}"],
-              "path": ["request-swap"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "request-swap"
+              ]
             }
           },
           "event": [
@@ -790,13 +1275,24 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/confirm-swap/{{swap_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["confirm-swap", "{{swap_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "confirm-swap",
+                "{{swap_id}}"
+              ]
             }
           }
         },
@@ -805,9 +1301,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -815,8 +1320,13 @@
             },
             "url": {
               "raw": "{{base_url}}/reject-swap/{{swap_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["reject-swap", "{{swap_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reject-swap",
+                "{{swap_id}}"
+              ]
             }
           }
         },
@@ -825,16 +1335,32 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/swap-history?page=1&per_page=20",
-              "host": ["{{base_url}}"],
-              "path": ["swap-history"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "swap-history"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "per_page", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -849,9 +1375,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -859,8 +1394,12 @@
             },
             "url": {
               "raw": "{{base_url}}/publish-vacation",
-              "host": ["{{base_url}}"],
-              "path": ["publish-vacation"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "publish-vacation"
+              ]
             }
           }
         },
@@ -869,16 +1408,32 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/my-vacations?page=1&per_page=20",
-              "host": ["{{base_url}}"],
-              "path": ["my-vacations"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "my-vacations"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "per_page", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -888,16 +1443,32 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/browse-vacations?page=1&per_page=20",
-              "host": ["{{base_url}}"],
-              "path": ["browse-vacations"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "browse-vacations"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "per_page", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -912,16 +1483,33 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/chat/conversations?page=1&per_page=20",
-              "host": ["{{base_url}}"],
-              "path": ["chat", "conversations"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chat",
+                "conversations"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "per_page", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
               ]
             }
           },
@@ -931,16 +1519,33 @@
               "originalRequest": {
                 "method": "GET",
                 "header": [
-                  { "key": "Authorization", "value": "Bearer {{token}}" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
                 "url": {
                   "raw": "{{base_url}}/chat/conversations?page=1&per_page=20",
-                  "host": ["{{base_url}}"],
-                  "path": ["chat", "conversations"],
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "chat",
+                    "conversations"
+                  ],
                   "query": [
-                    { "key": "page", "value": "1" },
-                    { "key": "per_page", "value": "20" }
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "20"
+                    }
                   ]
                 }
               },
@@ -948,7 +1553,10 @@
               "code": 200,
               "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [\n      {\n        \"id\": 500,\n        \"message_type\": \"trip_card\",\n        \"message\": \"Ahmed card\",\n        \"trip\": {\n          \"id\": 123,\n          \"card_id\": \"3241\",\n          \"departure\": \"RUH\",\n          \"arrival\": \"JED\",\n          \"date\": \"2026-03-01\"\n        },\n        \"mentioned_trip_id\": 123,\n        \"created_at\": \"2026-07-12T21:55:00Z\"\n      }\n    ]\n  }\n}",
               "header": [
-                { "key": "Content-Type", "value": "application/json" }
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
               ]
             }
           ]
@@ -958,9 +1566,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -968,8 +1585,13 @@
             },
             "url": {
               "raw": "{{base_url}}/chat/send",
-              "host": ["{{base_url}}"],
-              "path": ["chat", "send"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chat",
+                "send"
+              ]
             }
           }
         },
@@ -978,13 +1600,25 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/chat/messages/500",
-              "host": ["{{base_url}}"],
-              "path": ["chat", "messages", "500"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chat",
+                "messages",
+                "500"
+              ]
             }
           },
           "response": [
@@ -993,20 +1627,35 @@
               "originalRequest": {
                 "method": "GET",
                 "header": [
-                  { "key": "Authorization", "value": "Bearer {{token}}" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
                 "url": {
                   "raw": "{{base_url}}/chat/messages/500",
-                  "host": ["{{base_url}}"],
-                  "path": ["chat", "messages", "500"]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "chat",
+                    "messages",
+                    "500"
+                  ]
                 }
               },
               "status": "OK",
               "code": 200,
               "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 500,\n    \"message_type\": \"trip_card\",\n    \"message\": \"Ahmed card\",\n    \"trip\": {\n      \"id\": 123,\n      \"card_id\": \"3241\",\n      \"departure\": \"RUH\",\n      \"arrival\": \"JED\",\n      \"date\": \"2026-03-01\"\n    },\n    \"mentioned_trip_id\": 123,\n    \"created_at\": \"2026-07-12T21:55:00Z\"\n  }\n}",
               "header": [
-                { "key": "Content-Type", "value": "application/json" }
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
               ]
             }
           ]
@@ -1016,13 +1665,24 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/chat/unread-count",
-              "host": ["{{base_url}}"],
-              "path": ["chat", "unread-count"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chat",
+                "unread-count"
+              ]
             }
           }
         },
@@ -1031,9 +1691,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1041,8 +1710,13 @@
             },
             "url": {
               "raw": "{{base_url}}/chat/mark-read",
-              "host": ["{{base_url}}"],
-              "path": ["chat", "mark-read"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "chat",
+                "mark-read"
+              ]
             }
           }
         }
@@ -1056,13 +1730,24 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/support/conversation",
-              "host": ["{{base_url}}"],
-              "path": ["support", "conversation"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "support",
+                "conversation"
+              ]
             }
           }
         },
@@ -1071,9 +1756,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1081,8 +1775,13 @@
             },
             "url": {
               "raw": "{{base_url}}/support/send-message",
-              "host": ["{{base_url}}"],
-              "path": ["support", "send-message"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "support",
+                "send-message"
+              ]
             }
           }
         },
@@ -1091,14 +1790,31 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/support/messages/{{conversation_id}}?per_page=50",
-              "host": ["{{base_url}}"],
-              "path": ["support", "messages", "{{conversation_id}}"],
-              "query": [{ "key": "per_page", "value": "50" }]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "support",
+                "messages",
+                "{{conversation_id}}"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "50"
+                }
+              ]
             }
           }
         }
@@ -1112,9 +1828,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1122,8 +1847,12 @@
             },
             "url": {
               "raw": "{{base_url}}/report-user",
-              "host": ["{{base_url}}"],
-              "path": ["report-user"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "report-user"
+              ]
             }
           }
         },
@@ -1132,14 +1861,29 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/notifications?per_page=20",
-              "host": ["{{base_url}}"],
-              "path": ["notifications"],
-              "query": [{ "key": "per_page", "value": "20" }]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
             }
           }
         },
@@ -1148,13 +1892,25 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/notifications/{{notification_id}}/read",
-              "host": ["{{base_url}}"],
-              "path": ["notifications", "{{notification_id}}", "read"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notification_id}}",
+                "read"
+              ]
             }
           }
         }
@@ -1168,13 +1924,24 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/dashboard/analytics",
-              "host": ["{{base_url}}"],
-              "path": ["dashboard", "analytics"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard",
+                "analytics"
+              ]
             }
           }
         },
@@ -1183,12 +1950,19 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/languages",
-              "host": ["{{base_url}}"],
-              "path": ["languages"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "languages"
+              ]
             }
           }
         },
@@ -1197,12 +1971,19 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" }
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/registration-options",
-              "host": ["{{base_url}}"],
-              "path": ["registration-options"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "registration-options"
+              ]
             }
           }
         }
