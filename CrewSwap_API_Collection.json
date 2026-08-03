@@ -60,6 +60,11 @@
       "key": "plan_id",
       "value": "1",
       "type": "string"
+    },
+    {
+      "key": "roster_id",
+      "value": "1",
+      "type": "string"
     }
   ],
   "item": [
@@ -1983,6 +1988,118 @@
               ],
               "path": [
                 "registration-options"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Roster Management",
+      "item": [
+        {
+          "name": "POST /roster/upload (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"month\": \"Aug\",\n  \"year\": 2026,\n  \"roster_text\": \"Line No. 1107 (JED Economy Cabin Attendant 9 Z) Aug. 2026\\n#032 REPORT AT 04.20Z\\nFR 0127 780 05.50 JED 11.55 CDG 06.05 LAYOVER CDG 26.00\\nSA 0126 780 13.55 CDG 19.40 JED 05.45\\n#057 REPORT AT 05.40Z\\nMO 0341 77H 07.10 JED 12.30 ALG 05.20 LAYOVER ALG 50.05\\nWE 0340 77D 14.35 ALG 19.35 JED 05.00\\n#061 REPORT AT 07.40Z\\nFR 0588 33R 09.10 JED 12.00 DXB 02.50\\nFR 0589 33R 13.30 DXB 16.25 JED 02.55\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roster/upload",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "upload"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.roster?.id) pm.collectionVariables.set('roster_id', String(json.data.roster.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /roster (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/roster?month=Aug&year=2026",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "Aug"
+                },
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /roster/{id} (Authenticated)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/roster/{{roster_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roster",
+                "{{roster_id}}"
               ]
             }
           }

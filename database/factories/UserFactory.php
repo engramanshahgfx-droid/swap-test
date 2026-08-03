@@ -23,8 +23,18 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $airline = \App\Models\Airline::firstOrCreate(['code' => 'SV'], ['name' => 'Saudia']);
+        $planeType = \App\Models\PlaneType::firstOrCreate(['code' => 'B777'], ['name' => 'Boeing 777', 'airline_id' => $airline->id]);
+        $position = \App\Models\Position::firstOrCreate(['slug' => 'cabin-attendant'], ['name' => 'Cabin Attendant']);
+
         return [
-            'name' => fake()->name(),
+            'full_name' => fake()->name(),
+            'employee_id' => 'AD' . fake()->unique()->numberBetween(100000, 999999),
+            'phone' => fake()->unique()->phoneNumber(),
+            'country_base' => 'JED',
+            'airline_id' => $airline->id,
+            'plane_type_id' => $planeType->id,
+            'position_id' => $position->id,
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),

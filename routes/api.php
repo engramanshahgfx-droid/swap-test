@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\BiometricAuthController;
 use App\Http\Controllers\Api\TripPreferencesController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\UserSettingsController;
+use App\Http\Controllers\Api\RosterController;
 use App\Http\Controllers\Api\BlogController as ApiBlogController;
 use Illuminate\Support\Facades\Route;
 
@@ -159,5 +160,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Dashboard analytics
     Route::get('/dashboard/analytics', [AnalyticsController::class, 'index']);
+
+    // Roster Management
+    Route::post('/roster/upload', [RosterController::class, 'uploadRoster']);
+    Route::get('/roster', [RosterController::class, 'getRoster']);
+    Route::delete('/roster/{id}', [RosterController::class, 'deleteRoster']);
 });
 

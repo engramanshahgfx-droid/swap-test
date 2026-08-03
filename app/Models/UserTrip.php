@@ -14,6 +14,14 @@ class UserTrip extends Model
     protected $fillable = [
         'user_id',
         'flight_id',
+        'user_roster_id',
+        'pairing_number',
+        'duty_type',
+        'report_time',
+        'release_time',
+        'layover_location',
+        'layover_duration',
+        'legs',
         'status',
         'role',
         'notes',
@@ -21,6 +29,7 @@ class UserTrip extends Model
 
     protected $casts = [
         'status' => 'string',
+        'legs' => 'array',
     ];
 
     public function user()
@@ -31,6 +40,11 @@ class UserTrip extends Model
     public function flight()
     {
         return $this->belongsTo(Flight::class);
+    }
+
+    public function roster()
+    {
+        return $this->belongsTo(UserRoster::class, 'user_roster_id');
     }
 
     public function publishedTrips()

@@ -13,27 +13,29 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $indexes = DB::select('SHOW INDEX FROM user_trips');
-        $indexNames = array_map(fn ($row) => $row->Key_name, $indexes);
+        if (DB::getDriverName() === 'mysql') {
+            $indexes = DB::select('SHOW INDEX FROM user_trips');
+            $indexNames = array_map(fn ($row) => $row->Key_name, $indexes);
 
-        if (!in_array('user_trips_user_id_index', $indexNames, true)) {
-            Schema::table('user_trips', function (Blueprint $table) {
-                $table->index('user_id');
-            });
-        }
+            if (!in_array('user_trips_user_id_index', $indexNames, true)) {
+                Schema::table('user_trips', function (Blueprint $table) {
+                    $table->index('user_id');
+                });
+            }
 
-        if (!in_array('user_trips_flight_id_index', $indexNames, true)) {
-            Schema::table('user_trips', function (Blueprint $table) {
-                $table->index('flight_id');
-            });
-        }
+            if (!in_array('user_trips_flight_id_index', $indexNames, true)) {
+                Schema::table('user_trips', function (Blueprint $table) {
+                    $table->index('flight_id');
+                });
+            }
 
-        try {
-            Schema::table('user_trips', function (Blueprint $table) {
-                $table->dropUnique('user_trips_user_id_flight_id_unique');
-            });
-        } catch (\Throwable $e) {
-            // Ignore when the unique index is already absent.
+            try {
+                Schema::table('user_trips', function (Blueprint $table) {
+                    $table->dropUnique('user_trips_user_id_flight_id_unique');
+                });
+            } catch (\Throwable $e) {
+                // Ignore when the unique index is already absent.
+            }
         }
     }
 
