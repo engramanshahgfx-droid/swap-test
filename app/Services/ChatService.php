@@ -54,22 +54,30 @@ class ChatService
                 'last_message_at' => now(),
             ]);
 
-            // Broadcast event for real-time messaging
-            broadcast(new NewMessage($message))->toOthers();
+            // Broadcast event for real-time messaging safely
+            try {
+                broadcast(new NewMessage($message))->toOthers();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Chat broadcast failed: ' . $e->getMessage());
+            }
 
             $recipient = $conversation->getOtherParticipant($sender->id);
             if ($recipient) {
-                $this->mobileNotificationService->createForUser(
-                    $recipient,
-                    'New Message',
-                    $sender->full_name . ': ' . mb_substr($messageText, 0, 120),
-                    'chat',
-                    'chat_message_sound.mp3',
-                    [
-                        'conversation_id' => (string) $conversation->id,
-                        'message_id' => (string) $message->id,
-                    ]
-                );
+                try {
+                    $this->mobileNotificationService->createForUser(
+                        $recipient,
+                        'New Message',
+                        $sender->full_name . ': ' . mb_substr($messageText, 0, 120),
+                        'chat',
+                        'chat_message_sound.mp3',
+                        [
+                            'conversation_id' => (string) $conversation->id,
+                            'message_id' => (string) $message->id,
+                        ]
+                    );
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Chat mobile notification failed: ' . $e->getMessage());
+                }
             }
 
             // Handle mentioned trip notifications

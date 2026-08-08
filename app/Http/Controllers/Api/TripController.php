@@ -1749,6 +1749,7 @@ class TripController extends Controller
                     'details' => $publishedTrip->details,
                     'image_url' => $publishedTrip->image_path ? Storage::url($publishedTrip->image_path) : null,
                     'notes' => $publishedTrip->notes,
+                    'same_roster' => true,
                 ],
             ], 201);
         } catch (Throwable $exception) {
@@ -1766,4 +1767,105 @@ class TripController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get matching trip results for a specified trip ID.
+     */
+    public function matchingResults(Request $request, $id)
+    {
+        $user = $request->user();
+
+        // Target trip can be a UserTrip or PublishedTrip
+        $userTrip = UserTrip::with('flight')->find($id);
+        $publishedTrip = PublishedTrip::with('flight')->find($id);
+
+        if (!$userTrip && !$publishedTrip) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Trip not found.',
+            ], 404);
+        }
+
+        $targetFlight = $userTrip?->flight ?: $publishedTrip?->flight;
+        $targetUserId = $userTrip?->user_id ?: $publishedTrip?->user_id;
+
+        // Retrieve active candidate published trips from other users
+        $candidates = PublishedTrip::where('status', 'available')
+            ->where('user_id', '!=', $user->id)
+            ->with(['user.airline', 'user.position', 'flight'])
+            ->latest()
+            ->take(50)
+            ->get()
+            ->map(function ($item) use ($user, $targetFlight) {
+                $itemFlight = $item->flight;
+                $candidateUser = $item->user;
+
+                // Compute matching score
+                $score = 50; // base score
+
+                if ($targetFlight && $itemFlight) {
+                    if ($targetFlight->airline_id === $itemFlight->airline_id) {
+                        $score += 15;
+                    }
+                    if ($targetFlight->departure_airport === $itemFlight->arrival_airport && $targetFlight->arrival_airport === $itemFlight->departure_airport) {
+                        $score += 20; // reciprocal route match
+                    } elseif ($targetFlight->departure_airport === $itemFlight->departure_airport) {
+                        $score += 10;
+                    }
+                    if ($targetFlight->departure_date && $itemFlight->departure_date) {
+                        $diffInDays = abs($targetFlight->departure_date->diffInDays($itemFlight->departure_date));
+                        if ($diffInDays === 0) {
+                            $score += 15;
+                        } elseif ($diffInDays <= 2) {
+                            $score += 10;
+                        }
+                    }
+                }
+
+                $matchingPercentage = min(100, max(30, $score));
+                $sameRoster = $candidateUser ? $user->sharesRosterWith($candidateUser) : false;
+                $isFriend = $candidateUser ? $user->isFriendWith($candidateUser) : false;
+
+                return [
+                    'id' => $item->id,
+                    'published_trip_id' => $item->id,
+                    'user_id' => $candidateUser?->id,
+                    'user_name' => $candidateUser?->full_name,
+                    'user_employee_id' => $candidateUser?->employee_id,
+                    'card_id' => (string) $item->id,
+                    'flight_number' => $item->flight_number ?: $itemFlight?->flight_number,
+                    'departure' => $itemFlight?->departure_airport,
+                    'arrival' => $itemFlight?->arrival_airport,
+                    'date' => $itemFlight?->departure_date ? $itemFlight->departure_date->format('Y-m-d') : null,
+                    'departure_date' => $itemFlight?->departure_date ? $itemFlight->departure_date->format('Y-m-d') : null,
+                    'arrival_date' => $itemFlight?->arrival_date ? $itemFlight->arrival_date->format('Y-m-d') : null,
+                    'report_time' => $item->report_time,
+                    'legs' => $item->legs,
+                    'fly_type' => $item->fly_type,
+                    'offer_lo' => $this->parseOfferLo($item->offer_lo),
+                    'ask_lo' => $this->parseAskLo($item->ask_lo),
+                    'details' => $item->details,
+                    'notes' => $item->notes,
+                    'image_url' => $item->image_path ? Storage::url($item->image_path) : null,
+                    'status' => $item->status,
+                    'matching_percentage' => $matchingPercentage,
+                    'same_roster' => $sameRoster,
+                    'is_friend' => $isFriend,
+                    'created_at' => $item->created_at,
+                ];
+            })
+            ->sortByDesc('matching_percentage')
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'target_trip_id' => (int) $id,
+                'total_matches' => $candidates->count(),
+                'matching_results' => $candidates,
+                'items' => $candidates,
+            ],
+        ]);
+    }
 }
+

@@ -28,5 +28,23 @@ class SendMessageRequest extends FormRequest
         if ($this->isJson()) {
             $this->merge($this->json()->all());
         }
+
+        $message = $this->input('message') ?? $this->input('text') ?? $this->input('body');
+        $targetUser = $this->input('receiver_id') ?? $this->input('recipient_id') ?? $this->input('user_id');
+
+        $updates = [];
+        if ($message !== null && !$this->has('message')) {
+            $updates['message'] = $message;
+        }
+        if ($targetUser !== null && !$this->has('receiver_id')) {
+            $updates['receiver_id'] = $targetUser;
+        }
+        if ($targetUser !== null && !$this->has('recipient_id')) {
+            $updates['recipient_id'] = $targetUser;
+        }
+
+        if (!empty($updates)) {
+            $this->merge($updates);
+        }
     }
 }

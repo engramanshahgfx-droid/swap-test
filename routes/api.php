@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\TripPreferencesController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\UserSettingsController;
 use App\Http\Controllers\Api\RosterController;
+use App\Http\Controllers\Api\SubscriptionController;
+use App\Http\Controllers\Api\FriendController;
 use App\Http\Controllers\Api\BlogController as ApiBlogController;
 use Illuminate\Support\Facades\Route;
 
@@ -165,5 +167,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/roster/upload', [RosterController::class, 'uploadRoster']);
     Route::get('/roster', [RosterController::class, 'getRoster']);
     Route::delete('/roster/{id}', [RosterController::class, 'deleteRoster']);
+
+    // Trip Matching Results
+    Route::get('/trips/{id}/matching-results', [TripController::class, 'matchingResults']);
+    Route::get('/my-trips/{id}/matching-results', [TripController::class, 'matchingResults']);
+    Route::get('/published-trips/{id}/matching-results', [TripController::class, 'matchingResults']);
+
+    // Subscription Plans
+    Route::get('/subscription/plans', [SubscriptionController::class, 'index']);
+    Route::get('/subscriptions/plans', [SubscriptionController::class, 'index']);
+    Route::get('/subscription-plans', [SubscriptionController::class, 'index']);
+    Route::get('/subscriptions', [SubscriptionController::class, 'index']);
+
+    // Friends Management
+    Route::get('/friends', [FriendController::class, 'index']);
+    Route::post('/friends/add', [FriendController::class, 'addFriend']);
+    Route::post('/friends/{userId}', [FriendController::class, 'addFriend']);
+    Route::post('/users/{userId}/friend', [FriendController::class, 'addFriend']);
+    Route::post('/toggle-friend', [FriendController::class, 'toggleFriend']);
+    Route::post('/toggle-friend/{userId}', [FriendController::class, 'toggleFriend']);
+    Route::delete('/friends/{userId}', [FriendController::class, 'removeFriend']);
 });
 

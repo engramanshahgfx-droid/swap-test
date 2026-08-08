@@ -184,6 +184,62 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Report::class, 'reported_user_id');
     }
 
+    public function friends()
+    {
+        return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
+
+    public function isFriendWith($targetUserOrId): bool
+    {
+        $targetId = $targetUserOrId instanceof User ? $targetUserOrId->id : (int) $targetUserOrId;
+
+        if ($this->id === $targetId) {
+            return false;
+        }
+
+        return \App\Models\Friend::where(function ($q) use ($targetId) {
+            $q->where('user_id', $this->id)->where('friend_id', $targetId);
+        })->orWhere(function ($q) use ($targetId) {
+            $q->where('user_id', $targetId)->where('friend_id', $this->id);
+        })->where('status', 'accepted')->exists();
+    }
+
+    public function sharesRosterWith($targetUserOrId): bool
+    {
+        $targetId = $targetUserOrId instanceof User ? $targetUserOrId->id : (int) $targetUserOrId;
+
+        if ($this->id === $targetId) {
+            return true;
+        }
+
+        // Check if both users share the same airline
+        $targetUser = $targetUserOrId instanceof User ? $targetUserOrId : User::find($targetId);
+        if (!$targetUser || ($this->airline_id && $targetUser->airline_id && $this->airline_id !== $targetUser->airline_id)) {
+            return false;
+        }
+
+        // Check if both users uploaded rosters for the same month/year
+        $myRosters = \App\Models\UserRoster::where('user_id', $this->id)->select('month', 'year')->get();
+        if ($myRosters->isEmpty()) {
+            return false;
+        }
+
+        foreach ($myRosters as $myRoster) {
+            $matchingRoster = \App\Models\UserRoster::where('user_id', $targetId)
+                ->where('month', $myRoster->month)
+                ->where('year', $myRoster->year)
+                ->exists();
+
+            if ($matchingRoster) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function generateOtp()
     {
         $this->otp_code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);

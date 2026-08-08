@@ -72,53 +72,77 @@ class ChatController extends Controller
 
     public function sendMessage(SendMessageRequest $request)
     {
-        $user = $request->user();
-        $messageType = $request->input('message_type', 'text');
+        try {
+            $user = $request->user();
+            $messageType = $request->input('message_type', 'text');
 
-        // Get conversation - either by ID or by recipient
-        if ($request->conversation_id) {
-            $conversation = Conversation::findOrFail($request->conversation_id);
+            // Get conversation - either by ID or by recipient
+            if ($request->conversation_id) {
+                $conversation = Conversation::find($request->conversation_id);
+                if (!$conversation) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Conversation not found.',
+                    ], 404);
+                }
 
-            // Check if user is part of this conversation
-            if ($conversation->user_one_id !== $user->id &&
-                $conversation->user_two_id !== $user->id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => __('messages.unauthorized'),
-                ], 403);
+                // Check if user is part of this conversation
+                if ($conversation->user_one_id !== $user->id &&
+                    $conversation->user_two_id !== $user->id) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => __('messages.unauthorized'),
+                    ], 403);
+                }
+            } else {
+                $recipientId = $request->recipient_id ?? ($request->receiver_id ?? $request->user_id);
+                $recipient = User::find($recipientId);
+                if (!$recipient) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Recipient user not found.',
+                    ], 404);
+                }
+                $conversation = $this->chatService->getOrCreateConversation($user, $recipient);
             }
-        } else {
-            $recipientId = $request->recipient_id ?? $request->receiver_id;
-            $recipient = User::findOrFail($recipientId);
-            $conversation = $this->chatService->getOrCreateConversation($user, $recipient);
+
+            // Send message
+            $messageText = $request->message ?? ($request->text ?? $request->body);
+            $message = $this->chatService->sendMessage(
+                $conversation,
+                $user,
+                $messageText,
+                $messageType,
+                $request->input('mentioned_trip_id')
+            );
+
+            $receiverId = $conversation->user_one_id === $user->id
+                ? $conversation->user_two_id
+                : $conversation->user_one_id;
+
+            return response()->json([
+                'success' => true,
+                'message' => __('messages.message_sent'),
+                'data' => [
+                    'message_id' => $message->id,
+                    'sender_id' => $message->sender_id,
+                    'receiver_id' => $receiverId,
+                    'message' => $message->body,
+                    'message_type' => $message->message_type ?? 'text',
+                    'delivery_status' => $message->read_at ? 'read' : 'delivered',
+                    'created_at' => $message->created_at,
+                ],
+            ], 201);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Chat sendMessage error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send message: ' . $e->getMessage(),
+            ], 500);
         }
-
-        // Send message
-        $message = $this->chatService->sendMessage(
-            $conversation,
-            $user,
-            $request->message,
-            $messageType,
-            $request->input('mentioned_trip_id')
-        );
-
-        $receiverId = $conversation->user_one_id === $user->id
-            ? $conversation->user_two_id
-            : $conversation->user_one_id;
-
-        return response()->json([
-            'success' => true,
-            'message' => __('messages.message_sent'),
-            'data' => [
-                'message_id' => $message->id,
-                'sender_id' => $message->sender_id,
-                'receiver_id' => $receiverId,
-                'message' => $message->body,
-                'message_type' => $message->message_type ?? 'text',
-                'delivery_status' => $message->read_at ? 'read' : 'delivered',
-                'created_at' => $message->created_at,
-            ],
-        ], 201);
     }
 
     public function markAsRead(Request $request, $conversationId)
