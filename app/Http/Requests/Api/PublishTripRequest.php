@@ -72,8 +72,8 @@ class PublishTripRequest extends FormRequest
 
         return [
             'flight_number' => 'nullable|string|max:20',
-            'departure' => $isUpdate ? 'nullable|string|min:2|max:3' : 'required|string|min:2|max:3',
-            'arrival' => $isUpdate ? 'nullable|string|min:2|max:3' : 'required|string|min:2|max:3',
+            'departure' => $isUpdate ? 'nullable|string|min:2|max:100' : 'required|string|min:2|max:100',
+            'arrival' => $isUpdate ? 'nullable|string|min:2|max:100' : 'required|string|min:2|max:100',
             'date' => 'nullable|date|after_or_equal:today',
             'departure_date' => $isUpdate ? 'nullable|date|after_or_equal:today' : 'required_without:date|date|after_or_equal:today',
             'arrival_date' => 'nullable|date',

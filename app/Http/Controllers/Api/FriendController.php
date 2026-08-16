@@ -55,7 +55,15 @@ class FriendController extends Controller
     public function addFriend(Request $request, $userId = null)
     {
         $user = $request->user();
-        $targetId = $userId ?: ($request->input('user_id') ?: ($request->input('friend_id') ?: $request->input('target_id')));
+        $targetId = $userId
+            ?: ($request->input('user_id')
+            ?: ($request->input('userId')
+            ?: ($request->input('friend_id')
+            ?: ($request->input('friendId')
+            ?: ($request->input('target_id')
+            ?: ($request->input('targetId')
+            ?: ($request->input('id')
+            ?: $request->input('user'))))))));
 
         if (!$targetId) {
             return response()->json([
@@ -79,10 +87,12 @@ class FriendController extends Controller
             ], 422);
         }
 
-        $existing = Friend::where(function ($q) use ($user, $targetId) {
-            $q->where('user_id', $user->id)->where('friend_id', $targetId);
-        })->orWhere(function ($q) use ($user, $targetId) {
-            $q->where('user_id', $targetId)->where('friend_id', $user->id);
+        $existing = Friend::where(function ($query) use ($user, $targetId) {
+            $query->where(function ($q) use ($user, $targetId) {
+                $q->where('user_id', $user->id)->where('friend_id', $targetId);
+            })->orWhere(function ($q) use ($user, $targetId) {
+                $q->where('user_id', $targetId)->where('friend_id', $user->id);
+            });
         })->first();
 
         if ($existing) {
@@ -115,7 +125,15 @@ class FriendController extends Controller
     public function toggleFriend(Request $request, $userId = null)
     {
         $user = $request->user();
-        $targetId = $userId ?: ($request->input('user_id') ?: ($request->input('friend_id') ?: $request->input('target_id')));
+        $targetId = $userId
+            ?: ($request->input('user_id')
+            ?: ($request->input('userId')
+            ?: ($request->input('friend_id')
+            ?: ($request->input('friendId')
+            ?: ($request->input('target_id')
+            ?: ($request->input('targetId')
+            ?: ($request->input('id')
+            ?: $request->input('user'))))))));
 
         if (!$targetId) {
             return response()->json([
@@ -139,10 +157,12 @@ class FriendController extends Controller
             ], 422);
         }
 
-        $existing = Friend::where(function ($q) use ($user, $targetId) {
-            $q->where('user_id', $user->id)->where('friend_id', $targetId);
-        })->orWhere(function ($q) use ($user, $targetId) {
-            $q->where('user_id', $targetId)->where('friend_id', $user->id);
+        $existing = Friend::where(function ($query) use ($user, $targetId) {
+            $query->where(function ($q) use ($user, $targetId) {
+                $q->where('user_id', $user->id)->where('friend_id', $targetId);
+            })->orWhere(function ($q) use ($user, $targetId) {
+                $q->where('user_id', $targetId)->where('friend_id', $user->id);
+            });
         })->first();
 
         if ($existing && $existing->status === 'accepted') {
@@ -180,14 +200,32 @@ class FriendController extends Controller
     /**
      * Remove friend.
      */
-    public function removeFriend(Request $request, $userId)
+    public function removeFriend(Request $request, $userId = null)
     {
         $user = $request->user();
+        $targetId = $userId
+            ?: ($request->input('user_id')
+            ?: ($request->input('userId')
+            ?: ($request->input('friend_id')
+            ?: ($request->input('friendId')
+            ?: ($request->input('target_id')
+            ?: ($request->input('targetId')
+            ?: ($request->input('id')
+            ?: $request->input('user'))))))));
 
-        Friend::where(function ($q) use ($user, $userId) {
-            $q->where('user_id', $user->id)->where('friend_id', $userId);
-        })->orWhere(function ($q) use ($user, $userId) {
-            $q->where('user_id', $userId)->where('friend_id', $user->id);
+        if (!$targetId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User ID is required.',
+            ], 422);
+        }
+
+        Friend::where(function ($query) use ($user, $targetId) {
+            $query->where(function ($q) use ($user, $targetId) {
+                $q->where('user_id', $user->id)->where('friend_id', $targetId);
+            })->orWhere(function ($q) use ($user, $targetId) {
+                $q->where('user_id', $targetId)->where('friend_id', $user->id);
+            });
         })->delete();
 
         return response()->json([

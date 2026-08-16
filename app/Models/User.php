@@ -199,10 +199,12 @@ class User extends Authenticatable implements FilamentUser
             return false;
         }
 
-        return \App\Models\Friend::where(function ($q) use ($targetId) {
-            $q->where('user_id', $this->id)->where('friend_id', $targetId);
-        })->orWhere(function ($q) use ($targetId) {
-            $q->where('user_id', $targetId)->where('friend_id', $this->id);
+        return \App\Models\Friend::where(function ($query) use ($targetId) {
+            $query->where(function ($q) use ($targetId) {
+                $q->where('user_id', $this->id)->where('friend_id', $targetId);
+            })->orWhere(function ($q) use ($targetId) {
+                $q->where('user_id', $targetId)->where('friend_id', $this->id);
+            });
         })->where('status', 'accepted')->exists();
     }
 

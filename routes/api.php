@@ -60,6 +60,12 @@ Route::get('/password/validate-token', [PasswordResetController::class, 'validat
 Route::post('/auth/login-code', [BiometricAuthController::class, 'loginWithCode']);
 Route::post('/auth/login-faceid', [BiometricAuthController::class, 'loginWithFaceId']);
 
+// Subscription Plans (Public)
+Route::get('/subscription/plans', [SubscriptionController::class, 'index']);
+Route::get('/subscriptions/plans', [SubscriptionController::class, 'index']);
+Route::get('/subscription-plans', [SubscriptionController::class, 'index']);
+Route::get('/subscriptions', [SubscriptionController::class, 'index']);
+
 // ==================== PROTECTED ROUTES ====================
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -170,14 +176,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Trip Matching Results
     Route::get('/trips/{id}/matching-results', [TripController::class, 'matchingResults']);
+    Route::get('/trip/{id}/matching-results', [TripController::class, 'matchingResults']);
     Route::get('/my-trips/{id}/matching-results', [TripController::class, 'matchingResults']);
     Route::get('/published-trips/{id}/matching-results', [TripController::class, 'matchingResults']);
-
-    // Subscription Plans
-    Route::get('/subscription/plans', [SubscriptionController::class, 'index']);
-    Route::get('/subscriptions/plans', [SubscriptionController::class, 'index']);
-    Route::get('/subscription-plans', [SubscriptionController::class, 'index']);
-    Route::get('/subscriptions', [SubscriptionController::class, 'index']);
+    Route::get('/trips/matching-results/{id}', [TripController::class, 'matchingResults']);
+    Route::get('/matching-results/{id}', [TripController::class, 'matchingResults']);
 
     // Friends Management
     Route::get('/friends', [FriendController::class, 'index']);
@@ -186,6 +189,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users/{userId}/friend', [FriendController::class, 'addFriend']);
     Route::post('/toggle-friend', [FriendController::class, 'toggleFriend']);
     Route::post('/toggle-friend/{userId}', [FriendController::class, 'toggleFriend']);
+    Route::post('/friends/toggle', [FriendController::class, 'toggleFriend']);
+    Route::post('/friends/toggle/{userId}', [FriendController::class, 'toggleFriend']);
+    Route::post('/friends/remove/{userId}', [FriendController::class, 'removeFriend']);
     Route::delete('/friends/{userId}', [FriendController::class, 'removeFriend']);
 });
 

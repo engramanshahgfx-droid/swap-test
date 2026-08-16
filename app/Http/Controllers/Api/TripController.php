@@ -483,8 +483,8 @@ class TripController extends Controller
                 'string',
                 'max:20',
             ],
-            'departure' => 'nullable|string|min:2|max:3',
-            'arrival' => 'nullable|string|min:2|max:3',
+            'departure' => 'nullable|string|min:2|max:100',
+            'arrival' => 'nullable|string|min:2|max:100',
             'departure_date' => 'nullable|date',
             'arrival_date' => 'nullable|date',
             'departure_time' => 'nullable|string|max:50',
@@ -1402,8 +1402,8 @@ class TripController extends Controller
 
         $validated = $request->validate([
             'flight_number' => 'required|string|max:20',
-            'departure' => 'required|string|min:2|max:3',
-            'arrival' => 'required|string|min:2|max:3',
+            'departure' => 'required|string|min:2|max:100',
+            'arrival' => 'required|string|min:2|max:100',
             'date' => 'required|date|after_or_equal:today',
             'arrival_date' => 'nullable|date|after_or_equal:date',
             'departure_time' => 'nullable|string|max:50',

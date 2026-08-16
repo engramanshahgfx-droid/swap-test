@@ -39,7 +39,7 @@ class ChatService
 
     public function sendMessage(Conversation $conversation, User $sender, string $messageText, string $messageType = 'text', ?int $mentionedTripId = null)
     {
-        return DB::transaction(function () use ($conversation, $sender, $messageText, $messageType) {
+        return DB::transaction(function () use ($conversation, $sender, $messageText, $messageType, $mentionedTripId) {
             $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender_id' => $sender->id,

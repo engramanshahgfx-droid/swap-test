@@ -14,12 +14,13 @@ class SendMessageRequest extends FormRequest
     public function rules()
     {
         return [
-            'recipient_id' => 'required_without_all:conversation_id,receiver_id|exists:users,id',
-            'receiver_id' => 'required_without_all:conversation_id,recipient_id|exists:users,id',
-            'conversation_id' => 'required_without_all:recipient_id,receiver_id|exists:conversations,id',
-            'message' => 'required|string|max:1000',
+            'recipient_id' => 'required_without_all:conversation_id,receiver_id,user_id,to_user_id,target_id|nullable|exists:users,id',
+            'receiver_id' => 'required_without_all:conversation_id,recipient_id,user_id,to_user_id,target_id|nullable|exists:users,id',
+            'user_id' => 'nullable|exists:users,id',
+            'conversation_id' => 'required_without_all:recipient_id,receiver_id,user_id,to_user_id,target_id|nullable|exists:conversations,id',
+            'message' => 'required|string|max:2000',
             'message_type' => 'nullable|string|in:text,image,file,system',
-            'mentioned_trip_id' => 'nullable|exists:published_trips,id',
+            'mentioned_trip_id' => 'nullable|integer',
         ];
     }
 
@@ -29,18 +30,23 @@ class SendMessageRequest extends FormRequest
             $this->merge($this->json()->all());
         }
 
-        $message = $this->input('message') ?? $this->input('text') ?? $this->input('body');
-        $targetUser = $this->input('receiver_id') ?? $this->input('recipient_id') ?? $this->input('user_id');
+        $message = $this->input('message') ?? $this->input('text') ?? $this->input('body') ?? $this->input('content') ?? $this->input('msg');
+        $targetUser = $this->input('receiver_id') ?? $this->input('recipient_id') ?? $this->input('user_id') ?? $this->input('to_user_id') ?? $this->input('target_id');
 
         $updates = [];
         if ($message !== null && !$this->has('message')) {
-            $updates['message'] = $message;
+            $updates['message'] = (string) $message;
         }
-        if ($targetUser !== null && !$this->has('receiver_id')) {
-            $updates['receiver_id'] = $targetUser;
-        }
-        if ($targetUser !== null && !$this->has('recipient_id')) {
-            $updates['recipient_id'] = $targetUser;
+        if ($targetUser !== null) {
+            if (!$this->has('receiver_id')) {
+                $updates['receiver_id'] = $targetUser;
+            }
+            if (!$this->has('recipient_id')) {
+                $updates['recipient_id'] = $targetUser;
+            }
+            if (!$this->has('user_id')) {
+                $updates['user_id'] = $targetUser;
+            }
         }
 
         if (!empty($updates)) {

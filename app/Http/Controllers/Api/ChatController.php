@@ -107,7 +107,7 @@ class ChatController extends Controller
             }
 
             // Send message
-            $messageText = $request->message ?? ($request->text ?? $request->body);
+            $messageText = (string) ($request->message ?? ($request->text ?? ($request->body ?? ($request->content ?? ($request->msg ?? '')))));
             $message = $this->chatService->sendMessage(
                 $conversation,
                 $user,
