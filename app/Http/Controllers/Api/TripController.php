@@ -1026,7 +1026,8 @@ class TripController extends Controller
             }
 
             if ($hasPublishedTripAllowedSwapWindow) {
-                $publishedTripData['allowed_swap_window'] = $this->getRequestValue($request, 'swap_window', 'same_day');
+                $swapWindowVal = $this->getRequestValue($request, 'swap_window', $this->getRequestValue($request, 'allowed_swap_window', 'same_day'));
+                $publishedTripData['allowed_swap_window'] = ($swapWindowVal !== null && $swapWindowVal !== '') ? $swapWindowVal : 'same_day';
             }
 
             // ✅ NOW THIS WORKS because $hasPublishedTripIsUrgent is in the use statement
@@ -1171,6 +1172,7 @@ class TripController extends Controller
     $hasPublishedTripNotes = $this->hasColumn('published_trips', 'notes');
     $hasPublishedTripImage = $this->hasColumn('published_trips', 'image_path');
     $hasPublishedTripIsUrgent = $this->hasColumn('published_trips', 'is_urgent');
+    $hasPublishedTripAllowedSwapWindow = $this->hasColumn('published_trips', 'allowed_swap_window');
 
     try {
         // ✅ FIXED: Added $hasPublishedTripIsUrgent to the use statement
@@ -1183,7 +1185,8 @@ class TripController extends Controller
             $hasPublishedTripOfferLo, $hasPublishedTripAskLo,
             $hasPublishedTripDetails, $hasPublishedTripNotes,
             $hasPublishedTripImage,
-            $hasPublishedTripIsUrgent, // ✅ ADDED THIS
+            $hasPublishedTripIsUrgent,
+            $hasPublishedTripAllowedSwapWindow,
             $flightNumber, $publishedTrip, $existingFlight
         ) {
             $flightUpdateData = [
@@ -1284,9 +1287,13 @@ class TripController extends Controller
                 }
             }
 
-            // ✅ NOW THIS WORKS because $hasPublishedTripIsUrgent is in the use statement
             if ($hasPublishedTripIsUrgent) {
                 $publishedTripData['is_urgent'] = $this->getUpdateRequestValue($request, 'is_urgent', $publishedTrip->is_urgent ?? false);
+            }
+
+            if ($hasPublishedTripAllowedSwapWindow) {
+                $swapWindowVal = $this->getUpdateRequestValue($request, 'swap_window', $this->getUpdateRequestValue($request, 'allowed_swap_window', $publishedTrip->allowed_swap_window ?? 'same_day'));
+                $publishedTripData['allowed_swap_window'] = ($swapWindowVal !== null && $swapWindowVal !== '') ? $swapWindowVal : ($publishedTrip->allowed_swap_window ?? 'same_day');
             }
 
             $publishedTrip->update($publishedTripData);

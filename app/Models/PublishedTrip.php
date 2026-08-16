@@ -32,6 +32,11 @@ class PublishedTrip extends Model
         'is_urgent',
     ];
 
+    protected $attributes = [
+        'allowed_swap_window' => 'same_day',
+        'is_urgent' => false,
+    ];
+
     protected $casts = [
         'metadata' => 'array',
         'published_at' => 'datetime',
