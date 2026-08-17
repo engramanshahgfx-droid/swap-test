@@ -283,12 +283,12 @@ class BiometricAuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'biometric_login_enabled' => $user->biometric_login_enabled,
-                'face_id_enabled' => $user->face_id_enabled,
+                'biometric_login_enabled' => (bool) $user->biometric_login_enabled,
+                'face_id_enabled' => (bool) $user->face_id_enabled,
                 'has_4_digit_code' => !is_null($user->four_digit_code),
                 'device_id' => $user->device_id,
                 'setup_at' => $user->biometric_setup_at,
-                'locked' => $user->biometric_locked_until && $user->biometric_locked_until > now(),
+                'locked' => (bool) ($user->biometric_locked_until && $user->biometric_locked_until > now()),
                 'locked_until' => $user->biometric_locked_until,
                 'remaining_attempts' => $user->biometric_login_attempts < 5 ?
                     5 - $user->biometric_login_attempts : 0

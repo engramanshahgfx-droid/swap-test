@@ -92,6 +92,14 @@ class User extends Authenticatable implements FilamentUser
         'show_online_status',
         'allow_messages_from',
         'willing_fly_days',
+        'four_digit_code',
+        'face_id_enabled',
+        'biometric_public_key',
+        'device_id',
+        'biometric_login_enabled',
+        'biometric_setup_at',
+        'biometric_login_attempts',
+        'biometric_locked_until',
     ];
 
     protected $hidden = [
@@ -112,6 +120,10 @@ class User extends Authenticatable implements FilamentUser
         'show_online_status' => 'boolean',
         'is_permanent' => 'boolean',
         'willing_fly_days' => 'array',
+        'biometric_login_enabled' => 'boolean',
+        'face_id_enabled' => 'boolean',
+        'biometric_setup_at' => 'datetime',
+        'biometric_locked_until' => 'datetime',
     ];
 
     public function airline()
